@@ -43,7 +43,8 @@ export default defineConfig(async () => {
   const plugins = [vinext(), sites()];
 
   // The local validation path can skip Wrangler when its bundled import is
-  // unavailable on the host. Production builds retain the Cloudflare plugin.
+  // unavailable on the host. Production packaging always retains the
+  // Cloudflare plugin so the published Worker stays runtime-compatible.
   if (!process.env.SITES_LOCAL_BUILD) {
     const { cloudflare } = await import("@cloudflare/vite-plugin");
     plugins.push(
