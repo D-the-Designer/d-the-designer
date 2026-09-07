@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 
 const slides = [
-  { id: "hero-1", label: "Case Study 1", caption: "Drop hero image — Case Study 1" },
-  { id: "hero-2", label: "Case Study 2", caption: "Drop hero image — Case Study 2" },
-  { id: "hero-3", label: "Case Study 3", caption: "Drop hero image — Case Study 3" },
+  { id: "hero-1", label: "01 / 03", kicker: "Design systems", title: "Structure that survives contact with real work.", body: "Brand rules, visual language, and production logic built for teams that need to make consistently." },
+  { id: "hero-2", label: "02 / 03", kicker: "AI-native tools", title: "Small tools with a clear job to do.", body: "Focused browser utilities and reviewable AI workflows that keep the human decision visible." },
+  { id: "hero-3", label: "03 / 03", kicker: "Creative workflows", title: "Generative work with a memory.", body: "Prompts, references, and QA systems that make experiments repeatable instead of accidental." },
 ];
 
 export function HeroCarousel() {
@@ -24,7 +24,11 @@ export function HeroCarousel() {
     <section className="hero-carousel" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false); }} aria-label="Featured case studies">
       <div className="carousel-frame" aria-live="polite">
         {slides.map((slide, index) => <div key={slide.id} className={`carousel-slide ${index === active ? "is-active" : ""}`} aria-hidden={index !== active}>
-          <div className="image-slot" role="img" aria-label={slide.caption}><div className="slot-crosshair" aria-hidden="true" /><span>{slide.caption}</span></div>
+          <div className="hero-slide-content">
+            <div className="hero-slide-kicker">{slide.kicker}</div>
+            <h2>{slide.title}</h2>
+            <p>{slide.body}</p>
+          </div>
           <div className="slot-label">{slide.label}</div>
         </div>)}
       </div>
