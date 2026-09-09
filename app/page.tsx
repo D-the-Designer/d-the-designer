@@ -5,13 +5,20 @@ import { HeroCarousel } from "./components/HeroCarousel";
 export const metadata: Metadata = { title: "D The Designer — Design + AI systems", description: "Design and AI systems for creative teams building with generative tools." };
 
 const featured = [
+<<<<<<< HEAD
   { title: "Adobe Firefly / Make a Monster", category: "AI creative workflow", blurb: "A documented visual workflow spanning research, reference gathering, concept development, cross-model comparison, consistency management, and still-to-motion production.", live: "#make-a-monster" },
   { title: "Specimen 7-B", category: "Generative brand system", blurb: "A product and merchandise system built from a generated image, with KEEP / FIX / REJECT evaluation to turn exploration into controlled output.", live: "#specimen-7b" },
   { title: "Dead Carrier", category: "Interaction / creative technology", blurb: "An Infocom-style text adventure built with Claude — a working example of narrative systems, interface logic, and shipped interactive production.", live: "https://d-the-designer.github.io/Orphan-Sky-public-content/dead-carrier.html" },
+=======
+  { title: "Dead Carrier", blurb: "An Infocom-style text adventure, built with Claude — from opening sequence to full playable story.", live: "https://d-the-designer.github.io/Orphan-Sky-public-content/dead-carrier.html" },
+  { title: "Writer", blurb: "A local-first fiction studio with reviewable AI assistance — the manuscript stays primary, AI output is always a proposal.", live: "https://storyberth-studio.d-the-designer.chatgpt.site/" },
+  { title: "Morse Translator", blurb: "A small, focused browser tool for translating text to and from Morse code.", live: "https://d-the-designer.github.io/toys/morse-translator.html" },
+>>>>>>> github/main
 ];
 
 export default function Home() {
   return <SiteShell current="home"><PageFrame className="home-page">
+<<<<<<< HEAD
     <section className="identity-hero" aria-labelledby="identity-heading"><div className="identity-kicker">D THE DESIGNER</div><h1 id="identity-heading">Dreia Wilson</h1><p className="identity-title">Design Technologist &amp; Visual Systems Designer</p><p className="identity-disciplines">Graphic Design · UI/UX · AI Production · Creative Technology</p><p className="identity-proposition">I build visual systems and AI-assisted creative workflows from concept through production, testing, documentation, and delivery.</p><div className="button-row"><a className="primary-button" href="#selected-work">View selected work</a><a className="secondary-button" href="/contact">Contact me</a></div><p className="resume-note">Résumé available on request · Open to full-time, contract, and selected collaborations.</p></section>
     <HeroCarousel />
     <section className="credentials-strip" aria-label="Selected partnerships and programs"><div><strong>Adobe Firefly Ambassador</strong></div><div><strong>Creative Partner</strong><span>ImagineArt</span></div><div><strong>Creative Partner</strong><span>Pollo</span></div><div><strong>Creative Partner</strong><span>Vidu</span></div><div><strong>Inaugural Member</strong><span>Stages (The 100)</span></div></section>
@@ -22,3 +29,12 @@ export default function Home() {
 }
 
 function Capability({ title, children }: { title: string; children: string }) { return <article className="capability"><h3>{title}</h3><p>{children}</p></article>; }
+=======
+    <HeroCarousel />
+    <section className="home-headline"><h1>Design + AI systems for creative teams building with generative tools</h1><p>Brand systems, prompt engineering, and small AI-native tools — built and shipped, not just pitched.</p><div className="button-row"><a className="primary-button" href="/work">View Work</a><a className="secondary-button" href="/freebies">Browse Freebies</a></div></section>
+    <section className="credentials-strip" aria-label="Credentials"><div><strong>Adobe Ambassador</strong></div><div><strong>Creative Partner</strong><span>ImagineArt</span></div><div><strong>Creative Partner</strong><span>Pollo</span></div><div><strong>Creative Partner</strong><span>Vidu</span></div><div><strong>Inaugural Member</strong><span>Stages (The 100)</span></div></section>
+    <section className="home-section"><div className="section-heading"><h2>Featured Work</h2><ArrowLink href="/work" secondary>See all work</ArrowLink></div><div className="featured-grid">{featured.map((project) => <article className="featured-card" key={project.title}><h3>{project.title}</h3><p>{project.blurb}</p><div className="card-links"><a href={project.live} target="_blank" rel="noreferrer">Try it →</a><a href="/work" className="muted-link">Case study</a></div></article>)}</div></section>
+    <section className="freebie-teaser"><div><span className="eyebrow">Freebie</span><h2>AI Prompt Compendium</h2><p>A searchable library of working prompts, plus a blank version anyone can fill with their own — no install, works offline.</p></div><a className="primary-button" href="/freebies">See all freebies</a></section>
+  </PageFrame></SiteShell>;
+}
+>>>>>>> github/main

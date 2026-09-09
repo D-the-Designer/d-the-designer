@@ -8,9 +8,15 @@
   "scripts": {
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
     "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build && node scripts/ensure-worker-fetch.mjs",
+<<<<<<< HEAD
     "build:github": "tsx scripts/export-github-pages-fallback.tsx",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "test": "npm run build:github && node --test tests/rendered-html.test.mjs",
+=======
+    "build:github": "npm run build && node scripts/export-github-pages.mjs",
+    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
+    "test": "npm run build && node --test tests/rendered-html.test.mjs",
+>>>>>>> github/main
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },
