@@ -36,7 +36,14 @@ test("exports the career-conversion content", async () => {
   assert.match(about, /Earlier software QA/i);
 });
 
+test("keeps the public identity brand-first", async () => {
+  for (const route of ["index.html", "about/index.html", "contact/index.html"]) {
+    const html = await htmlFor(route);
+    assert.doesNotMatch(html, /Dreia Wilson/i, route);
+    assert.match(html, /D the Designer/i, route);
+  }
+});
+
 test("ships the supplied headshot asset", async () => {
   await access(new URL("public/headshot.jpg", new URL("../", import.meta.url)));
 });
-

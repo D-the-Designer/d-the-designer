@@ -18,8 +18,8 @@ const pages = [
   { path: "/", title: "D The Designer — Design + AI systems", description: "Design Technologist and Visual Systems Designer building visual systems and AI-assisted creative workflows." , Component: HomePage },
   { path: "/work", title: "Work — D The Designer", description: "Selected case studies and shipped tools from D The Designer.", Component: WorkPage },
   { path: "/freebies", title: "Freebies — D The Designer", description: "Free tools, GPTs, and downloads from D The Designer.", Component: FreebiesPage },
-  { path: "/about", title: "About — D The Designer", description: "About Dreia Wilson, Design Technologist and Visual Systems Designer.", Component: AboutPage },
-  { path: "/contact", title: "Contact — D The Designer", description: "Hire or contact Dreia Wilson, Design Technologist and Visual Systems Designer.", Component: ContactPage },
+  { path: "/about", title: "About — D The Designer", description: "About D the Designer, a Design Technologist and Visual Systems Designer.", Component: AboutPage },
+  { path: "/contact", title: "Contact — D The Designer", description: "Hire or contact D the Designer, a Design Technologist and Visual Systems Designer.", Component: ContactPage },
 ] as const;
 
 const carouselScript = `
