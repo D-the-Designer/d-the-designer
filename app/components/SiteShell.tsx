@@ -13,6 +13,7 @@ export const externalLinks = {
   instagram: "https://instagram.com/the_designer_called_d",
   x: "https://x.com/D_the_Designer",
   behance: "https://www.behance.net/dwilson3",
+  github: "https://github.com/D-the-Designer",
   blog: "https://dthedesigner.substack.com",
   email: "mailto:hello@d-the-designer.com",
 };
