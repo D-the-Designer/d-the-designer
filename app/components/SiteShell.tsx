@@ -13,10 +13,7 @@ export const externalLinks = {
   instagram: "https://instagram.com/the_designer_called_d",
   x: "https://x.com/D_the_Designer",
   behance: "https://www.behance.net/dwilson3",
-<<<<<<< HEAD
   github: "https://github.com/D-the-Designer",
-=======
->>>>>>> github/main
   blog: "https://dthedesigner.substack.com",
   email: "mailto:hello@d-the-designer.com",
 };
@@ -49,3 +46,4 @@ function SiteFooter() {
 export function PageFrame({ children, className = "" }: { children: ReactNode; className?: string }) { return <main className={`page-frame ${className}`}>{children}</main>; }
 export function ReviewNote({ children }: { children: ReactNode }) { return <div className="review-note"><span className="review-label">Review</span>{children}</div>; }
 export function ArrowLink({ href, children, secondary = false }: { href: string; children: ReactNode; secondary?: boolean }) { return <a className={`arrow-link ${secondary ? "secondary" : ""}`} href={href}>{children} <span aria-hidden="true">→</span></a>; }
+
