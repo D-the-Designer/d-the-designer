@@ -28,16 +28,57 @@ const carouselScript = `
   const root = document.querySelector('.hero-carousel');
   if (!root) return;
   const slides = [...root.querySelectorAll('.carousel-slide')];
+  if (!slides.length) return;
   const dots = [...root.querySelectorAll('.carousel-dots button')];
-  let active = 0;
+  const previous = root.querySelector('.previous');
+  const next = root.querySelector('.next');
+  const toggle = root.querySelector('.carousel-toggle');
+  const frame = root.querySelector('.carousel-frame');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let active = Math.max(0, slides.findIndex((slide) => slide.classList.contains('is-active')));
+  let paused = false;
+  let interacting = false;
+  let timer;
   const show = (next) => {
     active = (next + slides.length) % slides.length;
-    slides.forEach((slide, index) => { slide.classList.toggle('is-active', index === active); slide.setAttribute('aria-hidden', String(index !== active)); });
-    dots.forEach((dot, index) => { dot.classList.toggle('is-active', index === active); dot.setAttribute('aria-selected', String(index === active)); });
+    slides.forEach((slide, index) => {
+      const inactive = index !== active;
+      slide.classList.toggle('is-active', !inactive);
+      slide.setAttribute('aria-hidden', String(inactive));
+      slide.inert = inactive;
+    });
+    dots.forEach((dot, index) => {
+      const selected = index === active;
+      dot.classList.toggle('is-active', selected);
+      dot.setAttribute('aria-pressed', String(selected));
+    });
   };
-  root.querySelector('.previous')?.addEventListener('click', () => show(active - 1));
-  root.querySelector('.next')?.addEventListener('click', () => show(active + 1));
+  const updateTimer = () => {
+    window.clearInterval(timer);
+    if (frame) frame.setAttribute('aria-live', interacting || paused ? 'polite' : 'off');
+    if (toggle) {
+      toggle.textContent = paused ? 'Play' : 'Pause';
+      toggle.setAttribute('aria-pressed', String(paused));
+      toggle.setAttribute('aria-label', paused ? 'Resume automatic slide changes' : 'Pause automatic slide changes');
+      toggle.disabled = reducedMotion.matches;
+      if (reducedMotion.matches) toggle.textContent = 'Manual';
+    }
+    if (!paused && !interacting && !reducedMotion.matches) {
+      timer = window.setInterval(() => show(active + 1), 6500);
+    }
+  };
+  previous?.addEventListener('click', () => show(active - 1));
+  next?.addEventListener('click', () => show(active + 1));
   dots.forEach((dot, index) => dot.addEventListener('click', () => show(index)));
+  toggle?.addEventListener('click', () => { paused = !paused; updateTimer(); });
+  root.addEventListener('mouseenter', () => { interacting = true; updateTimer(); });
+  root.addEventListener('mouseleave', () => { interacting = false; updateTimer(); });
+  root.addEventListener('focusin', () => { interacting = true; updateTimer(); });
+  root.addEventListener('focusout', (event) => {
+    if (!root.contains(event.relatedTarget)) { interacting = false; updateTimer(); }
+  });
+  reducedMotion.addEventListener('change', updateTimer);
+  updateTimer();
 })();
 </script>`;
 
