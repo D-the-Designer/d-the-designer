@@ -53,3 +53,14 @@ h1,h2,h3,p { margin-top:0; }
 @media (max-width:720px) { .portfolio-nav { align-items:flex-start; }.portfolio-nav nav { gap:14px 20px; }.hero-carousel { padding-inline:16px; }.hero-carousel .carousel-arrow.previous { left:0; }.hero-carousel .carousel-arrow.next { right:0; }.carousel-frame { aspect-ratio:4/3; }.home-headline { margin-top:48px; padding-inline:20px; }.identity-hero { padding:52px 20px 40px; }.identity-hero h1 { font-size:48px; }.credentials-strip,.review-note { width:calc(100% - 40px); }.home-section,.subpage { padding-left:20px; padding-right:20px; }.home-section { margin-top:56px; }.capabilities-section { padding:24px 20px; }.section-aside { display:block; margin-top:-12px; margin-bottom:20px; }.capabilities-grid,.case-study-facts,.about-grid { grid-template-columns:1fr; }.freebie-teaser { margin-top:56px; padding:24px; }.case-study { padding:24px; }.case-study-facts p { font-size:1.08rem; }.contact-page { padding-top:48px; }.portfolio-footer { padding-inline:20px; } }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition-duration:.01ms!important; animation-duration:.01ms!important; animation-iteration-count:1!important; } }
 
+.case-study-gallery { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.case-study-gallery-single { grid-template-columns:minmax(0,380px); }
+.case-study-gallery figure { min-width:0; margin:0; overflow:hidden; background:var(--deep); border:1px solid var(--border); }
+.case-study-gallery img { display:block; width:100%; aspect-ratio:1; object-fit:cover; }
+.case-study-gallery figcaption { min-height:54px; padding:12px 14px; color:var(--muted); font-size:13px; line-height:1.45; }
+.case-study-actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px 18px; }
+.case-study-secondary { color:var(--body); font-size:14px; font-weight:700; text-transform:uppercase; }
+.case-study-disclosure { margin:0; color:var(--muted); font-size:13px; line-height:1.45; }
+
+@media (max-width:900px) { .case-study-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); }.case-study-gallery-single { grid-template-columns:minmax(0,380px); } }
+@media (max-width:720px) { .case-study-gallery,.case-study-gallery-single { grid-template-columns:1fr; }.case-study-gallery img { aspect-ratio:16/11; }.case-study-gallery figcaption { min-height:0; } }
