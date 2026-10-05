@@ -83,7 +83,7 @@ const carouselScript = `
 </script>`;
 
 function documentFor(page: (typeof pages)[number], body: string) {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${page.title}</title><meta name="description" content="${page.description}"><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="https://use.typekit.net/uam7agz.css"><style>${css}</style></head><body>${body}${carouselScript}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${page.title}</title><meta name="description" content="${page.description}"><link rel="icon" href="/favicon.svg?v=2"><link rel="stylesheet" href="https://use.typekit.net/uam7agz.css"><style>${css}</style></head><body>${body}${carouselScript}</body></html>`;
 }
 
 await rm(root, { recursive: true, force: true });
