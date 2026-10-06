@@ -57,11 +57,10 @@ const carouselScript = `
     window.clearInterval(timer);
     if (frame) frame.setAttribute('aria-live', interacting || paused ? 'polite' : 'off');
     if (toggle) {
-      toggle.textContent = paused ? 'Play' : 'Pause';
-      toggle.setAttribute('aria-pressed', String(paused));
-      toggle.setAttribute('aria-label', paused ? 'Resume automatic slide changes' : 'Pause automatic slide changes');
+      toggle.textContent = reducedMotion.matches ? 'Manual' : paused ? 'Play' : 'Pause';
+      toggle.setAttribute('aria-pressed', String(!reducedMotion.matches && paused));
+      toggle.setAttribute('aria-label', reducedMotion.matches ? 'Automatic slide changes are disabled by your reduced-motion setting' : paused ? 'Resume automatic slide changes' : 'Pause automatic slide changes');
       toggle.disabled = reducedMotion.matches;
-      if (reducedMotion.matches) toggle.textContent = 'Manual';
     }
     if (!paused && !interacting && !reducedMotion.matches) {
       timer = window.setInterval(() => show(active + 1), 6500);

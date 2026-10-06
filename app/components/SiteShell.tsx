@@ -21,10 +21,11 @@ export const externalLinks = {
 export function SiteShell({ current, children }: { current: PageKey; children: ReactNode }) {
   return (
     <div className="portfolio-shell">
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       <header className="portfolio-nav">
-        <a className="portfolio-logo" href="/" aria-label="D the Designer home">D the Designer</a>
+        <a className="portfolio-logo" href="/" aria-label="D the Designer home" aria-current={current === "home" ? "page" : undefined}>D the Designer</a>
         <nav aria-label="Primary navigation">
-          {navItems.map((item) => <a key={item.key} className={current === item.key ? "is-current" : ""} href={item.href}>{item.label}</a>)}
+          {navItems.map((item) => <a key={item.key} className={current === item.key ? "is-current" : ""} href={item.href} aria-current={current === item.key ? "page" : undefined}>{item.label}</a>)}
           <a href={externalLinks.blog} target="_blank" rel="noreferrer">Substack</a>
         </nav>
       </header>
@@ -43,7 +44,6 @@ function SiteFooter() {
   );
 }
 
-export function PageFrame({ children, className = "" }: { children: ReactNode; className?: string }) { return <main className={`page-frame ${className}`}>{children}</main>; }
+export function PageFrame({ children, className = "" }: { children: ReactNode; className?: string }) { return <main id="main-content" tabIndex={-1} className={`page-frame ${className}`}>{children}</main>; }
 export function ReviewNote({ children }: { children: ReactNode }) { return <div className="review-note"><span className="review-label">Review</span>{children}</div>; }
 export function ArrowLink({ href, children, secondary = false }: { href: string; children: ReactNode; secondary?: boolean }) { return <a className={`arrow-link ${secondary ? "secondary" : ""}`} href={href}>{children} <span aria-hidden="true">→</span></a>; }
-

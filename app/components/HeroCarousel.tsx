@@ -45,12 +45,21 @@ export function HeroCarousel() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [interacting, setInteracting] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || paused || interacting) return;
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setReducedMotion(preference.matches);
+    updatePreference();
+    preference.addEventListener("change", updatePreference);
+    return () => preference.removeEventListener("change", updatePreference);
+  }, []);
+
+  useEffect(() => {
+    if (reducedMotion || paused || interacting) return;
     const interval = window.setInterval(() => setActive((current) => (current + 1) % slides.length), 6500);
     return () => window.clearInterval(interval);
-  }, [interacting, paused]);
+  }, [interacting, paused, reducedMotion]);
 
   const move = (direction: number) => setActive((current) => (current + direction + slides.length) % slides.length);
 
@@ -63,6 +72,8 @@ export function HeroCarousel() {
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setInteracting(false);
       }}
+      role="region"
+      aria-roledescription="carousel"
       aria-label="Featured work"
     >
       <div className="carousel-frame" aria-live={interacting || paused ? "polite" : "off"}>
@@ -71,6 +82,9 @@ export function HeroCarousel() {
             key={slide.id}
             id={`carousel-${slide.id}`}
             className={`carousel-slide ${index === active ? "is-active" : ""}`}
+            role="group"
+            aria-roledescription="slide"
+            aria-label={`${slide.title}, ${index + 1} of ${slides.length}`}
             aria-hidden={index !== active}
             inert={index !== active}
           >
@@ -79,7 +93,7 @@ export function HeroCarousel() {
             </div>
             <div className="hero-slide-content">
               <div className="hero-slide-kicker">{slide.kicker}</div>
-              <h2>{slide.title}</h2>
+              <p className="hero-slide-title">{slide.title}</p>
               <p>{slide.body}</p>
               <a className="hero-slide-link" href={slide.href}>Explore this project <span aria-hidden="true">→</span></a>
             </div>
@@ -88,6 +102,16 @@ export function HeroCarousel() {
         ))}
       </div>
       <div className="carousel-controls" role="group" aria-label="Carousel controls">
+        <button
+          className="carousel-toggle"
+          type="button"
+          aria-pressed={!reducedMotion && paused}
+          aria-label={reducedMotion ? "Automatic slide changes are disabled by your reduced-motion setting" : paused ? "Resume automatic slide changes" : "Pause automatic slide changes"}
+          disabled={reducedMotion}
+          onClick={() => setPaused((current) => !current)}
+        >
+          {reducedMotion ? "Manual" : paused ? "Play" : "Pause"}
+        </button>
         <button className="carousel-arrow previous" type="button" aria-label="Previous project" onClick={() => move(-1)}>‹</button>
         <div className="carousel-dots" role="group" aria-label="Choose a featured project">
           {slides.map((slide, index) => (
@@ -102,15 +126,6 @@ export function HeroCarousel() {
           ))}
         </div>
         <button className="carousel-arrow next" type="button" aria-label="Next project" onClick={() => move(1)}>›</button>
-        <button
-          className="carousel-toggle"
-          type="button"
-          aria-pressed={paused}
-          aria-label={paused ? "Resume automatic slide changes" : "Pause automatic slide changes"}
-          onClick={() => setPaused((current) => !current)}
-        >
-          {paused ? "Play" : "Pause"}
-        </button>
       </div>
     </section>
   );
