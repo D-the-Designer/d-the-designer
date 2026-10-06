@@ -3,7 +3,7 @@ import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const root = new URL("../github-pages/", import.meta.url);
-const routes = ["index.html", "work/index.html", "freebies/index.html", "about/index.html", "contact/index.html"];
+const routes = ["index.html", "work/index.html", "freebies/index.html", "about/index.html", "contact/index.html", "support/index.html"];
 
 async function htmlFor(route) {
   return readFile(new URL(route, root), "utf8");
@@ -13,9 +13,16 @@ test("exports every portfolio route as static HTML", async () => {
   for (const route of routes) {
     const html = await htmlFor(route);
     assert.match(html, /D THE DESIGNER/i, route);
-    assert.match(html, /Design Technologist|Dreia Wilson/i, route);
     assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/i, route);
+    assert.doesNotMatch(html, /ko-fi\.com\/dthedesigner/i, route);
   }
+});
+
+test("keeps support links on the site and off the retiring handle", async () => {
+  const home = await htmlFor("index.html");
+  const support = await htmlFor("support/index.html");
+  assert.match(home, /href="\/support"/);
+  assert.match(support, /href="https:\/\/ko-fi\.com\/W7W51H0316\/\?hidefeed=true&amp;widget=true&amp;embed=true"/);
 });
 
 test("exports the career-conversion content", async () => {

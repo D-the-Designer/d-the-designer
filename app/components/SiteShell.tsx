@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 
-export type PageKey = "home" | "work" | "freebies" | "about" | "contact";
+export type PageKey = "home" | "work" | "freebies" | "about" | "contact" | "support";
 
 const navItems: Array<{ key: PageKey; label: string; href: string }> = [
   { key: "work", label: "Work", href: "/work" },
   { key: "freebies", label: "Freebies", href: "/freebies" },
   { key: "about", label: "About", href: "/about" },
+  { key: "support", label: "Support", href: "/support" },
   { key: "contact", label: "Contact", href: "/contact" },
 ];
 
@@ -14,7 +15,6 @@ export const externalLinks = {
   x: "https://x.com/D_the_Designer",
   behance: "https://www.behance.net/dwilson3",
   github: "https://github.com/D-the-Designer",
-  kofi: "https://ko-fi.com/dthedesigner",
   email: "mailto:hello@d-the-designer.com",
 };
 
@@ -38,7 +38,7 @@ function SiteFooter() {
   return (
     <footer className="portfolio-footer">
       <div className="footer-pages"><a href="/">Home</a>{navItems.map((item) => <a key={item.key} href={item.href}>{item.label}</a>)}</div>
-      <div className="footer-socials"><a href={externalLinks.instagram} target="_blank" rel="noreferrer">Instagram</a><a href={externalLinks.x} target="_blank" rel="noreferrer">X</a><a href={externalLinks.behance} target="_blank" rel="noreferrer">Behance</a><a href={externalLinks.kofi} target="_blank" rel="noreferrer">Support on Ko-fi</a><a href={externalLinks.email}>hello@d-the-designer.com</a></div>
+      <div className="footer-socials"><a href={externalLinks.instagram} target="_blank" rel="noreferrer">Instagram</a><a href={externalLinks.x} target="_blank" rel="noreferrer">X</a><a href={externalLinks.behance} target="_blank" rel="noreferrer">Behance</a><a href="/support">Support</a><a href={externalLinks.email}>hello@d-the-designer.com</a></div>
     </footer>
   );
 }
