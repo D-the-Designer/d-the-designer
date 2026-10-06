@@ -14,7 +14,6 @@ export const externalLinks = {
   x: "https://x.com/D_the_Designer",
   behance: "https://www.behance.net/dwilson3",
   github: "https://github.com/D-the-Designer",
-  blog: "https://dthedesigner.substack.com",
   email: "mailto:hello@d-the-designer.com",
 };
 
@@ -26,7 +25,6 @@ export function SiteShell({ current, children }: { current: PageKey; children: R
         <a className="portfolio-logo" href="/" aria-label="D the Designer home" aria-current={current === "home" ? "page" : undefined}>D the Designer</a>
         <nav aria-label="Primary navigation">
           {navItems.map((item) => <a key={item.key} className={current === item.key ? "is-current" : ""} href={item.href} aria-current={current === item.key ? "page" : undefined}>{item.label}</a>)}
-          <a href={externalLinks.blog} target="_blank" rel="noreferrer">Substack</a>
         </nav>
       </header>
       {children}
