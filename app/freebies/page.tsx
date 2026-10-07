@@ -4,7 +4,6 @@ import { PageFrame, SiteShell } from "../components/SiteShell";
 export const metadata: Metadata = { title: "Freebies — D The Designer", description: "Free tools, GPTs, and downloads from D The Designer." };
 type Freebie = { title: string; body: string; href: string; action: string };
 const tools: Freebie[] = [
-  { title: "Writer", body: "Local-first fiction studio with reviewable AI assistance.", href: "https://storyberth-studio.d-the-designer.chatgpt.site/", action: "Open tool →" },
   { title: "Common Clip", body: "License-safe stock images from Wikimedia Commons — with copy-paste attribution and metadata preserved on every image. Follow @D_the_Designer for the beta link.", href: "https://x.com/D_the_Designer", action: "Follow project updates →" },
   { title: "Morse Translator", body: "Translate text to and from Morse code in the browser.", href: "https://d-the-designer.github.io/toys/morse-translator.html", action: "Open tool →" },
   { title: "AI Prompt Compendium", body: "Searchable prompt library with per-prompt copy buttons.", href: "https://d-the-designer.github.io/prompt-compendium/", action: "Open tool →" },
