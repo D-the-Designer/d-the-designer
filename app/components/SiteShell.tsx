@@ -13,7 +13,6 @@ const navItems: Array<{ key: PageKey; label: string; href: string }> = [
 export const externalLinks = {
   instagram: "https://instagram.com/the_designer_called_d",
   x: "https://x.com/D_the_Designer",
-  behance: "https://www.behance.net/dwilson3",
   github: "https://github.com/D-the-Designer",
   email: "mailto:hello@d-the-designer.com",
 };
@@ -38,7 +37,7 @@ function SiteFooter() {
   return (
     <footer className="portfolio-footer">
       <div className="footer-pages"><a href="/">Home</a>{navItems.map((item) => <a key={item.key} href={item.href}>{item.label}</a>)}</div>
-      <div className="footer-socials"><a href={externalLinks.instagram} target="_blank" rel="noreferrer">Instagram</a><a href={externalLinks.x} target="_blank" rel="noreferrer">X</a><a href={externalLinks.behance} target="_blank" rel="noreferrer">Behance</a><a href="/support">Support</a><a href={externalLinks.email}>hello@d-the-designer.com</a></div>
+      <div className="footer-socials"><a href={externalLinks.instagram} target="_blank" rel="noreferrer">Instagram</a><a href={externalLinks.x} target="_blank" rel="noreferrer">X</a><a href="/support">Support</a><a href={externalLinks.email}>hello@d-the-designer.com</a></div>
     </footer>
   );
 }
