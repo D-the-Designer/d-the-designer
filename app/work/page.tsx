@@ -158,7 +158,7 @@ const selectedProjects: Project[] = [
     problem: "How do you keep a large fictional world visually coherent across interfaces, artifacts, moving image, and narrative material?",
     method: "Visual grammar → interface language → design bible → artifacts → production pipeline → consistency review.",
     result: "A sustained worldbuilding practice framed as creative direction and transmedia systems, not as a standalone fictional universe.",
-    live: "https://d-the-designer.github.io/Orphan-Sky-public-content/",
+    live: "https://github.com/D-the-Designer/Orphan-Sky-public-content",
   },
   {
     id: "tools",
@@ -167,8 +167,8 @@ const selectedProjects: Project[] = [
     role: "Interface design, visual communication, and delivery",
     problem: "How do you make a small tool or visual system understandable, usable, and ready to leave the desktop?",
     method: "Information hierarchy → interface behavior → accessibility → implementation → testing → handoff.",
-    result: "A body of shipped browser tools, identity, layout, UI, print, and documentation work available across the live tools and Behance archive.",
-    live: externalLinks.behance,
+    result: "A body of shipped browser tools, identity, layout, UI, print, and documentation work represented by live tools and selected case studies on this site.",
+    live: externalLinks.github,
   },
 ];
 
@@ -231,7 +231,7 @@ export default function WorkPage() {
             <h1>Selected work</h1>
             <p className="subpage-dek">Four Adobe Firefly Ambassador projects, with visual process samples, full carousel PDFs, and links to the original campaign threads.</p>
           </div>
-          <a href={externalLinks.behance} target="_blank" rel="noreferrer">See more on Behance →</a>
+          <a href={externalLinks.github} target="_blank" rel="noreferrer">See current public projects on GitHub →</a>
         </div>
         <div className="case-study-list">
           {ambassadorProjects.map((project) => <ProjectCard key={project.id} project={project} />)}
