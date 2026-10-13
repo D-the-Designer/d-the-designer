@@ -99,6 +99,9 @@ textarea{width:100%;min-height:130px;background:var(--raise);border:1px solid va
 .hint{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:11px;color:var(--muted);pointer-events:none}
 .recbadge{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;font-weight:600;font-size:12px;padding:4px 10px;border-radius:99px}
 .timeline{grid-column:2;grid-row:3;border-top:1px solid var(--rule);background:var(--panel);display:flex;align-items:center;gap:12px;padding-inline:14px;min-width:0}
+.tlLabel{display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:0;background:none;cursor:pointer;color:var(--ink);max-width:150px;padding:0;text-align:left}
+.tlLabel #tlName{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.tlLabel:hover #tlName{color:var(--blue)}
 .tc{font-family:var(--font-num);font-size:12px;font-variant-numeric:tabular-nums;min-width:96px}
 .scrub{flex:1;position:relative;min-width:60px}
 .keys{position:absolute;inset:0;pointer-events:none}
@@ -151,6 +154,7 @@ input[type=color]{width:100%;height:26px;border:1px solid var(--rule);border-rad
   </main>
 
   <div class="timeline">
+    <button class="tlLabel" id="tlLabel" title="Open the Clip tab"><span class="lbl">Clip</span><span id="tlName">Not saved</span></button>
     <button class="play" id="playBtn" aria-label="Play clip"><svg viewBox="0 0 14 14" id="playIcon"><path d="M3 1.5v11l9-5.5z"/></svg></button>
     <div class="tc" id="tc">00:00:00:00</div>
     <div class="scrub"><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Clip time"><div class="keys" id="keys"></div></div>
@@ -366,7 +370,7 @@ const PART_IDS=[
   ['thL','thL','cap'],['shinL','shinL','cap'],['ftL','ftL','cap'],['thR','thR','cap'],['shinR','shinR','cap'],['ftR','ftR','cap'],['pyL','shinL','cyl'],['pyR','shinR','cyl']
 ].map(a=>({id:a[0],j:a[1],sh:a[2]}));
 const CYL=new THREE.CylinderGeometry(0.5,0.5,1,8);
-const BODY_KEYS=[['height','Height'],['build','Build'],['muscle','Muscle'],['shoulders','Shoulders'],['bust','Chest / bust'],['waist','Waist'],['hips','Hips'],['glutes','Glutes'],['legs','Leg length'],['arms','Arm length'],['head','Head size']];
+const BODY_KEYS=[['height','Height'],['build','Build'],['muscle','Muscle'],['shoulders','Shoulders'],['bust','Chest / bust'],['waist','Waist'],['belly','Belly'],['hips','Hips'],['glutes','Glutes'],['legs','Leg length'],['arms','Arm length'],['head','Head size']];
 const BODY_PRESETS={
   Average:{height:.5,build:.4,muscle:.3,shoulders:.5,bust:.25,waist:.45,hips:.5,glutes:.4,legs:.5,arms:.5,head:.5},
   Slender:{height:.55,build:.1,muscle:.15,shoulders:.4,bust:.15,waist:.25,hips:.4,glutes:.3,legs:.6,arms:.55,head:.5},
@@ -398,8 +402,10 @@ const BODY_GROUPS=[['Common',['Average','Slender','Athletic','Muscular','Curvy',
   ['Distinct',['Elderly','Bodybuilder','Large','Very large','Voluptuous','Pear','Apple','Lanky','Very tall','Giant','Little person','Big-head stylized']],
   ['Young',['Teen','Child','Toddler','Infant']]];
 const isKid=b=>!!b.kid;
-const KID_FAT={build:1,waist:1};
-const BODY_MAX={bust:2.5,build:2.2,waist:2.2,hips:1.8,glutes:2,muscle:1.4};
+{const BELLY={Average:.15,Slender:0,Athletic:0,Muscular:0,Curvy:.2,Heavyset:1.0,Stocky:.5,'Tall & lean':0,Petite:0,Elderly:.5,Bodybuilder:0,Large:1.3,Pear:.4,Apple:1.4,Lanky:0,'Very tall':.1,Giant:.6,'Little person':.3,'Big-head stylized':.1,Voluptuous:.3,'Very large':2.0,Teen:0,Child:.2,Toddler:.6,Infant:.8};
+ Object.keys(BELLY).forEach(k=>{if(BODY_PRESETS[k])BODY_PRESETS[k].belly=BELLY[k];});}
+const KID_FAT={build:1,waist:1,belly:1};
+const BODY_MAX={belly:2.5,bust:2.5,build:2.2,waist:2.2,hips:1.8,glutes:2,muscle:1.4};
 const LIMB_OPTS={arm:[['full','Full'],['below','Below elbow'],['above','Above elbow']],leg:[['full','Full'],['prosBelow','Prosthetic, below knee'],['below','Below knee'],['above','Above knee']]};
 function layout(b){
   const sc=b.scale||1,kid=!!b.kid;
@@ -430,8 +436,8 @@ function layout(b){
   const bx_=Math.max(0.062*H,bR*0.82), by_=0.13*H-Math.max(0,bR-0.08*H)*0.55, bz_=d.chestD*0.34+Math.max(0,bR-0.08*H)*0.35;
   P.bustL={p:[bx_,by_,bz_],s:[bR*2,bR*1.9,bR*1.8],hide:kid||b.bust<0.06};
   P.bustR={p:[-bx_,by_,bz_],s:[bR*2,bR*1.9,bR*1.8],hide:kid||b.bust<0.06};
-  const fat=Math.max(0,W-0.55)+Math.max(0,b.waist-0.8)*0.6, beR=(0.07+0.11*fat)*H;
-  P.belly={p:[0,0.06*H-fat*0.02*H,d.absD*0.3+beR*0.3],s:[beR*2.2,beR*1.9,beR*1.9],hide:fat<0.08};
+  const bel=b.belly!=null?b.belly:(Math.max(0,W-0.55)+Math.max(0,b.waist-0.8)*0.6)*1.6, beR=(0.06+0.06*bel)*H;
+  P.belly={p:[0,0.06*H-bel*0.012*H,d.absD*0.28+beR*0.32],s:[beR*2.2,beR*1.9,beR*1.9],hide:bel<0.1};
   P.neck={p:[0,0.05*H,0],s:cs(d.nw,0.15*H,d.nw*0.95)};
   P.head={p:[0,0.11*H,0.01*H],s:[0.175*H*hs,0.235*H*hs,0.205*H*hs]};
   P.nose={p:[0,0.095*H*hs,0.1*H*hs+0.004],s:[0.028*H,0.045*H,0.04*H]};
@@ -1400,7 +1406,7 @@ function resolvePose(spec){
 const S={figures:[],props:[],selFig:null,selJoint:null,selProp:null,style:'clean',aspect:'16:9',
   look:{line:1.5,detail:0.45,steps:2,fill:'#d6d6d2',figColors:'per',paper:'#ffffff',ink:'#16181b',dot:7,shadows:true,lightAz:35,lightEl:52,thirds:true,grid:true},
   rig:{target:new V3(0,1,0),yaw:0.55,pitch:0.04,dist:5,focal:35,roll:0},ortho:false,camCur:null,camOverride:false,shotTag:null,
-  playing:false,time:0,exporting:false,exp:{long:1536,transparent:false},leftTab:'Poses',rightTab:'Body',poseCat:'Rifle',propCat:'Ranged',poseQuery:''};
+  playing:false,time:0,exporting:false,clips:[],activeClip:null,exp:{long:1536,transparent:false},leftTab:'Poses',rightTab:'Body',poseCat:'Rifle',propCat:'Ranged',poseQuery:''};
 const clip={dur:4,fps:24,ease:'inout',move:'static',amt:0.5,shake:0,follow:false,loop:true,start:null,end:null,motions:{},baseCam:null};
 const ASPECTS={'16:9':16/9,'9:16':9/16,'1:1':1,'4:5':4/5,'2.39:1':2.39,'4:3':4/3};
 
@@ -1600,9 +1606,9 @@ function offset(b,axis,amt){const c=cp(b);const P=new V3().fromArray(c.pos),T=ne
   c.pos=P.add(v).toArray();c.tgt=T.add(v).toArray();return c;}
 function lerpCam(a,b,u){return {pos:a.pos.map((v,i)=>lerp(v,b.pos[i],u)),tgt:a.tgt.map((v,i)=>lerp(v,b.tgt[i],u)),focal:lerp(a.focal,b.focal,u),roll:lerp(a.roll,b.roll,u)};}
 function snap(){
-  return {figs:S.figures.map(f=>({id:f.id,q:JOINTS.map(n=>f.j[n].quaternion.toArray()),pos:f.base.position.toArray(),yaw:f.base.rotation.y})),cam:cp(S.camCur)};
+  return {figs:S.figures.map(f=>({id:f.id,q:JOINTS.map(n=>f.j[n].quaternion.toArray()),pos:f.base.position.toArray(),yaw:f.base.rotation.y,lift:f.lift,ga:!!f.groundAll})),cam:cp(S.camCur)};
 }
-const MOTIONS={none:'None',walk:'Walk forward',run:'Run forward',walkInPlace:'Walk in place',turn:'Turn around',idle:'Idle breathing'};
+const MOTIONS={none:'None',walk:'Walk forward',run:'Run forward',walkInPlace:'Walk in place',turn:'Turn around',idle:'Idle breathing',wave:'Wave',nod:'Nod yes',shake:'Shake head no',look:'Look around',jump:'Jump',punch:'Punch combo',kick:'Kick',clap:'Clap',sway:'Dance sway',sit:'Sit down',stand:'Stand up',fall:'Fall backward',bow:'Bow'};
 function applyMotion(f,kind,t,a){
   if(!kind||kind==='none') return;
   const J_=(n,x,y,z)=>{f.j[n].rotation.set((x||0)*D2R,(y||0)*D2R,(z||0)*D2R);};
@@ -1621,6 +1627,33 @@ function applyMotion(f,kind,t,a){
     if(kind!=='walkInPlace'){const sp=(run?3.4:1.3)*t;const fw=new V3(Math.sin(a.yaw),0,Math.cos(a.yaw));f.base.position.set(a.pos[0]+fw.x*sp,0,a.pos[2]+fw.z*sp);}
   } else if(kind==='turn'){ f.base.rotation.y=a.yaw+Math.PI*EASE.inout(clamp(t/clip.dur,0,1)); }
   else if(kind==='idle'){ f.j.chest.rotation.x+=Math.sin(t*2*Math.PI*0.28)*1.6*D2R; f.j.head.rotation.x+=Math.sin(t*2*Math.PI*0.28+1)*1.2*D2R; }
+  else {
+    const u=clamp(t/clip.dur,0,1), W2=2*Math.PI, sm=x=>x*x*(3-2*x), env=Math.min(1,u*5,(1-u)*5);
+    if(kind==='wave'){ if(!ikR){J_('uaR',-10,0,-145+14*Math.sin(W2*1.6*t)*env);J_('faR',-25,0,0);} f.j.head.rotation.z=-6*D2R*env; }
+    else if(kind==='nod'){ f.j.head.rotation.x=(10+12*Math.sin(W2*1.6*t))*D2R*env; }
+    else if(kind==='shake'){ f.j.head.rotation.y=28*Math.sin(W2*1.4*t)*D2R*env; }
+    else if(kind==='look'){ f.j.head.rotation.y=55*Math.sin(W2*0.3*t)*D2R; f.j.chest.rotation.y=18*Math.sin(W2*0.3*t-0.4)*D2R; f.j.head.rotation.x=-8*Math.sin(W2*0.6*t)*D2R; }
+    else if(kind==='jump'){ const ph=clamp((u-0.25)/0.5,0,1), air=Math.sin(Math.PI*ph), crouch=u<0.25?sm(u/0.25):u>0.75?sm((1-u)/0.25):0;
+      f.lift=air*0.55; const k=crouch*60+air*35;
+      J_('thL',-k*0.9,0,4);J_('thR',-k*0.9,0,-4);J_('shinL',k*1.4);J_('shinR',k*1.4);J_('ftL',-k*0.4);J_('ftR',-k*0.4);f.j.spine.rotation.x=crouch*25*D2R;
+      if(!ikL){J_('uaL',crouch*40-air*150,0,10);J_('faL',-20);} if(!ikR){J_('uaR',crouch*40-air*150,0,-10);J_('faR',-20);} }
+    else if(kind==='punch'){ const ph=(t*2.2)%1, hit=Math.sin(Math.PI*clamp(ph*1.6,0,1)), side=Math.floor(t*2.2)%2;
+      J_('thL',-14,0,5);J_('shinL',16);J_('thR',10,0,-6);J_('shinR',12);f.j.hips.rotation.y=(side?-14:14)*hit*D2R;
+      const ext=(sd,on)=>{const e=on?hit:0;J_('ua'+sd,-40-50*e,0,sd==='L'?14-10*e:-14+10*e);J_('fa'+sd,-110+105*e,0,0);};
+      if(!ikL)ext('L',side===0); if(!ikR)ext('R',side===1); }
+    else if(kind==='kick'){ const e=Math.sin(Math.PI*u); J_('thR',-95*e,0,-4);J_('shinR',90*(1-e)*e*2+10);J_('ftR',30*e);f.j.spine.rotation.x=-12*e*D2R;
+      if(!ikL){J_('uaL',-40,0,20);J_('faL',-80);} if(!ikR){J_('uaR',20*e,0,-30);J_('faR',-60);} }
+    else if(kind==='clap'){ const c=Math.abs(Math.sin(W2*1.5*t)); if(!ikL){J_('uaL',-55,-30*c,8+18*c);J_('faL',-70,0,0);} if(!ikR){J_('uaR',-55,30*c,-8-18*c);J_('faR',-70,0,0);} }
+    else if(kind==='sway'){ const s1=Math.sin(W2*0.9*t); f.j.hips.rotation.z=6*s1*D2R; f.j.hips.rotation.y=8*s1*D2R; f.j.chest.rotation.z=-8*s1*D2R; f.j.head.rotation.z=5*s1*D2R;
+      J_('thL',-8-8*Math.max(0,s1),0,4);J_('shinL',12+16*Math.max(0,s1));J_('thR',-8-8*Math.max(0,-s1),0,-4);J_('shinR',12+16*Math.max(0,-s1));
+      if(!ikL){J_('uaL',-30-20*s1,0,30);J_('faL',-60);} if(!ikR){J_('uaR',-30+20*s1,0,-30);J_('faR',-60);} }
+    else if(kind==='sit'||kind==='stand'){ const e=sm(kind==='sit'?u:1-u); J_('thL',-95*e,0,5);J_('thR',-95*e,0,-5);J_('shinL',100*e);J_('shinR',100*e);J_('ftL',-5*e);J_('ftR',-5*e);
+      f.j.spine.rotation.x=(Math.sin(Math.PI*e)*25)*D2R; if(!ikL){J_('uaL',-40*e,0,8);J_('faL',-40*e);} if(!ikR){J_('uaR',-40*e,0,-8);J_('faR',-40*e);} }
+    else if(kind==='fall'){ const e=sm(u); f.j.hips.rotation.x=-88*e*D2R; f.j.spine.rotation.x=-10*e*D2R; f.j.head.rotation.x=(20*e)*D2R;
+      J_('thL',-30*Math.sin(Math.PI*e),0,6*e);J_('thR',-15*Math.sin(Math.PI*e),0,-6*e);J_('shinL',50*Math.sin(Math.PI*e));J_('shinR',30*Math.sin(Math.PI*e));
+      if(!ikL){J_('uaL',-60*e,0,40+40*e);J_('faL',-30);} if(!ikR){J_('uaR',-60*e,0,-40-40*e);J_('faR',-30);} f.groundAll=true; }
+    else if(kind==='bow'){ const e=Math.sin(Math.PI*u); f.j.spine.rotation.x=40*e*D2R; f.j.chest.rotation.x=10*e*D2R; f.j.head.rotation.x=10*e*D2R; }
+  }
 }
 function evalClip(t){
   const A=clip.start,B=clip.end; if(!A) return;
@@ -1631,6 +1664,7 @@ function evalClip(t){
     JOINTS.forEach((n,i)=>{qa.fromArray(a.q[i]);if(b){qb.fromArray(b.q[i]);qa.slerp(qb,u);}f.j[n].quaternion.copy(qa);});
     if(b){f.base.position.set(lerp(a.pos[0],b.pos[0],u),0,lerp(a.pos[2],b.pos[2],u));let dy=b.yaw-a.yaw;while(dy>Math.PI)dy-=2*Math.PI;while(dy<-Math.PI)dy+=2*Math.PI;f.base.rotation.y=a.yaw+dy*u;}
     else {f.base.position.set(a.pos[0],0,a.pos[2]);f.base.rotation.y=a.yaw;}
+    if(a.lift!=null)f.lift=a.lift; f.groundAll=!!a.ga;
     applyMotion(f,clip.motions[f.id],t,a);
   }
   const base=A.cam; let cam=(clip.move==='keyed')?(B?lerpCam(A.cam,B.cam,u):cp(base)):MOVES[clip.move][1](base,u,clip.amt);
@@ -1648,6 +1682,7 @@ function setPlaying(on){
 }
 function timecode(t){const fps=clip.fps;const fr=Math.floor(t*fps+1e-6);const ff=fr%fps,ss=Math.floor(fr/fps)%60,mm=Math.floor(fr/fps/60);return ['00',String(mm).padStart(2,'0'),String(ss).padStart(2,'0'),String(ff).padStart(2,'0')].join(':');}
 function updateTimeline(){
+  const tn=document.getElementById('tlName'); if(tn){const ac=S.clips.find(c=>c.id===S.activeClip); tn.textContent=ac?ac.name:(clip.start?'Unsaved clip':'No keys yet');}
   document.getElementById('tc').textContent=timecode(S.time)+'';
   document.getElementById('scrub').value=String(Math.round(S.time/clip.dur*1000));
   const keys=document.getElementById('keys');keys.innerHTML='';
@@ -2011,6 +2046,20 @@ function panelLook(){
 }
 function panelClip(){
   const f=S.selFig;
+  const nameIn=h('input',{class:'search',id:'clipName',placeholder:'Clip name (optional)','aria-label':'Clip name'});
+  const list=h('div',{class:'list'});
+  if(!S.clips.length) list.appendChild(h('p',{class:'note'},'No saved clips yet. Set up a move below and save it, or add a coverage set: eight camera moves from the current framing in one click.'));
+  S.clips.forEach((c,i)=>{const row=h('div',{class:'item','aria-pressed':String(S.activeClip===c.id)},
+    h('span',{style:'flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'},c.name),
+    h('button',{class:'btn small',onclick:e=>{e.stopPropagation();loadClip(c);setPlaying(true);renderRight();}},'Play'),
+    h('button',{class:'btn small',onclick:e=>{e.stopPropagation();loadClip(c);exportVideo();}},'Video'),
+    h('button',{class:'btn small rec','aria-label':'Delete clip '+c.name,onclick:e=>{e.stopPropagation();S.clips.splice(i,1);if(S.activeClip===c.id)S.activeClip=null;renderRight();updateTimeline();}},'×'));
+    row.addEventListener('click',()=>{loadClip(c);renderRight();});list.appendChild(row);});
+  rightPane.append(sec('Saved clips',list,nameIn,h('div',{class:'btnrow'},
+    h('button',{class:'btn primary',onclick:()=>{saveClip(nameIn.value);}},'Save this clip'),
+    h('button',{class:'btn',onclick:addCoverage},'Add coverage set'),
+    S.clips.length?h('button',{class:'btn',onclick:()=>exportAllClips()},'Export all (.zip)'):null),
+    h('p',{class:'note'},'Saved clips keep their start and end keys, camera move and figure motions. They are saved inside the scene file.')));
   rightPane.append(sec('Timing',
     slider('Duration',1,12,0.5,clip.dur,v=>v.toFixed(1)+'s',v=>{clip.dur=v;updateTimeline();}),
     h('div',{class:'row'},h('label',{for:'fpsSel'},'Frame rate'),(()=>{const s=h('select',{id:'fpsSel'},[24,25,30].map(v=>h('option',{value:v},v+' fps')));s.value=clip.fps;s.addEventListener('change',()=>{clip.fps=+s.value;updateTimeline();});return s;})(),h('span')),
@@ -2022,8 +2071,8 @@ function panelClip(){
     slider('Handheld shake',0,1,0.01,clip.shake,pct,v=>{clip.shake=v;}),
     check('Follow selected figure',clip.follow,v=>{clip.follow=v;}),
     h('p',{class:'note'},'Moves start from the camera captured with Set start. Start → end camera blends between the two captured cameras.')));
-  if(f){const ms=h('select',{id:'motionSel','aria-label':'Figure motion'},Object.keys(MOTIONS).map(k=>h('option',{value:k},MOTIONS[k])));ms.value=clip.motions[f.id]||'none';ms.addEventListener('change',()=>{clip.motions[f.id]=ms.value;});
-    rightPane.append(sec(`${f.name} motion`,ms,h('p',{class:'note'},'Walk and run move the figure along its facing. Locked hands keep their grip.')));}
+  if(f){const ms=h('select',{id:'motionSel','aria-label':'Figure motion'},Object.keys(MOTIONS).map(k=>h('option',{value:k},MOTIONS[k])));ms.value=clip.motions[f.id]||'none';ms.addEventListener('change',()=>{clip.motions[f.id]=ms.value;ensureStart();if(!S.playing)evalClip(S.time);});
+    rightPane.append(sec(`${f.name} motion`,ms,h('p',{class:'note'},'Rough procedural animation layered on the pose. Walk and run move the figure along its facing. Locked hands keep their grip, so arm motions skip a locked hand. Select another figure to give it its own motion.')));}
   const st=clip.start?(clip.autoStart?'Start captured automatically when you pressed play.':'Start captured.'):'No start captured yet.';
   const en=clip.end?'End captured. Poses, positions and camera blend from start to end.':'No end yet. Without one, poses hold still and only the camera move and motion play.';
   rightPane.append(sec('Keys',h('p',{class:'note'},st+' '+en),h('div',{class:'btnrow'},
@@ -2032,6 +2081,16 @@ function panelClip(){
     h('button',{class:'btn small',onclick:()=>{clip.start=clip.end=null;S.time=0;updateTimeline();renderRight();}},'Clear keys')),
     h('p',{class:'note'},'Workflow: pose and frame the first moment, Set start. Change poses or camera, Set end. Press play.')));
 }
+const COVERAGE=['orbitR','dollyIn','pushIn','craneUp','truckL','arc','vertigo','orbitL'];
+function clipSnapshot(){return {dur:clip.dur,fps:clip.fps,ease:clip.ease,move:clip.move,amt:clip.amt,shake:clip.shake,follow:clip.follow,
+  start:clip.start?JSON.parse(JSON.stringify(clip.start)):null,end:clip.end?JSON.parse(JSON.stringify(clip.end)):null,motions:{...clip.motions}};}
+function clipDefaultName(c){const ms=Object.values(c.motions||{}).filter(m=>m&&m!=='none').map(m=>MOTIONS[m].toLowerCase());return `${MOVES[c.move][0]}${ms.length?' + '+ms.join(', '):''} · ${c.dur}s`;}
+function saveClip(name){ensureStart();const c=clipSnapshot();c.id=uid();c.name=(name&&name.trim())||clipDefaultName(c);S.clips.push(c);S.activeClip=c.id;toast('Saved clip: '+c.name);updateTimeline();if(S.rightTab==='Clip')renderRight();return c;}
+function loadClip(c){setPlaying(false);Object.assign(clip,{dur:c.dur,fps:c.fps,ease:c.ease,move:c.move,amt:c.amt,shake:c.shake,follow:c.follow,motions:{...c.motions}});
+  clip.start=c.start?JSON.parse(JSON.stringify(c.start)):null;clip.end=c.end?JSON.parse(JSON.stringify(c.end)):null;clip.autoStart=false;S.activeClip=c.id;S.time=0;if(clip.start)evalClip(0);updateTimeline();}
+function addCoverage(){setPlaying(false);releaseOverride();const st=snap();const keep=clipSnapshot();
+  COVERAGE.forEach(m=>{const c={...keep,move:m,amt:0.5,start:JSON.parse(JSON.stringify(st)),end:null};c.id=uid();c.name=clipDefaultName(c);S.clips.push(c);});
+  clip.start=st;clip.autoStart=false;toast(`Added ${COVERAGE.length} coverage clips`);if(S.rightTab==='Clip')renderRight();updateTimeline();}
 function setStartKey(){setPlaying(false);releaseOverride();clip.start=snap();clip.autoStart=false;S.time=0;updateTimeline();toast('Start captured');if(S.rightTab==='Clip')renderRight();}
 function setEndKey(){setPlaying(false);releaseOverride();if(!clip.start){toast('Set a start first');return;}clip.end=snap();updateTimeline();toast('End captured');if(S.rightTab==='Clip')renderRight();}
 function panelExport(){
@@ -2107,11 +2166,15 @@ fileIn.addEventListener('change',()=>{const file=fileIn.files[0];if(!file)return
   if(fileMode==='poses'){const ps=(o.poses||[]).filter(p=>p&&p.j);ps.forEach(p=>{p.id='my-'+Date.now()+'-'+uid();p.cat='My poses';MY_POSES.push(p);queueThumb({kind:'pose',item:p});});saveMyPoses();S.poseCat='My poses';renderLeft();toast(`Imported ${ps.length} pose${ps.length===1?'':'s'}`);}
   else {sceneFromJSON(o);toast('Scene opened');}
 }catch(e){toast('That file is not a Stand-In scene or pose pack');}};r.readAsText(file);});
+function snapToFile(sn){if(!sn)return null;const o=JSON.parse(JSON.stringify(sn));o.figs=o.figs.map(x=>({...x,id:S.figures.findIndex(f=>f.id===x.id)})).filter(x=>x.id>=0);return o;}
+function snapFromFile(sn){if(!sn)return null;const o=JSON.parse(JSON.stringify(sn));o.figs=o.figs.filter(x=>S.figures[x.id]).map(x=>({...x,id:S.figures[x.id].id}));return o;}
+function clipToFile(c){const m={};Object.keys(c.motions||{}).forEach(id=>{const i=S.figures.findIndex(f=>String(f.id)===String(id));if(i>=0)m[i]=c.motions[id];});return {...c,start:snapToFile(c.start),end:snapToFile(c.end),motions:m};}
+function clipFromFile(c){const m={};Object.keys(c.motions||{}).forEach(i=>{if(S.figures[i])m[S.figures[i].id]=c.motions[i];});return {...c,id:uid(),start:snapFromFile(c.start),end:snapFromFile(c.end),motions:m};}
 function sceneToJSON(){
   return {type:'stand-in-scene',version:1,
     figures:S.figures.map(f=>({body:f.body,bodyName:f.bodyName,pose:captureFigPose(f,f.poseName),x:f.base.position.x,z:f.base.position.z,yaw:f.base.rotation.y/D2R,autoGround:f.autoGround,yOff:f.yOff,motion:clip.motions[f.id]||'none',tint:f.tint,color:f.customColor||null})),
     props:S.props.map(p=>({t:p.def.id,attach:p.attach?{fig:S.figures.indexOf(p.attach.fig),joint:p.attach.joint}:null,pos:p.group.position.toArray(),rot:[p.group.rotation.x,p.group.rotation.y,p.group.rotation.z],scale:p.group.scale.x})),
-    camera:S.camCur,ortho:S.ortho,aspect:S.aspect,style:S.style,look:S.look,clip:{dur:clip.dur,fps:clip.fps,ease:clip.ease,move:clip.move,amt:clip.amt,shake:clip.shake,follow:clip.follow}};
+    camera:S.camCur,ortho:S.ortho,aspect:S.aspect,style:S.style,look:S.look,clip:{dur:clip.dur,fps:clip.fps,ease:clip.ease,move:clip.move,amt:clip.amt,shake:clip.shake,follow:clip.follow},clips:S.clips.map(clipToFile)};
 }
 function sceneFromJSON(o){
   if(!o||o.type!=='stand-in-scene') throw new Error('bad');
@@ -2122,6 +2185,7 @@ function sceneFromJSON(o){
   if(o.aspect&&ASPECTS[o.aspect]){S.aspect=o.aspect;aspectSel.value=o.aspect;}
   if(o.style&&MODES[o.style]!=null) S.style=o.style; S.ortho=!!o.ortho;
   if(o.clip) Object.assign(clip,o.clip); clip.start=clip.end=null; S.time=0;
+  S.clips=(o.clips||[]).map(clipFromFile); S.activeClip=null;
   S.selFig=S.figures[0]||null; S.selProp=null; S.selJoint=null;
   resize(); if(o.camera){rigFromCam(o.camera);S.camOverride=false;}
   renderStyleSeg(); renderLeft(); renderRight(); updateTimeline();
@@ -2210,20 +2274,32 @@ async function exportTurnaround(){
   zip.file('shot-notes.txt',shotNotes());
   await saveFile(`stand-in-turnaround-${stamp()}.zip`,await zip.generateAsync({type:'blob'}));
 }
+async function recordClipBlob(label){
+  const [w,hh]=exportDims(); const cv=document.createElement('canvas'); cv.width=w; cv.height=hh;
+  const types=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm']; const mime=types.find(t=>MediaRecorder.isTypeSupported(t));
+  if(!mime) return null;
+  const stream=cv.captureStream(clip.fps); const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:Math.round(w*hh*clip.fps*0.25)});
+  const chunks=[]; rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);}; const done=new Promise(res=>rec.onstop=res);
+  S.exporting=true; evalClip(0); renderFrameToCanvas(S.style,cv); rec.start(200); const t0=performance.now();
+  try{ await new Promise(res=>{const step=()=>{const t=(performance.now()-t0)/1000;showRec(true,`● ${label||'Recording'} ${t.toFixed(1)}s / ${clip.dur.toFixed(1)}s`);
+      if(t>=clip.dur){evalClip(clip.dur);renderFrameToCanvas(S.style,cv);setTimeout(res,120);return;} evalClip(t);renderFrameToCanvas(S.style,cv);requestAnimationFrame(step);};requestAnimationFrame(step);});
+    rec.stop(); await done; } finally { S.exporting=false; showRec(false); }
+  return {blob:new Blob(chunks,{type:mime.split(';')[0]}),ext:mime.startsWith('video/mp4')?'mp4':'webm'};
+}
+async function exportAllClips(){
+  if(!window.MediaRecorder||!window.JSZip){toast('Video recording or zip is not available in this browser');return;}
+  if(!S.clips.length) return; const zip=new JSZip(); const notes=[];
+  for(let i=0;i<S.clips.length;i++){const c=S.clips[i];loadClip(c);const r=await recordClipBlob(`Clip ${i+1}/${S.clips.length}`);if(!r){toast('No supported video format here');return;}
+    const nm=`${String(i+1).padStart(2,'0')}_${c.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)}.${r.ext}`;zip.file(nm,r.blob);notes.push(nm+'\n'+shotNotes()+'\n');}
+  zip.file('shot-notes.txt',notes.join('\n'));
+  await saveFile(`stand-in-clips-${stamp()}.zip`,await zip.generateAsync({type:'blob'}));
+}
 async function exportVideo(){
   if(!window.MediaRecorder){toast('This browser cannot record video. Use Frames (.zip) instead.');return;}
   ensureStart(); setPlaying(false);
-  const [w,hh]=exportDims(); const cv=document.createElement('canvas'); cv.width=w; cv.height=hh;
-  const types=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm']; const mime=types.find(t=>MediaRecorder.isTypeSupported(t));
-  if(!mime){toast('No supported video format here. Use Frames (.zip) instead.');return;}
-  const stream=cv.captureStream(clip.fps); const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:Math.round(w*hh*clip.fps*0.25)});
-  const chunks=[]; rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
-  const done=new Promise(r=>rec.onstop=r);
-  S.exporting=true; renderFrameToCanvas(S.style,cv); rec.start(200); const t0=performance.now();
-  await new Promise(res=>{const step=()=>{const t=(performance.now()-t0)/1000;showRec(true,`● Recording ${t.toFixed(1)}s / ${clip.dur.toFixed(1)}s`);
-      if(t>=clip.dur){evalClip(clip.dur);renderFrameToCanvas(S.style,cv);setTimeout(res,120);return;} evalClip(t);renderFrameToCanvas(S.style,cv);requestAnimationFrame(step);};requestAnimationFrame(step);});
-  rec.stop(); await done; S.exporting=false; showRec(false);
-  const ext=mime.startsWith('video/mp4')?'mp4':'webm'; await saveFile(`stand-in-clip-${stamp()}.${ext}`,new Blob(chunks,{type:mime.split(';')[0]}));
+  const r=await recordClipBlob('Recording'); if(!r){toast('No supported video format here. Use Frames (.zip) instead.');return;}
+  const ac=S.clips.find(c=>c.id===S.activeClip); const nm=ac?ac.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,50):'clip';
+  await saveFile(`stand-in-${nm}-${stamp()}.${r.ext}`,r.blob);
 }
 
 /* ---------------- thumbnails ---------------- */
@@ -2274,6 +2350,7 @@ function tick(now){
 document.getElementById('playBtn').addEventListener('click',()=>setPlaying(!S.playing));
 document.getElementById('scrub').addEventListener('input',e=>{setPlaying(false);ensureStart();S.time=(+e.target.value/1000)*clip.dur;evalClip(S.time);updateTimeline();});
 document.getElementById('tlStart').addEventListener('click',setStartKey);
+document.getElementById('tlLabel').addEventListener('click',()=>{S.rightTab='Clip';renderRight();});
 document.getElementById('tlEnd').addEventListener('click',setEndKey);
 
 addFigure(BODY_PRESETS.Athletic,'Athletic'); addFigure(BODY_PRESETS.Curvy,'Curvy');
