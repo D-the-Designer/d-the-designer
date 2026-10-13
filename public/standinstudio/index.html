@@ -1209,7 +1209,179 @@ POSES.push(
  {id:'gr-catchfall',name:'Catch someone falling backward',cat:'Grabbing',members:[{use:'stand',x:0,z:0.1,yaw:0,j:{hips:[-30,0,0],spine:[-10,0,0],head:[-20,0,0],uaL:[-40,0,70],uaR:[-40,0,-70],faL:[-20,0,0],faR:[-20,0,0],thL:[-30,0,6],shinL:[20,0,0]}},{use:'stand',x:0,z:-0.65,yaw:0,j:{spine:[20,0,0],thL:[-50,0,8],shinL:[50,0,0],thR:[20,0,-8],shinR:[10,0,0]},ik:{L:{a:'root',p:[0.15,1.1,0.5],pole:[1,-1,0]},R:{a:'root',p:[-0.15,1.1,0.5],pole:[-1,-1,0]}}}]},
  {id:'gr-holdon',name:'Hold on! Hand-catch at the roof edge',cat:'Grabbing',members:[{use:'prone',x:0,z:-0.1,yaw:0,j:{head:[-30,0,0]},props:[{t:'r-roofedge',k:'set',a:'root',p:[0,0,0.1]}],ik:{R:{a:'root',p:[-0.12,-0.3,0.88],pole:[-1,0,0]}}},{x:0,z:0.95,yaw:180,ground:false,y:-2.34,j:{head:[-35,0,0],uaR:[0,0,-20],faR:[-10,0,0],thL:[-12,0,4],shinL:[24,0,0],thR:[4,0,-4],shinR:[10,0,0]},ik:{L:{a:'root',p:[0.12,-0.32,0.13],pole:[1,0,0.3]}}}]}
 );
-const POSE_CATS=['Standing','Posture & attitude','Distress','Gestures','Everyday life','School life','Action','Scenes','Running & parkour','Grabbing','Seated & floor','Mobility','Family','Affection','Dance','Helping','Riding','Animals','Labor','Driving & piloting','War','Katana','Action snapshots','Acrobatic','Ballet','Comic book','Martial arts','Sparring','Rifle','Pistol','Melee & archery','Sci-fi & heavy','Maintenance','Couples','Groups','My poses'];
+{
+const SET=(t,p,r)=>({t,k:'set',a:'root',p:p||[0,0,0],r:r||[0,0,0]});
+const HANDS=(x,y,z,a)=>({L:{a:a||'root',p:[x,y,z],pole:[1,-1,-0.4]},R:{a:a||'root',p:[-x,y,z],pole:[-1,-1,-0.4]}});
+const SEATJ=(o)=>J(SIT,o||{});
+const CROSSIK={L:{a:'chest',p:[-0.11,0.16,0.15],pole:[1,-0.4,0.1]},R:{a:'chest',p:[0.11,0.18,0.17],pole:[-1,-0.4,0.1]}};
+const FACEHANDS={L:{a:'head',p:[0.04,0.1,0.13],pole:[1,-1,0]},R:{a:'head',p:[-0.04,0.1,0.13],pole:[-1,-1,0]}};
+const CLASP=HANDS(0.03,0.08,0.28,'hips');
+const C='Scenes · ';
+POSES.push(
+ /* Work & home */
+ {id:'bk-latework',name:'Office: working late',cat:C+'Work & home',seat:0.52,j:SEATJ({spine:[8,0,0],head:[14,0,0]}),props:[SET('r-office')],ik:HANDS(0.12,0.78,0.45),cam:{shot:'MS',angle:'high',focal:35,yaw:30}},
+ {id:'bk-boss',name:"Office: called in to the boss",cat:C+'Work & home',cam:{shot:'ALL',angle:'eye',focal:28,yaw:60},members:[
+   {x:0,z:0,yaw:0,seat:0.52,j:SEATJ({spine:[-16,0,0],head:[-4,0,0]}),props:[SET('r-office')],ik:{L:{a:'head',p:[0.07,0.13,-0.09],pole:[1,0.5,0]},R:{a:'head',p:[-0.07,0.13,-0.09],pole:[-1,0.5,0]}}},
+   {use:'stand',body:'Slender',x:0.1,z:1.25,yaw:180,j:{head:[6,0,0]},props:[{t:'book',k:'f',a:'chest',p:[0,0.05,0.25],r:[-70,0,0]}],ik:{L:{prop:'f',pt:'l',pole:[1,-1,0]},R:{prop:'f',pt:'r',pole:[-1,-1,0]}}}]},
+ {id:'bk-pacephone',name:'Office: pacing on the phone',cat:C+'Work & home',j:J(WALKL,{head:[4,0,-8],uaL:[16,0,6],faL:[-12,0,0]}),props:[{t:'phone',k:'ph',a:'hdR',r:[90,0,90]},SET('r-office',[-0.9,0,0.6])],ik:{R:{a:'head',p:[-0.1,0.09,0.03],pole:[-0.6,-1,0.2]}},cam:{shot:'FS',angle:'eye',focal:35,yaw:-30}},
+ {id:'bk-cubicle',name:'Cubicle: defeated at the keyboard',cat:C+'Work & home',seat:0.52,j:SEATJ({spine:[34,0,0],chest:[10,0,0],head:[32,0,0]}),props:[SET('r-cubicle')],ik:HANDS(0.16,0.78,0.42),cam:{shot:'MS',angle:'high',focal:28,yaw:-35}},
+ {id:'bk-partition',name:'Cubicle: chatting over the partition',cat:C+'Work & home',cam:{shot:'ALL',angle:'eye',focal:35,yaw:70},members:[
+   {use:'type-bare',x:0,z:0,yaw:0,j:{head:[-20,0,0]},addProps:[SET('r-cubicle')]},
+   {use:'stand',x:0,z:1.35,yaw:180,j:{spine:[18,0,0],head:[10,0,0]},ik:HANDS(0.15,1.45,0.32)}]},
+ {id:'bk-operator',name:'Control room: operator at the console',cat:C+'Work & home',seat:0.52,j:SEATJ({spine:[10,0,0],head:[-6,0,0]}),props:[SET('r-control')],ik:HANDS(0.15,0.8,0.42),cam:{shot:'MS',angle:'eye',focal:50,yaw:150}},
+ {id:'bk-mission',name:'Control room: mission control',cat:C+'Work & home',cam:{shot:'ALL',angle:'high',focal:28,yaw:200},members:[
+   {x:0,z:0,yaw:0,seat:0.52,j:SEATJ({spine:[10,0,0]}),props:[SET('r-control',[1.5,0,0])],ik:HANDS(0.15,0.8,0.42)},
+   {x:1.5,z:0,yaw:0,seat:0.52,j:SEATJ({spine:[4,0,0],head:[-10,0,0]}),ik:HANDS(0.15,0.8,0.42)},
+   {x:3.0,z:0,yaw:0,seat:0.52,j:SEATJ({spine:[12,0,0]}),ik:HANDS(0.15,0.8,0.42)},
+   {use:'cross',x:1.5,z:-2.6,yaw:0}]},
+ {id:'bk-pitch',name:'Conference: the pitch meeting',cat:C+'Work & home',cam:{shot:'ALL',angle:'high',focal:28,yaw:-40},members:[
+   {x:0,z:0,yaw:0,seat:0.52,j:SEATJ({}),props:[SET('r-conference',[0,0,0.9])],ik:HANDS(0.12,0.77,0.42)},
+   {x:-0.85,z:0,yaw:0,seat:0.52,j:SEATJ({spine:[-10,0,0]}),ik:CROSSIK},
+   {x:0,z:1.8,yaw:180,seat:0.52,body:'Curvy',j:SEATJ({}),ik:HANDS(0.12,0.77,0.42)},
+   {use:'point',x:2.2,z:0.9,yaw:-90}]},
+ {id:'bk-movienight',name:'Living room: movie night',cat:C+'Work & home',cam:{shot:'ALL',angle:'eye',focal:35,yaw:15},members:[
+   {use:'sofa-bare',x:-0.4,z:0,yaw:0,addProps:[SET('r-living',[0.4,0,0])]},
+   {use:'sit-bare',body:'Curvy',x:0.4,z:0,yaw:0,seat:0.54,j:{spine:[0,0,10],head:[6,-10,14]}}]},
+ {id:'bk-kidsgame',name:'Living room: kids gaming',cat:C+'Work & home',cam:{shot:'ALL',angle:'high',focal:28,yaw:200},members:[
+   {use:'ev-game',body:'Child',x:-0.4,z:1.7,yaw:0,addProps:[SET('r-living',[0.4,0,-1.7])]},
+   {use:'ev-game',body:'Child',x:0.35,z:1.75,yaw:-10},
+   {use:'sofa-bare',x:0,z:0,yaw:0}]},
+ {id:'bk-cantsleep',name:"Bedroom: can't sleep",cat:C+'Work & home',seat:0.55,j:SEATJ({spine:[34,0,0],chest:[16,0,0],head:[30,0,0]}),props:[SET('r-bedroom',[0,0,-0.6],[0,90,0])],ik:FACEHANDS,cam:{shot:'FS',angle:'eye',focal:35,yaw:20}},
+ {id:'bk-asleep',name:'Bedroom: asleep',cat:C+'Work & home',lift:0.55,j:{hips:[-90,0,0],uaL:[0,0,22],uaR:[-40,0,-10],faL:[-10,0,0],faR:[-90,0,0],thL:[0,0,5],thR:[-20,0,-5],shinR:[30,0,0],head:[-6,25,0]},props:[SET('r-bedroom')],cam:{shot:'FS',angle:'high',focal:35,yaw:60}},
+ {id:'bk-cook',name:'Kitchen: cooking',cat:C+'Work & home',j:{spine:[14,0,0],head:[24,0,0],thL:[-6,0,4]},props:[SET('r-kitchen',[0,0,-0.45],[0,180,0])],ik:HANDS(0.2,0.95,0.38),cam:{shot:'MS',angle:'eye',focal:35,yaw:140}},
+ {id:'bk-island',name:'Kitchen: coffee at the island',cat:C+'Work & home',cam:{shot:'ALL',angle:'eye',focal:35,yaw:30},members:[
+   {x:0,z:0,yaw:180,seat:0.77,j:SEATJ({thL:[-80,0,6],thR:[-80,0,-6],head:[0,25,0]}),props:[SET('r-kitchen',[-0.35,0,1.15],[0,180,0])],ik:HANDS(0.12,0.94,0.3)},
+   {x:0.7,z:0,yaw:180,seat:0.77,body:'Curvy',j:SEATJ({thL:[-80,0,6],thR:[-80,0,-6],head:[0,-20,0]}),props:[{t:'cup',k:'cup',a:'hdR'}],ik:{L:{a:'root',p:[0.12,0.94,0.3],pole:[1,-1,-0.4]},R:{a:'head',p:[-0.03,-0.03,0.17],pole:[-0.6,-1,-0.2]}}}]},
+ {id:'bk-dinner',name:'Dinner for two',cat:C+'Work & home',cam:{shot:'ALL',angle:'eye',focal:50,yaw:90},members:[
+   {use:'ev-eat',x:0,z:0,yaw:0},
+   {use:'sit-bare',body:'Curvy',x:0,z:1.24,yaw:180,seat:0.47,j:{head:[-6,0,0]},addProps:[CHAIR],ik:HANDS(0.12,0.77,0.42)}]},
+
+ /* Travel */
+ {id:'bk-bus',name:'Bus: the commute',cat:C+'Travel',cam:{shot:'ALL',angle:'eye',focal:24,yaw:180},members:[
+   {use:'sit-bare',x:0,z:0,yaw:0,seat:0.48,j:{head:[0,-35,0]},addProps:[SET('r-transit',[0.87,0,0])]},
+   {x:1.24,z:-0.85,yaw:0,seat:0.48,j:SEATJ({head:[34,0,0],neck:[10,0,0]}),props:[{t:'phone',k:'ph',a:'chest',p:[0,0.14,0.26],r:[-125,0,0]}],ik:{L:{prop:'ph',pt:'l'},R:{prop:'ph',pt:'r'}}},
+   {use:'ev-train',x:0.87,z:0.5,yaw:0}]},
+ {id:'bk-redeye',name:'Plane: the red-eye flight',cat:C+'Travel',cam:{shot:'ALL',angle:'high',focal:28,yaw:20},members:[
+   {x:0,z:0,yaw:0,seat:0.48,j:SEATJ({head:[10,0,28],spine:[-6,0,0]}),props:[SET('r-transit',[0.87,0,0])],ik:CROSSIK},
+   {x:0.5,z:0,yaw:0,seat:0.48,body:'Curvy',j:SEATJ({head:[28,0,0]}),props:[{t:'book',k:'bk',a:'chest',p:[0,0.08,0.3],r:[-60,0,0]}],ik:{L:{prop:'bk',pt:'l',pole:[1,-1,-0.3]},R:{prop:'bk',pt:'r',pole:[-1,-1,-0.3]}}}]},
+ {id:'bk-flightdeck',name:'Flight deck: pilot and co-pilot',cat:C+'Travel',cam:{shot:'ALL',angle:'eye',focal:24,yaw:200},members:[
+   {x:0,z:0,yaw:0,seat:0.37,j:{spine:[-10,0,0],head:[10,0,0],thL:[-80,0,8],shinL:[38,0,0],thR:[-80,0,-8],shinR:[38,0,0]},props:[SET('r-flightdeck',[0.55,0,0])],ik:{R:{a:'root',p:[0,0.68,0.36],pole:[-0.6,-1,-0.4]},L:{a:'root',p:[0.28,0.79,0.2],pole:[1,-1,-0.4]}}},
+   {x:1.1,z:0,yaw:0,seat:0.37,body:'Athletic',j:{spine:[-10,0,0],head:[10,-20,0],thL:[-80,0,8],shinL:[38,0,0],thR:[-80,0,-8],shinR:[38,0,0]},ik:{R:{a:'root',p:[0,0.68,0.36],pole:[-0.6,-1,-0.4]},L:{a:'root',p:[0.28,0.79,0.2],pole:[1,-1,-0.4]}}}]},
+ {id:'bk-redalert',name:'Starship bridge: red alert',cat:C+'Travel',cam:{shot:'ALL',angle:'high',focal:24,yaw:200},members:[
+   {x:0,z:0,yaw:0,seat:0.5,j:SEATJ({spine:[8,0,0],uaR:[-86,0,-4],faR:[-4,0,0],head:[-4,0,0]}),props:[SET('r-bridge')],ik:{L:{a:'hips',p:[0.2,0.1,0.15],pole:[1,-1,0]}}},
+   {x:-0.9,z:1.7,yaw:0,seat:0.5,j:SEATJ({spine:[6,0,0]}),ik:{L:{a:'root',p:[0.2,0.8,0.27],pole:[1,-1,-0.4]},R:{a:'root',p:[-0.2,0.8,0.27],pole:[-1,-1,-0.4]}}},
+   {x:0.9,z:1.7,yaw:0,seat:0.5,body:'Curvy',j:SEATJ({spine:[6,0,0]}),ik:{L:{a:'root',p:[0.2,0.8,0.27],pole:[1,-1,-0.4]},R:{a:'root',p:[-0.2,0.8,0.27],pole:[-1,-1,-0.4]}}},
+   {x:2.05,z:0.6,yaw:90,seat:0.52,body:'Slender',j:SEATJ({spine:[10,0,0]}),ik:HANDS(0.15,0.8,0.42)}]},
+ {id:'bk-taxi',name:'Street: hailing a cab',cat:C+'Travel',j:{uaR:[0,0,-150],faR:[-10,0,0],head:[-6,-20,0],thL:[-10,0,6],shinL:[12,0,0],uaL:[0,0,6]},props:[{t:'car',k:'car',a:'root',p:[0.4,0,2.0]},{t:'schoolbag',k:'b',a:'hdL'}],cam:{shot:'WS',angle:'eye',focal:35,yaw:40}},
+ {id:'bk-rushhour',name:'Subway: rush hour',cat:C+'Travel',cam:{shot:'ALL',angle:'eye',focal:28,yaw:-60},members:[
+   {use:'pa-pockets',x:0,z:0,yaw:0,j:{head:[0,70,0]},addProps:[SET('r-subway',[0,0,-0.6])]},
+   {use:'text',x:1.0,z:-0.3,yaw:-10},
+   {use:'cross',body:'Curvy',x:-1.1,z:-0.1,yaw:20},
+   {use:'pa-impatient',body:'Slender',x:2.1,z:0.1,yaw:-20}]},
+ {id:'bk-elevator',name:'Elevator: awkward silence',cat:C+'Travel',cam:{shot:'ALL',angle:'high',focal:24,yaw:0},members:[
+   {use:'stand',x:-0.45,z:-0.15,yaw:0,j:{head:[-8,0,0]},addProps:[SET('r-elevator',[0.45,0,-0.05])]},
+   {use:'text',body:'Curvy',x:0.45,z:-0.25,yaw:0}]},
+ {id:'bk-doors',name:'Elevator: the doors open on trouble',cat:C+'Travel',cam:{shot:'MS',angle:'ots',focal:50},members:[
+   {use:'handsup',x:0,z:-0.2,yaw:0,addProps:[SET('r-elevator',[0,0,0.2])]},
+   {use:'p-aim',x:0,z:1.9,yaw:180}]},
+
+ /* Action */
+ {id:'bk-roofstandoff',name:'Rooftop standoff',cat:C+'Action',cam:{shot:'WS',angle:'low',focal:24,yaw:90},members:[
+   {use:'p-aim',x:0,z:0,yaw:0,addProps:[SET('r-rooftop',[0,0,1.6])]},
+   {use:'p-aim',body:'Athletic',x:0,z:2.8,yaw:180}]},
+ {id:'bk-sniper',name:'Rooftop: sniper overwatch',cat:C+'Action',j:J(KNEEL,AIMHEAD),props:[RIFLE([-0.08,0.35,0.34]),SET('r-rooftop',[0,0,-1.0])],ik:RIK,cam:{shot:'FS',angle:'high',focal:35,yaw:140}},
+ {id:'bk-ledgepair',name:'Ledge: two on the ledge',cat:C+'Action',cam:{shot:'WS',angle:'low',focal:24,yaw:20},members:[
+   {use:'sc-ledge',x:0,z:0,yaw:0},
+   {use:'sc-ledge',x:1.1,z:0,yaw:0,j:{head:[10,-55,0]},props:[]}]},
+ {id:'bk-swat',name:'Hallway: the stack at the door',cat:C+'Action',cam:{shot:'ALL',angle:'high',focal:24,yaw:-140},members:[
+   {use:'r-aim',x:0.75,z:-0.8,yaw:0,addProps:[SET('r-hallway',[-0.75,0,0.8])]},
+   {use:'r-low',x:0.72,z:-1.55,yaw:0},{use:'r-low',x:0.72,z:-2.3,yaw:0},{use:'r-high',x:0.7,z:-3.05,yaw:0}]},
+ {id:'bk-hallchase',name:'Hallway: the chase',cat:C+'Action',cam:{shot:'ALL',angle:'low',focal:24,yaw:0},members:[
+   {use:'run',x:0,z:0,yaw:0,addProps:[SET('r-hallway')]},
+   {use:'run',body:'Athletic',x:0.2,z:-2.4,yaw:0,j:{head:[-14,0,0]}}]},
+ {id:'bk-gunpoint',name:'Alley: held at gunpoint',cat:C+'Action',cam:{shot:'MS',angle:'ots',focal:50},members:[
+   {use:'handsup',x:0,z:0,yaw:0,addProps:[SET('r-alley')]},
+   {use:'p-aim',body:'Stocky',x:0,z:1.8,yaw:180}]},
+ {id:'bk-dumpster',name:'Alley: hiding behind the dumpster',cat:C+'Action',j:{spine:[28,0,0],chest:[0,30,0],head:[-10,60,0],thL:[-115,0,18],shinL:[135,0,0],thR:[-115,0,-18],shinR:[135,0,0],uaL:[-40,0,12],faL:[-60,0,0],uaR:[-40,0,-12],faR:[-60,0,0]},props:[SET('r-alley',[-1.4,0,-0.75])],cam:{shot:'FS',angle:'eye',focal:35,yaw:-120}},
+ {id:'bk-alleyduel',name:'Alley: sword duel',cat:C+'Action',cam:{shot:'WS',angle:'low',focal:24,yaw:90},members:[
+   {use:'s-mid',x:0,z:-0.95,yaw:0,addProps:[SET('r-alley',[0,0,0.95])]},
+   {use:'s-high',body:'Athletic',x:0,z:0.95,yaw:180}]},
+ {id:'bk-carcover',name:'Garage: shootout over the hood',cat:C+'Action',j:J(KNEEL,AIMHEAD),props:[RIFLE([-0.08,0.35,0.34]),SET('r-garage',[-4.2,0,-0.35],[0,90,0])],ik:RIK,cam:{shot:'FS',angle:'low',focal:28,yaw:200}},
+ {id:'bk-catwalkfight',name:'Catwalk: fistfight',cat:C+'Action',cam:{shot:'WS',angle:'low',focal:24,yaw:90},members:[
+   {use:'guard',x:0,z:-0.65,yaw:0,addProps:[SET('r-catwalk',[0,0,0.65])]},
+   {use:'jab',body:'Muscular',x:0,z:0.65,yaw:180}]},
+ {id:'bk-lookout',name:'Fire escape: lookout',cat:C+'Action',j:J(STANCE,{head:[-4,0,0]}),props:[{t:'binoculars',k:'b',a:'head',p:[0,0.12,0.2]},SET('r-fireescape',[0,0,0.3])],ik:{L:{prop:'b',pt:'l',pole:[1,-1,0]},R:{prop:'b',pt:'r',pole:[-1,-1,0]}},cam:{shot:'FS',angle:'low',focal:28,yaw:30}},
+ {id:'bk-highnoon',name:'Western: high noon',cat:C+'Action',cam:{shot:'EWS',angle:'low',focal:24,yaw:90},members:[
+   {use:'p-draw',x:0,z:-4,yaw:0,addProps:[{t:'tree',k:'t1',a:'root',p:[-3,0,4]},{t:'barrel',k:'b1',a:'root',p:[2.5,0,3]},{t:'crate',k:'c1',a:'root',p:[2.9,0,3.8]},{t:'crate',k:'c2',a:'root',p:[-2.4,0,5.4]}]},
+   {use:'p-draw',body:'Stocky',x:0,z:4,yaw:180}]},
+ {id:'bk-goodcop',name:'Interrogation: good cop, bad cop',cat:C+'Action',cam:{shot:'ALL',angle:'high',focal:24,yaw:-50},members:[
+   {x:0,z:0,yaw:0,seat:0.47,j:SEATJ({head:[14,0,0],spine:[10,0,0]}),props:[SET('r-interrogation')],ik:CROSSIK},
+   {use:'stand',x:0,z:1.05,yaw:180,j:{spine:[35,0,0],head:[-20,0,0]},ik:HANDS(0.3,0.79,0.2)},
+   {use:'cross',body:'Curvy',x:1.6,z:0.2,yaw:-90}]},
+
+ /* Public places */
+ {id:'bk-lecture',name:'Classroom: the lecture',cat:C+'Public places',cam:{shot:'ALL',angle:'high',focal:24,yaw:200},members:[
+   {use:'point',x:0,z:0,yaw:0,addProps:[SET('r-classroom',[0,0,1.6])]},
+   {x:-1.4,z:1.6,yaw:180,seat:0.48,body:'Teen',j:SEATJ({head:[4,0,0]}),ik:HANDS(0.12,0.75,0.3)},
+   {x:-0.47,z:1.6,yaw:180,seat:0.48,body:'Teen',j:SEATJ({uaR:[0,0,-168],faR:[0,0,0]}),ik:{L:{a:'root',p:[0.12,0.75,0.3],pole:[1,-1,-0.4]}}},
+   {x:0.47,z:2.6,yaw:180,seat:0.48,body:'Teen',j:SEATJ({head:[20,0,0]}),ik:HANDS(0.12,0.75,0.3)},
+   {x:1.4,z:2.6,yaw:180,seat:0.48,body:'Teen',j:SEATJ({spine:[30,0,0],head:[40,0,0]}),ik:HANDS(0.14,0.76,0.32)}]},
+ {id:'bk-detention',name:'Classroom: detention',cat:C+'Public places',cam:{shot:'FS',angle:'high',focal:35,yaw:30},members:[
+   {x:0,z:0,yaw:0,seat:0.48,body:'Teen',j:SEATJ({spine:[25,0,0],head:[20,0,0]}),props:[SET('r-classroom',[1.4,0,2.0],[0,180,0])],ik:{R:{a:'head',p:[-0.02,-0.02,0.14],pole:[-1,-1,0]},L:{a:'root',p:[0.12,0.75,0.3],pole:[1,-1,-0.4]}}}]},
+ {id:'bk-waiting',name:'Waiting room: the long wait',cat:C+'Public places',cam:{shot:'ALL',angle:'eye',focal:35,yaw:15},members:[
+   {x:0,z:0,yaw:0,seat:0.475,j:SEATJ({spine:[10,0,0],head:[10,0,0]}),props:[SET('r-waiting',[1.16,0,0])],ik:CLASP},
+   {x:0.56,z:0,yaw:0,seat:0.475,body:'Curvy',j:SEATJ({spine:[34,0,0],chest:[16,0,0],head:[30,0,0]}),ik:FACEHANDS},
+   {x:1.12,z:0,yaw:0,seat:0.475,body:'Elderly',j:SEATJ({spine:[-6,0,0],head:[-4,-20,0]}),ik:HANDS(0.13,0.06,0.3,'hips')}]},
+ {id:'bk-latecoffee',name:'Diner: late-night coffee',cat:C+'Public places',seat:0.47,j:SEATJ({spine:[8,0,0],head:[6,30,0]}),props:[{t:'cup',k:'cup',a:'hdR'},SET('r-diner',[0,0,0.62])],ik:{L:{a:'root',p:[0.12,0.79,0.45],pole:[1,-1,-0.4]},R:{a:'head',p:[-0.03,-0.03,0.17],pole:[-0.6,-1,-0.2]}},cam:{shot:'MS',angle:'eye',focal:50,yaw:60}},
+ {id:'bk-breakup',name:'Diner: the breakup',cat:C+'Public places',cam:{shot:'ALL',angle:'eye',focal:50,yaw:90},members:[
+   {x:0,z:-0.62,yaw:0,seat:0.47,j:SEATJ({spine:[20,0,0],head:[28,0,0]}),props:[SET('r-diner',[0,0,0.62])],ik:HANDS(0.1,0.79,0.42)},
+   {x:0,z:0.62,yaw:180,seat:0.47,body:'Curvy',j:SEATJ({spine:[-12,0,0],head:[-6,15,0]}),ik:CROSSIK}]},
+ {id:'bk-bartender',name:'Bar: the bartender and the regular',cat:C+'Public places',cam:{shot:'ALL',angle:'eye',focal:35,yaw:-70},members:[
+   {use:'sc-bar',x:0,z:0,yaw:0},
+   {use:'stand',body:'Stocky',x:0,z:1.1,yaw:180,j:{spine:[15,0,0],head:[-10,0,0]},ik:HANDS(0.2,1.1,0.5)}]},
+ {id:'bk-lastcall',name:'Bar: last call',cat:C+'Public places',seat:0.77,j:SEATJ({thL:[-80,0,6],thR:[-80,0,-6],spine:[35,0,0],head:[30,0,0]}),props:[SET('r-bar',[0.4,0,0])],ik:HANDS(0.15,1.1,0.42),cam:{shot:'MS',angle:'high',focal:35,yaw:-40}},
+ {id:'bk-platform',name:'Subway: lost in thought',cat:C+'Public places',seat:0.475,j:SEATJ({head:[20,0,0],spine:[10,0,0]}),props:[SET('r-subway',[2,0,2.5])],ik:CLASP,cam:{shot:'FS',angle:'eye',focal:50,yaw:40}},
+ {id:'bk-bench',name:'Park bench conversation',cat:C+'Public places',cam:{shot:'ALL',angle:'eye',focal:35,yaw:10},members:[
+   {use:'sit-bare',x:0,z:0,yaw:0,seat:0.475,j:{head:[0,25,0]},addProps:[{t:'chairrow',k:'bench',a:'root',p:[0.56,0,0]},{t:'tree',k:'t1',a:'root',p:[1.6,0,-1.6]},{t:'floorlamp',k:'lamp',a:'root',p:[-1.0,0,-0.6]}]},
+   {use:'sit-bare',body:'Curvy',x:0.56,z:0,yaw:0,seat:0.475,j:{head:[0,-25,0],uaR:[-40,0,-20],faR:[-60,0,0]}}]},
+ {id:'bk-busstop',name:'Bus stop in the rain',cat:C+'Public places',cam:{shot:'WS',angle:'eye',focal:28,yaw:30},members:[
+   {use:'ev-umbrella',x:0,z:0,yaw:0,j:J(STANCE,{}),addProps:[{t:'panel',k:'back',a:'root',p:[-0.8,0,-1.0],s:2},{t:'panel',k:'roof',a:'root',p:[-0.8,2.3,-1.0],r:[90,0,0],s:2},{t:'chairrow',k:'bench',a:'root',p:[-1.0,0,-0.6]}]},
+   {use:'ds-rock',body:'Slender',x:-1.0,z:-0.6,yaw:0,j:{},props:[]}]},
+ {id:'bk-wedding',name:'Wedding: the vows',cat:C+'Public places',cam:{shot:'ALL',angle:'eye',focal:50,yaw:-80},members:[
+   {use:'stand',x:0,z:-0.27,yaw:0,j:{head:[4,0,0]},ik:{L:{a:'root',p:[0.15,1.0,0.27],pole:[1,-1,-0.3]},R:{a:'root',p:[-0.15,1.0,0.27],pole:[-1,-1,-0.3]}}},
+   {use:'stand',body:'Curvy',x:0,z:0.27,yaw:180,j:{head:[-8,0,0]},ik:{L:{a:'root',p:[0.15,1.0,0.27],pole:[1,-1,-0.3]},R:{a:'root',p:[-0.15,1.0,0.27],pole:[-1,-1,-0.3]}}},
+   {use:'stand',body:'Elderly',x:0.9,z:0,yaw:-90,j:{head:[14,0,0]},props:[{t:'book',k:'bk',a:'chest',p:[0,0.1,0.3],r:[-60,0,0]},{t:'door',k:'arch',a:'root',p:[0,0,-0.6]}],ik:{L:{prop:'bk',pt:'l',pole:[1,-1,-0.3]},R:{prop:'bk',pt:'r',pole:[-1,-1,-0.3]}}}]},
+ {id:'bk-selfie',name:'Group selfie',cat:C+'Public places',cam:{shot:'MS',angle:'high',focal:28,yaw:0},members:[
+   {use:'ev-selfie',x:0,z:0,yaw:0},
+   {use:'stand',body:'Curvy',x:0.38,z:-0.12,yaw:-10,j:{head:[-6,0,-14],chest:[0,0,6]},ik:{L:{a:'head',p:[0.1,0.06,0.12],pole:[1,-1,0]}}},
+   {use:'stand',body:'Athletic',x:-0.4,z:-0.15,yaw:10,j:{head:[-6,0,12],chest:[0,0,-6]}},
+   {use:'stand',body:'Slender',x:0.05,z:-0.45,yaw:0,j:{head:[-10,0,0]},ik:{R:{a:'head',p:[-0.1,0.2,0.06],pole:[-1,0,0]}}}]},
+
+ /* Outdoors & fantasy */
+ {id:'bk-campfire',name:'Campfire stories',cat:C+'Outdoors & fantasy',cam:{shot:'ALL',angle:'high',focal:28,yaw:30},members:[
+   {use:'crossleg',x:0,z:1.1,yaw:180,addProps:[{t:'cone',k:'fire',a:'root',p:[0,0,1.1],s:0.7},{t:'cylinder',k:'log1',a:'root',p:[0.15,0.05,1.0],r:[0,0,90],s:0.35},{t:'cylinder',k:'log2',a:'root',p:[-0.1,0.05,1.2],r:[0,60,90],s:0.35},{t:'tree',k:'t1',a:'root',p:[1.8,0,3.2]},{t:'tree',k:'t2',a:'root',p:[-2.2,0,3.6]}]},
+   {use:'hugknees',body:'Curvy',x:-0.95,z:-0.55,yaw:60},
+   {use:'kneel',body:'Athletic',x:0.95,z:-0.55,yaw:-60,j:{head:[-6,0,0]},ik:{L:{a:'chest',p:[0.28,0.5,0.3],pole:[1,-1,0]},R:{a:'chest',p:[-0.28,0.5,0.3],pole:[-1,-1,0]}}}]},
+ {id:'bk-stable',name:'Stable: saddling up',cat:C+'Outdoors & fantasy',j:{head:[-10,0,0],thL:[-6,0,6]},props:[{t:'horse',k:'h',a:'root',p:[0,0,0.75],r:[0,90,0]}],ik:{L:{a:'root',p:[0.15,1.62,0.6],pole:[1,-1,0]},R:{a:'root',p:[-0.2,1.62,0.6],pole:[-1,-1,0]}},cam:{shot:'WS',angle:'eye',focal:35,yaw:40}},
+ {id:'bk-knight',name:'Knight with a lance',cat:C+'Outdoors & fantasy',seat:1.61,saddle:1,j:{thL:[-36,0,40],shinL:[46,0,0],thR:[-36,0,-40],shinR:[46,0,0],spine:[10,0,0],head:[-10,0,0]},props:[{t:'horse',k:'m',a:'root',p:[0,0,0.05]},{t:'spear',k:'w',a:'chest',p:[-0.18,0.1,0.25],r:[80,0,0],s:1.4},{t:'shield',k:'sh',a:'chest',p:[0.3,0.1,0.2],r:[0,20,0]}],ik:{L:{prop:'m',pt:'l',pole:[1,-1,-0.3]},R:{prop:'w',pt:'g1',pole:[-1,-0.5,0]}},cam:{shot:'FS',angle:'low',focal:28,yaw:60}},
+ {id:'bk-charge',name:'Cavalry charge',cat:C+'Outdoors & fantasy',cam:{shot:'WS',angle:'low',focal:24,yaw:20},members:[
+   {use:'ride-gallop',x:0,z:0,yaw:0},{use:'ride-gallop',body:'Athletic',x:-2.0,z:-1.0,yaw:0},{use:'ride-gallop',body:'Muscular',x:2.0,z:-0.6,yaw:0}]},
+ {id:'bk-dragonland',name:'Dragon rider: after the landing',cat:C+'Outdoors & fantasy',j:{head:[-20,40,0],thL:[-6,0,6]},props:[{t:'dragon',k:'d',a:'root',p:[1.6,0,0.5],r:[0,-60,0]}],ik:{L:{a:'root',p:[0.9,1.6,0.9],pole:[1,-1,0]}},cam:{shot:'WS',angle:'low',focal:24,yaw:-30}},
+ {id:'bk-dragontakeoff',name:'Dragon rider: ready for takeoff',cat:C+'Outdoors & fantasy',cam:{shot:'WS',angle:'low',focal:24,yaw:50},members:[{use:'ride-dragon',x:0,z:0,yaw:0}]},
+ {id:'bk-farm',name:'Farmyard chores',cat:C+'Outdoors & fantasy',j:{spine:[10,0,0],head:[20,0,0],uaR:[-70,0,-40],faR:[-10,0,0]},props:[{t:'bowl',k:'bowl',a:'hdL',r:[0,0,0]},{t:'chicken',k:'c1',a:'root',p:[0.4,0,1.0]},{t:'chicken',k:'c2',a:'root',p:[-0.5,0,0.9],r:[0,40,0]},{t:'chicken',k:'c3',a:'root',p:[0.1,0,1.4],r:[0,180,0]},{t:'chicken',k:'c4',a:'root',p:[-0.9,0,1.5],r:[0,90,0]},{t:'pig',k:'pig',a:'root',p:[2.0,0,2.5],r:[0,-70,0]},{t:'cow',k:'cow',a:'root',p:[-2.5,0,3.5],r:[0,30,0]}],ik:{L:{a:'chest',p:[0.12,0.1,0.32],pole:[1,-1,0]}},cam:{shot:'WS',angle:'high',focal:28,yaw:30}},
+ {id:'bk-dogpark',name:'Walking the dog in the park',cat:C+'Outdoors & fantasy',j:J(WALKL,{head:[16,20,0],uaR:[-18,0,-6],faR:[-28,0,0]}),props:[{t:'bigdog',k:'d',a:'root',p:[0.55,0,0.7]},{t:'tree',k:'t1',a:'root',p:[-2,0,1]},{t:'tree',k:'t2',a:'root',p:[2.5,0,-1.5]},{t:'rope',k:'leash',a:'root',p:[0.42,0.82,0.36],r:[60,40,0],s:0.18}],ik:{L:{a:'root',p:[0.38,0.85,0.34],pole:[1,-1,-0.3]}},cam:{shot:'FS',angle:'eye',focal:50,yaw:30}},
+ {id:'bk-archery',name:'Archery practice',cat:C+'Outdoors & fantasy',j:{thL:[-10,0,8],shinL:[6,0,0],thR:[6,0,-8],head:[4,0,0]},props:[{t:'bow',k:'w',a:'chest',p:[0.08,0.42,0.6],r:[0,0,-8]},{t:'shield',k:'tgt',a:'root',p:[0,1.3,7],r:[0,180,0],s:2.2},{t:'box',k:'stand',a:'root',p:[0,0,7.2],s:0.9}],ik:{L:{prop:'w',pt:'grip',pole:[1,-0.4,0]},R:{a:'chest',p:[-0.03,0.44,0.08],pole:[-1,0.1,-0.4]}},cam:{shot:'WS',angle:'eye',focal:35,yaw:-120}},
+ {id:'bk-dojo',name:'Dojo sparring',cat:C+'Outdoors & fantasy',cam:{shot:'WS',angle:'high',focal:24,yaw:90},members:[
+   {use:'ma-cat',x:0,z:-0.75,yaw:0,addProps:[{t:'rug',k:'mat',a:'root',p:[0,0,0.75],s:2.2}]},
+   {use:'ma-front',body:'Athletic',x:0,z:0.75,yaw:180},
+   {use:'ma-bow',body:'Elderly',x:2.4,z:0,yaw:-90}]},
+ {id:'bk-dig',name:'Treasure hunters at the dig',cat:C+'Outdoors & fantasy',cam:{shot:'WS',angle:'high',focal:28,yaw:40},members:[
+   {use:'l-dig',x:0,z:0,yaw:0,addProps:[{t:'crate',k:'chest',a:'root',p:[0.6,0,1.1],s:0.8}]},
+   {use:'kneel',body:'Curvy',x:1.2,z:0.7,yaw:-120,j:{spine:[30,0,0],head:[30,0,0]},ik:{L:{a:'root',p:[0.12,0.1,0.5],pole:[1,-0.5,0]},R:{a:'root',p:[-0.12,0.1,0.5],pole:[-1,-0.5,0]}}}]},
+ {id:'bk-wolf',name:'Wilderness: wolf encounter',cat:C+'Outdoors & fantasy',j:{spine:[-18,0,0],chest:[-12,0,0],head:[-10,0,0],thL:[-30,0,6],shinL:[32,0,0],thR:[8,0,-4],uaL:[-30,0,62],uaR:[-40,0,-72],faL:[-30,0,0],faR:[-30,0,0]},props:[{t:'wolf',k:'w',a:'root',p:[0.2,0,2.2],r:[0,180,0]},{t:'wolf',k:'w2',a:'root',p:[-1.4,0,2.8],r:[0,150,0]},{t:'tree',k:'t1',a:'root',p:[-2.5,0,-1]},{t:'tree',k:'t2',a:'root',p:[2.2,0,1.5]}],cam:{shot:'WS',angle:'low',focal:24,yaw:140}}
+);
+}
+const POSE_CATS=['Standing','Posture & attitude','Distress','Gestures','Everyday life','School life','Action','Scenes','Scenes · Work & home','Scenes · Travel','Scenes · Action','Scenes · Public places','Scenes · Outdoors & fantasy','Running & parkour','Grabbing','Seated & floor','Mobility','Family','Affection','Dance','Helping','Riding','Animals','Labor','Driving & piloting','War','Katana','Action snapshots','Acrobatic','Ballet','Comic book','Martial arts','Sparring','Rifle','Pistol','Melee & archery','Sci-fi & heavy','Maintenance','Couples','Groups','My poses'];
 let MY_POSES=[]; try{MY_POSES=JSON.parse(localStorage.getItem('standin.myposes')||'[]')||[];}catch(e){MY_POSES=[];}
 const allPoses=()=>POSES.concat(MY_POSES);
 const poseById=id=>allPoses().find(p=>p.id===id);
@@ -1220,6 +1392,7 @@ function resolvePose(spec){
   if(spec.ik) o.ik={...((base&&base.ik)||{}),...spec.ik};
   if(spec.seat!=null) o.seat=spec.seat;
   if(spec.kidScale) o.kidScale=1;
+  if(spec.addProps) o.props=(o.props||[]).concat(spec.addProps);
   return o;
 }
 
@@ -1292,6 +1465,21 @@ function setAngle(code){
     }
   }
 }
+function frameFigures(){
+  const box=new THREE.Box3(); S.figures.forEach(f=>f.allMeshes.forEach(m=>{if(m.visible)box.expandByObject(m);}));
+  if(box.isEmpty()) return; const c=box.getCenter(new V3()), s=box.getSize(new V3());
+  const a=ASPECTS[S.aspect], fv=vfov(S.rig.focal,a);
+  S.rig.target.copy(c); S.rig.dist=Math.max(s.y/(2*Math.tan(fv/2)),Math.max(s.x,s.z)/(2*Math.tan(fv/2)*a))*1.2+Math.max(s.x,s.z)*0.35;
+}
+function applyCamPreset(c){
+  const f=S.figures[0]; if(!f) return;
+  S.figures.forEach(x=>{x.update();x.update();}); S.selFig=f; S.selJoint=null;
+  releaseOverride(); S.rig.roll=0; S.shotTag=null;
+  if(c.focal) S.rig.focal=c.focal;
+  S.rig.yaw=f.base.rotation.y+(c.yaw!=null?c.yaw:25)*D2R; S.rig.pitch=0.04;
+  if(c.shot==='ALL') frameFigures(); else setShot(c.shot||'FS');
+  if(c.angle) setAngle(c.angle);
+}
 function frameAll(){
   releaseOverride(); const box=new THREE.Box3(); S.figures.forEach(f=>box.expandByObject(f.base)); S.props.forEach(p=>box.expandByObject(p.group));
   if(box.isEmpty()) return; const c=box.getCenter(new V3()), s=box.getSize(new V3());
@@ -1336,6 +1524,7 @@ function applyPoseEntry(p){
     const f=S.selFig||S.figures[0]||addFigure(); S.selFig=f; f.applyPose(resolvePose(p));
   }
   S.selProp=null; S.lastPose=p.id;
+  if(p.cam) applyCamPreset(p.cam);
 }
 function applyMemberBody(f,m){
   if(m.body){f.body={...BODY_PRESETS[m.body]};f.bodyName=m.body;f.applyBody();}
