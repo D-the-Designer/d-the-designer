@@ -800,6 +800,39 @@ const PROP_DEFS=[
  {id:'cat',name:'Cat',cat:'Animals',pts:{},build:g=>{const m=MAT.pet;const b=mk(CAP,m);b.scale.set(.15,.2,.16);b.rotation.x=Math.PI/2;b.position.set(0,.25,0);g.add(b);
    sp(g,.075,0,.36,.22,m);cone(g,.032,.07,.045,.45,.22,0,m,4);cone(g,.032,.07,-.045,.45,.22,0,m,4);
    for(const x of[-.05,.05])for(const z of[-.11,.11])cy(g,.02,.018,.2,x,.1,z,0,0,0,m,6);cy(g,.014,.01,.34,0,.4,-.25,-25,0,0,m,6);}},
+ {id:'wand',name:'Wand',cat:'Hand props',hand:1,handRot:[180,0,0],pts:{grip:[0,0.04,0]},build:g=>{cy(g,.008,.005,.34,0,-.1,0,0,0,0,MAT.furn,6);cy(g,.011,.011,.05,0,.05,0,0,0,0,W_(),6);}},
+ {id:'wizstaff',name:"Wizard's staff",cat:'Melee',hand:1,pts:{grip:[0,0,0],g1:[0,-0.25,0],g2:[0,0.22,0]},build:g=>{cy(g,.02,.016,1.8,0,0,0,0,0,0,MAT.furn,6);for(let i=0;i<3;i++){const a=i*120*D2R;cy(g,.01,.006,.22,Math.cos(a)*.05,.98,Math.sin(a)*.05,Math.sin(a)*-25,0,Math.cos(a)*25,MAT.furn,4);}sp(g,.065,0,1.0,0,MAT.prop);}},
+ {id:'spellburst',name:'Spell burst',cat:'Primitives',pts:{},build:g=>{const c=mk(new THREE.IcosahedronGeometry(.16,0),MAT.prop);g.add(c);for(const r of[[90,0,0],[0,0,60],[30,60,0]]){const t=mk(new THREE.TorusGeometry(.3,.012,4,24),MAT.prop);t.rotation.set(r[0]*D2R,r[1]*D2R,r[2]*D2R);g.add(t);}}},
+ {id:'magiccircle',name:'Magic circle',cat:'Set pieces',pts:{},build:g=>{for(const [r,w] of[[1.15,.03],[.95,.02],[.45,.015]]){const t=mk(new THREE.TorusGeometry(r,w,3,48),MAT.prop);t.rotation.x=Math.PI/2;t.position.y=.012;g.add(t);}for(let i=0;i<5;i++){const a=(i*144+90)*D2R,b=((i+1)*144+90)*D2R;const x1=Math.cos(a)*.95,z1=Math.sin(a)*.95,x2=Math.cos(b)*.95,z2=Math.sin(b)*.95;const L=Math.hypot(x2-x1,z2-z1);bx(g,L,.012,.03,(x1+x2)/2,.012,(z1+z2)/2,0,-Math.atan2(z2-z1,x2-x1)/D2R,0,MAT.prop);}}},
+ {id:'crystalball',name:'Crystal ball',cat:'Set pieces',pts:{},build:g=>{cy(g,.07,.09,.05,0,.025,0,0,0,0,W_(),8);sp(g,.1,0,.15,0,MAT.prop);}},
+ {id:'cauldron',name:'Cauldron',cat:'Set pieces',pts:{},build:g=>{const m=W_();sp(g,.36,0,.38,0,m,1,.8,1);const t=mk(new THREE.TorusGeometry(.3,.035,5,18),m);t.rotation.x=Math.PI/2;t.position.y=.62;g.add(t);for(let i=0;i<3;i++){const a=i*120*D2R;cy(g,.03,.03,.2,Math.cos(a)*.24,.08,Math.sin(a)*.24,0,0,0,m,5);}}},
+ {id:'menhir',name:'Standing stone',cat:'Set blocks',pts:{},build:g=>{bx(g,.6,2.3,.4,0,1.1,0,0,0,3,F_());bx(g,.5,.2,.35,.02,2.3,0,0,0,-6,F_());}},
+ {id:'throne',name:'Throne',cat:'Furniture',pts:{},build:g=>{const m=F_();bx(g,.75,.5,.6,0,.25,0,0,0,0,m);bx(g,.8,1.6,.12,0,.95,-.3,0,0,0,m);cone(g,.12,.3,-.3,1.85,-.3,0,m,4);cone(g,.12,.3,.3,1.85,-.3,0,m,4);bx(g,.1,.3,.6,-.38,.65,0,0,0,0,m);bx(g,.1,.3,.6,.38,.65,0,0,0,0,m);}},
+ {id:'pillar',name:'Pillar',cat:'Set blocks',pts:{},build:g=>{const m=F_();bx(g,.75,.2,.75,0,.1,0,0,0,0,m);cy(g,.27,.3,3.4,0,1.9,0,0,0,0,m,10);bx(g,.75,.2,.75,0,3.7,0,0,0,0,m);}},
+ {id:'torii',name:'Torii gate',cat:'Set blocks',pts:{},build:g=>{const m=F_();for(const x of[-1.4,1.4])cy(g,.13,.16,3.3,x,1.65,0,0,0,0,m,8);bx(g,3.4,.15,.18,0,2.65,0,0,0,0,m);bx(g,4.3,.2,.3,0,3.35,0,0,0,0,m);bx(g,4.6,.12,.36,0,3.52,0,0,0,0,m);bx(g,.2,.6,.16,0,3.0,0,0,0,0,m);}},
+ {id:'stonelantern',name:'Stone lantern',cat:'Set blocks',pts:{},build:g=>{const m=F_();bx(g,.5,.15,.5,0,.075,0,0,0,0,m);cy(g,.08,.1,.7,0,.5,0,0,0,0,m,6);bx(g,.36,.3,.36,0,1.0,0,0,0,0,MAT.prop);cone(g,.42,.3,0,1.3,0,0,m,4);sp(g,.06,0,1.5,0,m);}},
+ {id:'vending',name:'Vending machine',cat:'Set pieces',pts:{},build:g=>{bx(g,1.0,1.85,.75,0,.925,0,0,0,0,MAT.prop);bx(g,.8,1.0,.02,0,1.2,.38,0,0,0,F_());bx(g,.6,.15,.04,0,.3,.38,0,0,0,W_());for(let i=0;i<4;i++)bx(g,.05,.03,.02,-.3+i*.2,.65,.39,0,0,0,W_());}},
+ {id:'sakura',name:'Cherry tree',cat:'Set blocks',pts:{},build:g=>{cy(g,.14,.2,2,0,1,0,0,0,8,MAT.furn,6);cy(g,.07,.09,1.2,.35,2.2,0,0,0,-35,MAT.furn,5);cy(g,.07,.09,1.2,-.35,2.3,.1,0,0,30,MAT.furn,5);for(const [x,y,z,r] of[[0,3.0,0,1.1],[.9,2.8,.2,.8],[-.9,2.9,-.1,.85],[.2,3.2,-.7,.75],[-.3,2.6,.8,.7]]){const c=mk(new THREE.IcosahedronGeometry(r,0),MAT.prop);c.position.set(x,y,z);c.scale.set(1,.7,1);g.add(c);}}},
+ {id:'mecha',name:'Giant robot, kneeling',cat:'Vehicles',pts:{},build:g=>{const m=W_(),p=MAT.prop;bx(g,1.2,1.0,.7,0,3.0,0,0,0,0,p);bx(g,1.6,1.2,1.0,0,4.0,0,0,0,0,p);bx(g,.5,.5,.5,0,4.85,.1,0,0,0,m);bx(g,.6,.08,.08,0,5.05,.3,0,0,25,p);
+   for(const s of[-1,1]){bx(g,.6,.6,.7,s*1.15,4.35,0,0,0,0,m);bx(g,.4,1.3,.4,s*1.2,3.5,.15,-15,0,0,p);bx(g,.45,1.2,.45,s*1.2,2.6,.6,-60,0,0,p);bx(g,.4,.3,.5,s*1.2,2.2,1.15,0,0,0,m);}
+   bx(g,.5,1.5,.5,.45,2.2,1.0,-90,0,0,p);bx(g,.5,1.5,.5,.45,.75,1.75,0,0,0,p);bx(g,.6,.3,.8,.45,.15,1.9,0,0,0,m);
+   bx(g,.5,1.5,.5,-.45,1.75,-.4,40,0,0,p);bx(g,.5,1.4,.5,-.45,.25,-.95,-90,0,0,p);bx(g,.6,.6,.3,-.45,.3,-1.7,0,0,0,m);}},
+ {id:'lanterns',name:'Festival lanterns',cat:'Set pieces',pts:{},build:g=>{for(const x of[-2.5,2.5])cy(g,.04,.05,3,x,1.5,0,0,0,0,F_(),6);for(let i=0;i<9;i++){const x=-2+i*.5,y=2.8-0.25*(1-Math.pow(x/2.5,2));sp(g,.12,x,y-.15,0,MAT.prop,1,1.3,1);}cy(g,.006,.006,5,0,2.75,0,0,0,90,W_(),4);}},
+ {id:'stall',name:'Festival stall',cat:'Set pieces',pts:{},build:g=>{const m=F_();bx(g,1.8,.9,.6,0,.45,0,0,0,0,m);for(const x of[-.85,.85])for(const z of[-.25,.25])cy(g,.03,.03,2.2,x,1.1,z,0,0,0,W_(),5);bx(g,2.0,.06,.9,0,2.2,0,12,0,0,MAT.prop);bx(g,1.8,.35,.02,0,2.0,.3,0,0,0,MAT.prop);}},
+ {id:'net',name:'Volleyball net',cat:'Set pieces',pts:{},build:g=>{for(const x of[-4.5,4.5])cy(g,.04,.04,2.5,x,1.25,0,0,0,0,W_(),6);bx(g,9,.9,.01,0,1.95,0,0,0,0,MAT.prop);bx(g,9,.05,.02,0,2.42,0,0,0,0,F_());}},
+ {id:'bento',name:'Bento box',cat:'Hand props',pts:{grip:[0,0,0],l:[0.08,0,0],r:[-0.08,0,0]},build:g=>{bx(g,.17,.05,.11,0,0,0,0,0,0,MAT.prop);bx(g,.18,.012,.12,0,.03,0,0,0,0,F_());}},
+ {id:'utilitypole',name:'Utility pole',cat:'Set blocks',pts:{},build:g=>{cy(g,.14,.17,8,0,4,0,0,0,0,F_(),8);bx(g,1.4,.1,.1,0,7.3,0,0,0,0,W_());bx(g,1.0,.1,.1,0,6.8,0,0,0,0,W_());}},
+ {id:'r-tower',name:"Wizard's study",cat:'Rooms',room:1,pts:{},build:g=>{for(let i=0;i<7;i++){const a=(200+i*20)*D2R;bx(g,1.25,3.4,.15,Math.cos(a)*3.2,1.7,Math.sin(a)*3.2+.6,0,-(a/D2R)-90,0,MAT.furn);}
+   piece(g,'bookshelf',-2.3,-1.4,40);piece(g,'bookshelf',2.3,-1.4,-40);piece(g,'bookshelf',-1.1,-2.3,15);piece(g,'table',0,.62);piece(g,'crystalball',0,.85,0,.75);piece(g,'cauldron',1.6,-.6);piece(g,'rug',0,.3);piece(g,'stonelantern',-1.6,-.5,0,0,.8);}},
+ {id:'r-throne',name:'Throne room',cat:'Rooms',room:1,pts:{},build:g=>{bx(g,3.2,.3,2.4,0,.15,-.2,0,0,0,MAT.furn);bx(g,2.4,.15,.6,0,.075,1.3,0,0,0,MAT.furn);piece(g,'throne',0,-.05,0,.3);wall(g,8,0,-1.5);
+   for(const z of[1,3.5,6])for(const x of[-2.6,2.6])piece(g,'pillar',x,z);bx(g,1.4,.01,8,0,.005,5,0,0,0,MAT.prop);}},
+ {id:'r-tavern',name:'Tavern',cat:'Rooms',room:1,pts:{},build:g=>{piece(g,'table',0,0);for(const z of[-.62,.62])piece(g,'stool',0,z);piece(g,'table',2.6,.4,90);piece(g,'stool',2.0,.4);piece(g,'stool',3.2,.4);
+   bx(g,4,1.05,.6,-.4,.525,-2.3,0,0,0,MAT.furn);bx(g,4.1,.05,.75,-.4,1.08,-2.35,0,0,0,MAT.prop);wall(g,8,0,-3.4);for(const x of[-2.2,-1.6,-1.0])piece(g,'barrel',x,-3.0);piece(g,'barrel',-3.2,.8);piece(g,'barrel',-3.2,1.6);}},
+ {id:'r-stones',name:'Stone circle',cat:'Rooms',room:1,pts:{},build:g=>{for(let i=0;i<9;i++){const a=i*40*D2R;piece(g,'menhir',Math.cos(a)*4,Math.sin(a)*4,-i*40+90);}piece(g,'magiccircle',0,0);}},
+ {id:'r-shrine',name:'Shrine gate',cat:'Rooms',room:1,pts:{},build:g=>{piece(g,'torii',0,-1.5);for(const x of[-1.7,1.7])piece(g,'stonelantern',x,-.2);bx(g,1.4,.04,6,0,.02,-1.5,0,0,0,MAT.prop);bx(g,3,1.6,2,0,.8,-6,0,0,0,MAT.furn);cone(g,2.6,1.2,0,2.2,-6,0,MAT.furn,4);piece(g,'tree',-3.4,-3);piece(g,'tree',3.6,-2.6);}},
+ {id:'r-street',name:'Street corner (Japan)',cat:'Rooms',room:1,pts:{},build:g=>{bx(g,.2,1.6,8,-2.2,.8,-2,0,0,0,MAT.furn);bx(g,6,1.6,.2,1,.8,-2.6,0,0,0,MAT.furn);piece(g,'vending',-1.6,-1.6,90);piece(g,'utilitypole',1.6,-2.2);
+   for(let i=0;i<6;i++)bx(g,.4,.01,2.2,-.5+i*.7,.006,1.6,0,0,0,MAT.prop);}},
+ {id:'r-festival',name:'Summer festival',cat:'Rooms',room:1,pts:{},build:g=>{piece(g,'lanterns',0,-1.4);piece(g,'lanterns',0,2.2);piece(g,'stall',-2.6,-.2,90);piece(g,'stall',2.6,.4,-90);piece(g,'stall',0,-3.2);piece(g,'torii',0,5.5);}},
  {id:'bottle',name:'Product bottle',cat:'Hand props',hand:1,pts:{grip:[0,-0.01,-0.03]},build:g=>{cy(g,.03,.03,.15,0,0,0,0,0,0,MAT.prop,10);cy(g,.016,.02,.03,0,.09,0,0,0,0,W_(),8);cy(g,.006,.006,.03,0,.115,0,0,0,0,W_(),6);}},
  {id:'spray',name:'Spray bottle',cat:'Hand props',hand:1,pts:{grip:[0,0.03,-0.03]},build:g=>{cy(g,.035,.035,.17,0,0,0,0,0,0,MAT.prop,10);bx(g,.03,.05,.07,0,.11,.015,0,0,0,W_());bx(g,.012,.04,.012,0,.07,.045,0,0,0,W_());}},
  {id:'productbox',name:'Product box',cat:'Hand props',pts:{grip:[0,0,0],l:[0.095,-0.02,0],r:[-0.095,-0.02,0]},build:g=>{bx(g,.19,.24,.07,0,0,0,0,0,0,MAT.prop);bx(g,.12,.06,.002,0,.04,.036,0,0,0,W_());}},
@@ -1521,7 +1554,92 @@ POSES.push(
    {use:'bb-frontdb',body:'Muscle man',x:-1.3,z:0},{use:'bb-mostmusc',body:'Bodybuilder',x:0,z:0},{use:'bb-frontlat',body:'Fitness model',x:1.3,z:0}]}
 );
 }
-const POSE_CATS=['Standing','Posture & attitude','Distress','Gestures','Everyday life','School life','Action','Scenes','Scenes · Work & home','Scenes · Travel','Scenes · Action','Scenes · Public places','Scenes · Outdoors & fantasy','Running & parkour','Grabbing','Seated & floor','Mobility','Family','Affection','Dance','Helping','Riding','Animals','Labor','Driving & piloting','War','Katana','Action snapshots','Acrobatic','Ballet','UGC & influencer','Product demo','Fashion','Pin-up & centerfold','Classic art','Bodybuilding','Comic book','Martial arts','Sparring','Rifle','Pistol','Melee & archery','Sci-fi & heavy','Maintenance','Couples','Groups','My poses'];
+{
+const C='Scenes · ', W='Scenes · Wizard & fantasy', A='Scenes · Anime';
+const SET=(t,p,r)=>({t,k:'set',a:'root',p:p||[0,0,0],r:r||[0,0,0]});
+const LUNGE={thL:[-24,0,8],shinL:[24,0,0],thR:[16,0,-8],shinR:[10,0,0]};
+const KUP={thL:[0,0,6],shinL:[90,0,0],ftL:[60,0,0],thR:[0,0,-6],shinR:[90,0,0],ftR:[60,0,0]};
+const WAND={t:'wand',k:'wd',a:'hdR'};
+const CAST={j:J(LUNGE,{chest:[-4,-8,0],head:[-2,8,0]}),props:[WAND],ik:{R:{a:'chest',p:[-0.04,0.32,0.6],pole:[-1,-1,0]},L:{a:'chest',p:[0.3,0.1,0.2],pole:[1,-1,0]}}};
+const TRUNK=(x,z)=>({t:'tree',k:'tr'+x+z,a:'root',p:[x,0,z]});
+POSES.push(
+ /* ---- Wizard & fantasy ---- */
+ {id:'wz-cast',name:'Wizard: casting in the stone circle',cat:W,j:J(LUNGE,{chest:[-6,0,0],head:[-4,0,0]}),props:[SET('r-stones'),{t:'wizstaff',k:'st',a:'root',p:[0.34,0.95,0.12]},{t:'spellburst',k:'fx',a:'root',p:[-0.05,1.38,1.05]}],ik:{L:{prop:'st',pt:'g2',pole:[1,-1,0]},R:{a:'chest',p:[-0.04,0.32,0.56],pole:[-1,-1,0]}},cam:{shot:'FS',angle:'low',focal:24,yaw:35}},
+ {id:'wz-storm',name:'Wizard: staff raised to the storm',cat:W,j:{thL:[0,0,12],thR:[0,0,-12],chest:[-12,0,0],head:[-30,0,0]},props:[SET('r-stones'),{t:'wizstaff',k:'st',a:'chest',p:[0.06,0.8,0.12]},{t:'spellburst',k:'fx',a:'chest',p:[0.06,1.95,0.12],s:1.4}],ik:{L:{prop:'st',pt:'g2',pole:[1,-0.5,0]},R:{prop:'st',pt:'g1',pole:[-1,-0.5,0]}},cam:{shot:'FS',angle:'low',focal:24,yaw:20}},
+ {id:'wz-study',name:"Wizard's study: reading the spellbook",cat:W,seat:0.47,j:J(SIT,{spine:[8,0,0],head:[24,0,0]}),props:[SET('r-tower'),{t:'chair',k:'chair',a:'root',p:[0,0,0.04]},{t:'book',k:'bk',a:'root',p:[-0.25,0.8,0.42],r:[-70,0,0]}],ik:{L:{a:'root',p:[-0.12,0.82,0.4],pole:[1,-1,0]},R:{prop:'bk',pt:'r',pole:[-1,-1,0]}},cam:{shot:'FS',angle:'eye',focal:28,yaw:50}},
+ {id:'wz-crystal',name:"Wizard's study: gazing into the crystal ball",cat:W,seat:0.47,j:J(SIT,{spine:[18,0,0],chest:[6,0,0],head:[26,0,0]}),props:[SET('r-tower'),{t:'chair',k:'chair',a:'root',p:[0,0,0.04]}],ik:{L:{a:'root',p:[0.15,0.92,0.8],pole:[1,-1,0]},R:{a:'root',p:[-0.15,0.92,0.8],pole:[-1,-1,0]}},cam:{shot:'FS',angle:'eye',focal:28,yaw:50}},
+ {id:'wz-brew',name:"Wizard's study: stirring the cauldron",cat:W,j:{spine:[20,0,0],head:[20,0,0],thL:[-12,0,6],shinL:[14,0,0]},props:[SET('r-tower',[-1.6,0,1.25]),{t:'staff',k:'ld',a:'root',p:[0,0.85,0.45],r:[-20,0,0],s:0.7}],ik:{L:{prop:'ld',pt:'g2',pole:[1,-1,0]},R:{prop:'ld',pt:'grip',pole:[-1,-1,0]}},cam:{shot:'FS',angle:'high',focal:28,yaw:40}},
+ {id:'wz-duel',name:'Wizard duel',cat:W,cam:{shot:'WS',angle:'low',focal:24,yaw:90},members:[
+   {...CAST,x:0,z:-1.6,yaw:0,addProps:[SET('r-stones',[0,0,1.6]),{t:'spellburst',k:'fx',a:'root',p:[0,1.38,1.6]}]},
+   {...CAST,body:'Elderly',x:0,z:1.6,yaw:180}]},
+ {id:'wz-lesson',name:'Wizard: the apprentice lesson',cat:W,cam:{shot:'ALL',angle:'eye',focal:35,yaw:60},members:[
+   {body:'Elderly',x:-0.9,z:0,yaw:50,j:{spine:[8,0,0],head:[14,0,0]},props:[{t:'wizstaff',k:'st',a:'root',p:[0.3,0.95,0.15]},{t:'magiccircle',k:'mc',a:'root',p:[0.6,0,1.1]},{t:'stonelantern',k:'sl',a:'root',p:[-1.2,0,-0.6]},{t:'bookshelf',k:'bs',a:'root',p:[0.2,0,-1.2]}],ik:{L:{prop:'st',pt:'g2',pole:[1,-1,0]},R:{a:'chest',p:[-0.05,0.18,0.45],pole:[-1,-1,0]}}},
+   {body:'Teen',x:0.4,z:0.5,yaw:60,addProps:[{t:'spellburst',k:'fx',a:'root',p:[-0.05,1.1,1.05],s:0.5}],j:J(LUNGE,{head:[-6,0,0]}),props:[WAND],ik:{R:{a:'chest',p:[-0.06,0.3,0.55],pole:[-1,-1,0]},L:{a:'chest',p:[0.26,0.0,0.2],pole:[1,-1,0]}}}]},
+ {id:'wz-summon',name:'Summoning ritual',cat:W,j:J(KUP,{chest:[-14,0,0],head:[-26,0,0]}),props:[{t:'magiccircle',k:'mc',a:'root',p:[0,0,0.9]},{t:'spellburst',k:'fx',a:'root',p:[0,1.0,1.4],s:2.2}],ik:{L:{a:'chest',p:[0.5,0.62,0.25],pole:[1,-0.5,0]},R:{a:'chest',p:[-0.5,0.62,0.25],pole:[-1,-0.5,0]}},cam:{shot:'WS',angle:'high',focal:28,yaw:150}},
+ {id:'wz-portal',name:'Stepping through a portal',cat:W,j:J(WALKL,{head:[-4,0,0],uaL:[16,0,6],faL:[-12,0,0]}),props:[{t:'magiccircle',k:'pt',a:'root',p:[0,1.2,0.75],r:[90,0,0]},TRUNK(-2.4,2),TRUNK(2.6,3.2)],ik:{R:{a:'chest',p:[-0.1,0.2,0.62],pole:[-1,-1,0]}},cam:{shot:'WS',angle:'eye',focal:28,yaw:150}},
+ {id:'ft-throne',name:'Throne room: an audience with the king',cat:W,cam:{shot:'ALL',angle:'high',focal:24,yaw:20},members:[
+   {x:0,z:0,yaw:0,seat:0.8,j:J(SIT,{spine:[-6,0,0],head:[6,0,0],thL:[-90,0,10],thR:[-90,0,-10]}),props:[SET('r-throne')],ik:{L:{a:'root',p:[0.38,1.12,0.05],pole:[1,-1,0]},R:{a:'root',p:[-0.38,1.12,0.05],pole:[-1,-1,0]}}},
+   {use:'kneel',body:'Athletic',x:0,z:2.3,yaw:180,j:{head:[30,0,0]},addProps:[{t:'sword',k:'sw',a:'root',p:[0.25,0.04,0.3],r:[90,0,90]}]}]},
+ {id:'ft-knight',name:'Throne room: the knighting',cat:W,cam:{shot:'ALL',angle:'eye',focal:35,yaw:25},members:[
+   {body:'Curvy',x:0,z:0,yaw:0,j:{head:[18,0,0],chest:[6,0,0]},props:[{t:'sword',k:'sw',a:'hdR',r:[180,0,0]},SET('r-throne',[0,0,-3.2])],ik:{R:{a:'chest',p:[-0.14,0.18,0.5],pole:[-1,-1,0]}}},
+   {use:'kneel',body:'Athletic',x:-0.1,z:1.25,yaw:180,j:{head:[34,0,0],spine:[14,0,0]}}]},
+ {id:'ft-tavern',name:'Tavern: a toast to the quest',cat:W,cam:{shot:'ALL',angle:'eye',focal:28,yaw:70},members:[
+   {x:0,z:-0.62,yaw:0,seat:0.47,j:J(SIT,{spine:[-4,0,0],head:[-6,0,0]}),props:[SET('r-tavern',[0,0,0.62]),{t:'cup',k:'cup',a:'hdR'}],ik:{R:{a:'root',p:[-0.06,1.2,0.5],pole:[-1,-1,0]},L:{a:'root',p:[0.2,0.78,0.4],pole:[1,-1,0]}}},
+   {body:'Stocky',x:0,z:0.62,yaw:180,seat:0.47,j:J(SIT,{spine:[-4,0,0],head:[-6,0,0]}),props:[{t:'cup',k:'cup',a:'hdR'}],ik:{R:{a:'root',p:[-0.06,1.2,0.5],pole:[-1,-1,0]},L:{a:'root',p:[0.2,0.78,0.4],pole:[1,-1,0]}}},
+   {use:'stand',body:'Heavyset',x:-0.6,z:-2.9,yaw:0,j:{head:[10,30,0]},ik:{L:{a:'root',p:[0.2,1.12,0.4],pole:[1,-1,0]},R:{a:'root',p:[-0.2,1.12,0.4],pole:[-1,-1,0]}}}]},
+ {id:'ft-party',name:'The adventuring party',cat:W,cam:{shot:'ALL',angle:'low',focal:28,yaw:0},members:[
+   {use:'s-shield',body:'Muscular',x:-0.7,z:0.3,yaw:10},
+   {use:'bow',body:'Tall & lean',x:-2.1,z:-0.4,yaw:40},
+   {x:0.7,z:0.1,yaw:-10,j:{thL:[0,0,8],thR:[0,0,-8],head:[-6,0,0]},props:[{t:'wizstaff',k:'st',a:'root',p:[0.32,0.95,0.15]}],ik:{L:{prop:'st',pt:'g2',pole:[1,-1,0]},R:{a:'chest',p:[-0.1,0.14,0.42],pole:[-1,-1,0]}}},
+   {use:'dagger',body:'Slender',x:2.1,z:-0.4,yaw:-35}]},
+ {id:'ft-dragon',name:'Facing the dragon',cat:W,use:'s-shield',addProps:[{t:'dragon',k:'d',a:'root',p:[0,0,3.8],r:[0,180,0]}],cam:{shot:'WS',angle:'low',focal:24,yaw:140}},
+ {id:'ft-stone',name:'The sword in the stone',cat:W,j:{spine:[22,0,0],head:[-6,0,0],thL:[-16,0,14],shinL:[20,0,0],thR:[-16,0,-14],shinR:[20,0,0]},props:[{t:'box',k:'rock',a:'root',p:[0,0,0.48],s:1.2},{t:'sword',k:'sw',a:'root',p:[0,1.2,0.48],r:[180,0,0]},TRUNK(-2.6,-1.8),TRUNK(2.4,-2.6)],ik:{L:{prop:'sw',pt:'grip',pole:[1,-1,0]},R:{prop:'sw',pt:'grip2',pole:[-1,-1,0]}},cam:{shot:'FS',angle:'low',focal:28,yaw:50}},
+ {id:'ft-elf',name:'Archer in the forest',cat:W,use:'bow',addProps:[TRUNK(-2.2,0.4),TRUNK(1.8,4.6),TRUNK(-2.4,-2.2),TRUNK(2.2,-2),TRUNK(-0.6,5.2)],cam:{shot:'FS',angle:'eye',focal:35,yaw:40}},
+
+ /* ---- Anime ---- */
+ {id:'ani-corner',name:'Late! Collision at the corner',cat:A,cam:{shot:'ALL',angle:'eye',focal:28,yaw:10},members:[
+   {use:'sc-late',x:-1.1,z:0.6,yaw:90,addProps:[SET('r-street',[-0.6,0,-1.1],[0,-90,0])]},
+   {use:'cb-shock',body:'Athletic',x:0.4,z:0.6,yaw:-90}]},
+ {id:'ani-rooflunch',name:'Rooftop lunch',cat:A,cam:{shot:'ALL',angle:'high',focal:28,yaw:20},members:[
+   {use:'hugknees',x:-0.45,z:0,yaw:0,j:{head:[16,0,0]},props:[SET('r-rooftop',[0.45,0,1.1],[0,180,0]),{t:'bento',k:'bt',a:'root',p:[0,0.55,0.3]}],ik:{L:{prop:'bt',pt:'l',pole:[1,-1,0]},R:{prop:'bt',pt:'r',pole:[-1,-1,0]}}},
+   {use:'crossleg',body:'Curvy',x:0.5,z:0.05,yaw:-15,j:{head:[14,-20,0]},props:[{t:'bento',k:'bt',a:'root',p:[0,0.45,0.28]},{t:'chopsticks',k:'cs',a:'hdR',r:[90,0,60]}],ik:{L:{prop:'bt',pt:'l',pole:[1,-1,0]},R:{a:'head',p:[-0.02,-0.04,0.16],pole:[-1,-1,0]}}}]},
+ {id:'ani-confess',name:'Rooftop confession',cat:A,cam:{shot:'ALL',angle:'eye',focal:35,yaw:90},members:[
+   {use:'sc-confess',x:0,z:-0.7,yaw:0,addProps:[SET('r-rooftop',[0,0,0.7],[0,-90,0])]},
+   {use:'pa-shy',body:'Curvy',x:0,z:0.7,yaw:180}]},
+ {id:'ani-window',name:'Daydreaming by the classroom window',cat:A,seat:0.47,j:J(SIT,{spine:[10,0,0],head:[4,-40,-10]}),props:[{t:'chair',k:'chair',a:'root',p:[0,0,0.04]},{t:'schooldesk',k:'dk',a:'root',p:[0,0,0.1]},SET('r-classroom',[0.47,0,-1.1]),{t:'wall',k:'win',a:'root',p:[-1.0,0,0.3],r:[0,90,0]}],ik:{R:{a:'head',p:[-0.02,-0.1,0.12],pole:[-0.2,-1,0.4]},L:{a:'root',p:[0.12,0.75,0.38],pole:[1,-1,0]}},cam:{shot:'FS',angle:'eye',focal:35,yaw:45}},
+ {id:'ani-shrine',name:'Prayer at the shrine',cat:A,j:{head:[24,0,0],spine:[10,0,0]},props:[SET('r-shrine',[0,0,1.2],[0,180,0])],ik:{L:{a:'chest',p:[0.01,0.2,0.3],pole:[1,-1,0]},R:{a:'chest',p:[-0.01,0.2,0.3],pole:[-1,-1,0]}},cam:{shot:'WS',angle:'low',focal:24,yaw:200}},
+ {id:'ani-festival',name:'Summer festival fireworks',cat:A,cam:{shot:'ALL',angle:'low',focal:24,yaw:170},members:[
+   {use:'point',x:-0.3,z:0,yaw:0,j:{head:[-34,0,0],uaR:[-150,0,-4]},addProps:[SET('r-festival',[0.3,0,0])]},
+   {body:'Curvy',x:0.32,z:0,yaw:-10,j:{head:[-30,0,0]},ik:{L:{a:'chest',p:[0.03,0.18,0.24],pole:[1,-1,0]},R:{a:'chest',p:[-0.03,0.18,0.24],pole:[-1,-1,0]}}}]},
+ {id:'ani-umbrella',name:'Sharing an umbrella in the rain',cat:A,cam:{shot:'ALL',angle:'eye',focal:35,yaw:20},members:[
+   {use:'walk',x:0.25,z:0,yaw:0,j:{head:[0,-14,0]},props:[{t:'umbrella',k:'u',a:'chest',p:[-0.2,-0.05,0.24]}],ik:{R:{prop:'u',pt:'grip',pole:[-1,-1,0]}}},
+   {use:'walk',body:'Petite',x:-0.25,z:0.05,yaw:0,j:{head:[-10,16,0]}}]},
+ {id:'ani-platform',name:'Farewell at the station',cat:A,cam:{shot:'ALL',angle:'eye',focal:28,yaw:-20},members:[
+   {use:'wave',x:0,z:0,yaw:0,addProps:[SET('r-subway',[1.5,0,-0.2])]},
+   {use:'lookback',body:'Slender',x:1.0,z:-1.4,yaw:180}]},
+ {id:'ani-rivals',name:'Rivals: standoff in the wind',cat:A,cam:{shot:'ALL',angle:'low',focal:24,yaw:90},members:[
+   {use:'cross',x:0,z:-2,yaw:0,addProps:[{t:'utilitypole',k:'up',a:'root',p:[-2.6,0,2.4]}]},
+   {use:'point',body:'Athletic',x:0,z:2,yaw:180}]},
+ {id:'ani-beam',name:'Energy beam clash',cat:A,cam:{shot:'WS',angle:'low',focal:24,yaw:90},members:[
+   {use:'cb-blast',x:0,z:-2.4,yaw:0,addProps:[{t:'spellburst',k:'fx',a:'root',p:[0,1.25,2.4],s:2},{t:'cylinder',k:'b1',a:'root',p:[0,1.25,1.4],r:[90,0,0],s:0.3},{t:'cylinder',k:'b2',a:'root',p:[0,1.25,3.4],r:[90,0,0],s:0.3}]},
+   {use:'cb-blast',body:'Muscular',x:0,z:2.4,yaw:180}]},
+ {id:'ani-clash',name:'Mid-air sword clash',cat:A,cam:{shot:'ALL',angle:'low',focal:24,yaw:90},members:[
+   {use:'s-lunge',x:0,z:-0.75,yaw:0,y:0.7},
+   {use:'s-high',body:'Athletic',x:0,z:0.75,yaw:180,y:0.9}]},
+ {id:'ani-magical',name:'Magical girl transformation',cat:A,j:{thR:[-70,50,-20],shinR:[115,0,0],ftR:[55,0,0],ftL:[40,0,0],chest:[-8,0,0],head:[-16,10,0],uaL:[-10,0,70],faL:[-8,0,0]},props:[{t:'wand',k:'wd',a:'hdR'},{t:'magiccircle',k:'mc',a:'root',p:[0,0,0]},{t:'spellburst',k:'fx',a:'chest',p:[-0.1,1.05,0.12],s:0.7}],ik:{R:{a:'chest',p:[-0.1,0.78,0.1],pole:[-1,0,0]}},cam:{shot:'FS',angle:'low',focal:28,yaw:20}},
+ {id:'ani-mecha',name:'Pilot and the giant robot',cat:A,j:{head:[-34,0,0],thL:[-6,0,6]},props:[{t:'mecha',k:'mc',a:'root',p:[0,0,3.0],r:[0,180,0]}],ik:{L:{a:'hips',p:[0.2,0.03,0],pole:[1,0,-0.5]}},cam:{shot:'WS',angle:'low',focal:20,yaw:160}},
+ {id:'ani-vending',name:'Vending machine at night',cat:A,j:{head:[8,0,0],thL:[-6,0,5]},props:[{t:'vending',k:'vm',a:'root',p:[0,0,0.85],r:[0,180,0]},{t:'utilitypole',k:'up',a:'root',p:[1.3,0,1.0]}],ik:{R:{a:'root',p:[-0.1,1.05,0.55],pole:[-1,-1,0]}},cam:{shot:'FS',angle:'eye',focal:35,yaw:-100}},
+ {id:'ani-sakura',name:'Under the cherry blossoms',cat:A,j:{head:[-30,0,0],chest:[-6,0,0]},props:[{t:'sakura',k:'tr',a:'root',p:[0.9,0,-0.9]}],ik:{L:{a:'chest',p:[0.36,0.2,0.4],pole:[1,-1,0]}},cam:{shot:'WS',angle:'low',focal:28,yaw:30}},
+ {id:'ani-spike',name:'Volleyball spike',cat:A,lift:0.55,j:{spine:[-14,0,0],chest:[-10,10,0],head:[-20,0,0],thL:[-30,0,6],shinL:[60,0,0],thR:[10,0,-6],shinR:[80,0,0],uaL:[-60,0,30],faL:[-20,0,0]},props:[{t:'net',k:'n',a:'root',p:[0,0,0.7]},{t:'ball',k:'b',a:'chest',p:[-0.2,0.85,0.45]}],ik:{R:{a:'chest',p:[-0.24,0.72,0.08],pole:[-1,0,-1]}},cam:{shot:'FS',angle:'low',focal:28,yaw:200}},
+ {id:'ani-glasses',name:'Villain: pushing up the glasses',cat:A,j:{head:[10,0,0],thL:[0,0,6],thR:[0,0,-6]},ik:{R:{a:'head',p:[0,0.08,0.15],pole:[-1,-1,0]},L:{a:'chest',p:[-0.1,0.0,0.2],pole:[1,-1,0]}},cam:{shot:'MCU',angle:'low',focal:50,yaw:10}},
+ {id:'ani-ramen',name:'Ramen counter',cat:A,cam:{shot:'ALL',angle:'eye',focal:35,yaw:-120},members:[
+   {use:'ev-eat',x:-0.35,z:0,yaw:0,seat:0.72,props:[SET('r-bar',[0.35,0,0]),{t:'barstool',k:'st',a:'root',p:[0,0,0]},{t:'bowl',k:'bowl',a:'root',p:[0,1.1,0.35]},{t:'chopsticks',k:'cs',a:'hdR',r:[90,0,60]}],ik:{L:{a:'root',p:[0.08,1.12,0.32],pole:[1,-1,0]},R:{a:'head',p:[-0.02,-0.02,0.16],pole:[-1,-1,0]}}},
+   {use:'ev-eat',body:'Stocky',x:0.4,z:0,yaw:0,seat:0.72,props:[{t:'barstool',k:'st',a:'root',p:[0,0,0]},{t:'bowl',k:'bowl',a:'root',p:[0,1.1,0.35]},{t:'chopsticks',k:'cs',a:'hdR',r:[90,0,60]}],ik:{L:{a:'root',p:[0.08,1.12,0.32],pole:[1,-1,0]},R:{a:'head',p:[-0.02,-0.02,0.16],pole:[-1,-1,0]}}}]},
+ {id:'ani-sunset',name:'Running toward the sunset',cat:A,cam:{shot:'ALL',angle:'low',focal:28,yaw:200},members:[
+   {use:'run',x:-0.45,z:0,yaw:0},{use:'rp-lookback',body:'Curvy',x:0.45,z:-0.4,yaw:0}]}
+);
+}
+const POSE_CATS=['Standing','Posture & attitude','Distress','Gestures','Everyday life','School life','Action','Scenes','Scenes · Work & home','Scenes · Travel','Scenes · Action','Scenes · Public places','Scenes · Outdoors & fantasy','Scenes · Wizard & fantasy','Scenes · Anime','Running & parkour','Grabbing','Seated & floor','Mobility','Family','Affection','Dance','Helping','Riding','Animals','Labor','Driving & piloting','War','Katana','Action snapshots','Acrobatic','Ballet','UGC & influencer','Product demo','Fashion','Pin-up & centerfold','Classic art','Bodybuilding','Comic book','Martial arts','Sparring','Rifle','Pistol','Melee & archery','Sci-fi & heavy','Maintenance','Couples','Groups','My poses'];
 let MY_POSES=[]; try{MY_POSES=JSON.parse(localStorage.getItem('standin.myposes')||'[]')||[];}catch(e){MY_POSES=[];}
 const allPoses=()=>POSES.concat(MY_POSES);
 const poseById=id=>allPoses().find(p=>p.id===id);
@@ -1533,6 +1651,7 @@ function resolvePose(spec){
   if(spec.seat!=null) o.seat=spec.seat;
   if(spec.kidScale) o.kidScale=1;
   if(spec.addProps) o.props=(o.props||[]).concat(spec.addProps);
+  if(base&&spec.name) o.name=spec.name;
   return o;
 }
 
