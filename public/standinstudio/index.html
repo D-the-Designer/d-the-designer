@@ -147,7 +147,7 @@ input[type=color]{width:100%;height:26px;border:1px solid var(--rule);border-rad
       <div class="hud" id="hudL"></div>
       <div class="hud r" id="hudR"></div>
     </div>
-    <div class="hint" id="hint">Drag a body part to pose it · <span class="kbd">Shift</span> twist · <span class="kbd">Alt</span> move figure · drag empty space to orbit, right-drag to pan, scroll to dolly</div>
+    <div class="hint" id="hint">Drag a body part to pose it · <span class="kbd">Shift</span> twist · <span class="kbd">Alt</span> move figure · drag empty space to orbit, right-drag to pan, scroll to dolly · <span class="kbd">Delete</span> removes the selection</div>
   </main>
 
   <div class="timeline">
@@ -1504,7 +1504,7 @@ canvas.addEventListener('dblclick',e=>{const hit=pick(e);if(hit){releaseOverride
 window.addEventListener('keydown',e=>{
   if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement&&document.activeElement.tagName)) return;
   if(e.key===' '){e.preventDefault();setPlaying(!S.playing);}
-  else if((e.key==='Delete'||e.key==='Backspace')&&S.selProp){deleteProp(S.selProp);renderRight();renderLeftLists();}
+  else if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();if(S.selProp){const n=S.selProp.def.name;deleteProp(S.selProp);S.rightTab=S.rightTab==='Prop'?'Body':S.rightTab;renderRight();renderLeftLists();toast(n+' deleted');}else if(S.selFig){delFigureUI();S.selFig=null;S.selJoint=null;renderRight();renderLeftLists();}}
   else if(e.key==='m'&&S.selFig){S.selFig.mirror();syncJointSliders();toast('Mirrored');}
   else if(e.key==='f'){setShot('FS');}
   else if(e.key==='Escape'){S.selJoint=null;S.selProp=null;renderRight();}
