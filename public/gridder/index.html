@@ -102,6 +102,14 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 5px; border-radius
 .readout .what { min-width: 0; max-width: 70ch; }
 .readout .what b { font-family: var(--display); font-stretch: 110%; font-weight: 800; font-size: 15px; color: #fff; }
 .readout .what .dim { color: var(--mat-muted); }
+.quick { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; border-top: 1px solid var(--mat-line-strong); padding-top: 10px; }
+.facts { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.fact { font-size: 12px; padding: 3px 8px; border-radius: 3px; background: rgba(0,0,0,.22); color: var(--mat-ink); white-space: nowrap; }
+.fact.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.ws { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12px; }
+.ws input[type=range] { width: 110px; accent-color: var(--accent); }
+.ws select { min-height: 28px; padding: 3px 22px 3px 6px; font-size: 12px; }
+.dist-note { color: var(--mat-muted); font-size: 11px; max-width: 26ch; }
 .views { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
 .views label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; font-size: 12px; color: var(--mat-ink); }
 .views input { accent-color: var(--accent); }
@@ -126,6 +134,15 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 5px; border-radius
 .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
 .pane { padding: 6px 16px 18px; }
 .grp { border-bottom: 1px solid var(--line); padding-block: 12px; display: grid; gap: 10px; }
+#pane-geo { display: grid; gap: 10px; padding-top: 12px; }
+#pane-geo .grp { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 12px; gap: 10px; }
+#pane-geo .grp-h h3 { font-size: 14px; }
+#pane-geo .grp:last-of-type { border-bottom: 1px solid var(--line); }
+.more > summary { cursor: pointer; font-size: 12px; color: var(--muted); list-style: none; display: flex; gap: 8px; align-items: baseline; }
+.more > summary::-webkit-details-marker { display: none; }
+.more > summary::before { content: "+"; font-family: var(--mono); width: 10px; }
+.more[open] > summary::before { content: "−"; }
+.more[open] > summary { margin-bottom: 8px; }
 .grp:last-child { border-bottom: 0; }
 .grp-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .grp-h h3 { margin: 0; font-family: var(--display); font-stretch: 100%; font-size: 13px; font-weight: 800; letter-spacing: .02em; }
@@ -148,6 +165,12 @@ input[type=range] { width: 100%; accent-color: var(--ink); }
 .checks { color: var(--ink); }
 .checks.has-warn b { color: var(--danger); }
 .chk { margin-left: 6px; border: 0; border-radius: 3px; background: #E5312B; color: #fff; font: 700 11px/1 var(--body); padding: 4px 7px; cursor: pointer; vertical-align: 2px; }
+.ready { display: grid; gap: 10px; background: var(--ink); color: var(--surface); border-radius: 6px; padding: 12px; }
+.ready b { display: block; font-family: var(--display); font-stretch: 110%; font-weight: 800; font-size: 15px; }
+.ready span { font-size: 12px; opacity: .8; }
+.ready.flash { animation: readyflash .9s ease-out 1; }
+@keyframes readyflash { 0% { box-shadow: 0 0 0 0 var(--accent); } 40% { box-shadow: 0 0 0 6px var(--accent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 700; min-height: 40px; padding: 8px 14px; }
 .caveat { color: var(--ink); border-left: 3px solid var(--accent); padding-left: 8px; }
 .direction { margin: 0; font-size: 13px; line-height: 1.5; max-width: 65ch; }
 .btns { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -225,6 +248,7 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
       <div class="readout">
         <div class="what" id="readout"></div>
         <div class="views">
+          <label title="Grid, baseline and measurements together"><input type="checkbox" id="v-all"> All overlays</label>
           <label><input type="checkbox" id="v-guides" checked> Grid</label>
           <label><input type="checkbox" id="v-base"> Baseline</label>
           <label><input type="checkbox" id="v-labels"> Measurements</label>
@@ -233,6 +257,17 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
           <span title="Baseline"><i class="sw" style="background:var(--g-baseline)"></i></span>
           <span title="Bleed"><i class="sw" style="background:var(--g-bleed)"></i></span>
           <span title="Safe area"><i class="sw" style="background:var(--g-safe)"></i></span>
+          <label title="Paper tone and grain where the style calls for it. Preview only; geometry is unaffected."><input type="checkbox" id="v-tex" checked> Paper texture</label>
+        </div>
+        <div class="quick">
+          <div class="facts" id="facts"></div>
+          <div class="ws">
+            <label for="q-white">White space <b id="q-white-v"></b></label>
+            <input type="range" id="q-white" min="0" max="100" step="5" aria-label="White space amount">
+            <select id="q-dist" aria-label="Where the white space goes"><option value="none">As composed</option><option value="balanced">Balanced</option><option value="top">Space at top</option><option value="bottom">Space at bottom</option></select>
+            <span class="dist-note" id="q-dist-note"></span>
+            <select id="q-copy" aria-label="Placeholder text"><option value="lorem">Lorem ipsum</option><option value="sample">Sample copy</option></select>
+          </div>
         </div>
       </div>
     </section>
@@ -251,12 +286,15 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
             <label class="num"><span>Width</span><input type="number" id="g-w" step="any" min="0"></label>
             <label class="num"><span>Height</span><input type="number" id="g-h" step="any" min="0"></label>
             <label class="num"><span>Units</span><select id="g-unit"><option value="in">in</option><option value="mm">mm</option><option value="pt">pt</option><option value="px">px</option></select></label>
-          </div>
-          <div class="row">
-            <label class="num"><span>Bleed</span><input type="number" id="g-bleed" step="any" min="0"></label>
-            <label class="num"><span>Safe area</span><input type="number" id="g-safe" step="any" min="0"></label>
             <div class="num"><span>Orientation</span><button class="btn" id="g-rot" type="button" style="justify-content:center">Swap ⇄</button></div>
           </div>
+          <details class="more" id="more-bleed">
+            <summary>Bleed and safe area <span class="derived" id="d-bleed"></span></summary>
+            <div class="row">
+              <label class="num"><span>Bleed</span><input type="number" id="g-bleed" step="any" min="0"></label>
+              <label class="num"><span>Safe area</span><input type="number" id="g-safe" step="any" min="0"></label>
+            </div>
+          </details>
         </div>
         <div class="grp">
           <div class="grp-h"><h3>Margins</h3><button class="lock" data-lock="margins" aria-pressed="false" type="button"></button></div>
@@ -294,7 +332,10 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
         <div class="grp">
           <div class="grp-h"><h3>White space</h3><button class="lock" data-lock="white" aria-pressed="false" type="button"></button></div>
           <label class="num"><span>Amount <b id="d-white"></b></span><input type="range" id="g-white" min="0" max="100" step="5"></label>
-          <label class="num"><span>Distribution</span><select id="g-dist"><option value="none">As composed</option><option value="balanced">Balanced top and bottom</option><option value="top">Space at top</option><option value="bottom">Space at bottom</option></select></label>
+          <details class="more">
+            <summary>Distribution <span class="derived" id="d-dist"></span></summary>
+            <label class="num"><span>Where the space goes</span><select id="g-dist"><option value="none">As composed</option><option value="balanced">Balanced top and bottom</option><option value="top">Space at top</option><option value="bottom">Space at bottom</option></select></label>
+          </details>
         </div>
         <p class="warn" id="geo-warn" hidden>The margins and gutters leave no room for the columns or rows. Reduce them, or use fewer columns or rows.</p>
       </div>
@@ -375,14 +416,17 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
 
       <div class="pane" id="pane-hand" role="tabpanel" aria-labelledby="tab-hand" hidden>
         <div class="grp">
-          <div class="grp-h"><h3>Layout reference</h3><span class="kind">Visual reference</span></div>
+          <div class="ready" id="h-ready" role="status">
+            <div><b id="h-ready-t">Ready to hand off</b><span id="h-ready-d"></span></div>
+            <div class="btns">
+              <button class="btn btn-primary save" id="h-save-png" type="button">Save PNG</button>
+              <button class="btn btn-primary" id="h-copy-img" type="button">Copy image</button>
+            </div>
+          </div>
+          <div class="grp-h"><h3>Layout reference</h3><span class="kind" id="h-ref-kind">Dimensioned reference</span></div>
           <label class="switch"><input type="checkbox" id="h-annot" checked> Dimensioned: grid, rulers, margins and zone sizes</label>
           <img class="ref-img" id="h-img" alt="Layout reference image of the current direction" draggable="true">
           <p class="hint">Drag the image into another app, or press and hold to save it on a phone.</p>
-          <div class="btns">
-            <button class="btn save" id="h-save-png" type="button">Save PNG</button>
-            <button class="btn" id="h-copy-img" type="button">Copy image</button>
-          </div>
           <span class="lbl">Direction</span>
           <p class="direction" id="h-dir"></p>
           <div class="btns"><button class="btn" id="h-copy-dir" type="button">Copy direction</button></div>
@@ -758,8 +802,74 @@ const FACES = {
   mono: '"Courier New", Courier, monospace',
   slab: 'Rockwell, "Roboto Slab", "Courier New", serif',
   cond: '"Arial Narrow", "Helvetica Neue", Arial, sans-serif',
-  wide: '"Arial Black", "Helvetica Neue", Arial, sans-serif'
+  wide: '"Arial Black", "Helvetica Neue", Arial, sans-serif',
+  // Style faces: system fonts only, so on-screen previews and exported PNGs render the same type.
+  didone: 'Didot, "Bodoni 72", "Bodoni MT", "Big Caslon", Georgia, serif',
+  oldstyle: 'Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif',
+  geometric: 'Futura, "Futura PT", "Century Gothic", "Avenir Next", "Trebuchet MS", sans-serif',
+  deco: 'Copperplate, "Copperplate Gothic Bold", "Bank Gothic", Optima, sans-serif',
+  nouveau: 'Optima, "Gill Sans", Candara, "Segoe UI", sans-serif',
+  cooper: '"Cooper Black", "Cooper Std", "Arial Rounded MT Bold", Georgia, serif',
+  typewriter: '"American Typewriter", "Courier New", Courier, monospace',
+  impact: 'Impact, Haettenschweiler, "Arial Narrow", "Arial Black", sans-serif',
+  marker: '"Marker Felt", "Chalkboard SE", "Comic Sans MS", sans-serif',
+  eurostile: 'Eurostile, "Eurostile Extended", Microgramma, "Bank Gothic", "Arial Black", sans-serif',
+  blackletter: '"Old English Text MT", Luminari, "UnifrakturMaguntia", Georgia, serif',
+  trajan: '"Trajan Pro", Trajan, Cinzel, Copperplate, Optima, Georgia, serif',
+  papyrus: 'Papyrus, Herculanum, Georgia, serif',
+  humanist: '"Segoe UI", Frutiger, "Myriad Pro", "Gill Sans", "Helvetica Neue", sans-serif',
+  rounded: '"Arial Rounded MT Bold", "Helvetica Rounded", "Trebuchet MS", sans-serif'
 };
+/* Type treatment per tradition. head/body are FACES keys; cls is the classification handed off in the spec.
+   Extend by adding an entry; anything missing falls back to the tradition's own face. */
+const TYPE_MAP = {
+  victorian: { head: 'didone', body: 'oldstyle', cls: 'Fat-face Didone and wood-type capitals, many sizes on one axis', body_cls: 'Old-style serif' },
+  e1900: { head: 'nouveau', body: 'oldstyle', cls: 'Decorative humanist capitals', body_cls: 'Old-style serif' },
+  e1910: { head: 'oldstyle', body: 'oldstyle', cls: 'Bold old-style serif capitals', body_cls: 'Old-style serif' },
+  e1920: { head: 'deco', body: 'geometric', cls: 'Spaced engraved capitals', body_cls: 'Geometric sans' },
+  e1930: { head: 'geometric', body: 'grot', cls: 'Streamlined geometric sans capitals', body_cls: 'Grotesque sans' },
+  e1940: { head: 'slab', body: 'typewriter', cls: 'Heavy slab serif', body_cls: 'Typewriter' },
+  e1950: { head: 'geometric', body: 'grot', cls: 'Lowercase geometric sans', body_cls: 'Grotesque sans' },
+  e1960: { head: 'grot', body: 'grot', cls: 'Neo-grotesque sans, bold', body_cls: 'Neo-grotesque sans' },
+  e1970: { head: 'cooper', body: 'oldstyle', cls: 'Soft, heavy display serif', body_cls: 'Old-style serif' },
+  e1980: { head: 'wide', body: 'grot', cls: 'Extended heavy sans capitals', body_cls: 'Grotesque sans' },
+  e1990: { head: 'cond', body: 'grot', cls: 'Condensed sans, lowercase', body_cls: 'Grotesque sans' },
+  e2000: { head: 'humanist', body: 'humanist', cls: 'Humanist sans', body_cls: 'Humanist sans' },
+  bauhaus: { head: 'geometric', body: 'geometric', cls: 'Lowercase geometric sans, heavy', body_cls: 'Geometric sans' },
+  swiss: { head: 'grot', body: 'grot', cls: 'Neo-grotesque sans, bold, tight leading, flush left', body_cls: 'Neo-grotesque sans' },
+  constructivist: { head: 'impact', body: 'grot', cls: 'Condensed heavy sans capitals', body_cls: 'Grotesque sans' },
+  destijl: { head: 'geometric', body: 'grot', cls: 'Square geometric sans capitals', body_cls: 'Grotesque sans' },
+  artnouveau: { head: 'nouveau', body: 'oldstyle', cls: 'Flared humanist capitals with organic ornament', body_cls: 'Old-style serif' },
+  artdeco: { head: 'deco', body: 'geometric', cls: 'Tall, widely spaced capitals', body_cls: 'Geometric sans' },
+  midcentury: { head: 'geometric', body: 'grot', cls: 'Lowercase geometric sans', body_cls: 'Grotesque sans' },
+  psychedelic: { head: 'cooper', body: 'oldstyle', cls: 'Swelling, heavy display letterforms', body_cls: 'Old-style serif' },
+  punk: { head: 'impact', body: 'typewriter', cls: 'Cut-out heavy capitals over typewritten text', body_cls: 'Typewriter' },
+  comix: { head: 'marker', body: 'marker', cls: 'Hand-lettered capitals', body_cls: 'Hand lettering' },
+  memphis: { head: 'wide', body: 'geometric', cls: 'Extended heavy sans capitals', body_cls: 'Geometric sans' },
+  newwave: { head: 'geometric', body: 'mono', cls: 'Geometric sans against monospace', body_cls: 'Monospace' },
+  grunge: { head: 'cond', body: 'typewriter', cls: 'Condensed sans, distressed in production', body_cls: 'Typewriter' },
+  brutalist: { head: 'mono', body: 'mono', cls: 'System monospace', body_cls: 'System monospace' },
+  pulp: { head: 'slab', body: 'oldstyle', cls: 'Heavy slab capitals', body_cls: 'Old-style serif' },
+  spaceage: { head: 'eurostile', body: 'geometric', cls: 'Squared extended sans capitals', body_cls: 'Geometric sans' },
+  cyberpunk: { head: 'eurostile', body: 'mono', cls: 'Squared technical sans', body_cls: 'Monospace' },
+  hud: { head: 'mono', body: 'mono', cls: 'Monospace interface type', body_cls: 'Monospace' },
+  illuminated: { head: 'blackletter', body: 'oldstyle', cls: 'Blackletter or uncial display', body_cls: 'Old-style serif' },
+  fantasypb: { head: 'trajan', body: 'oldstyle', cls: 'Inscriptional Roman capitals', body_cls: 'Old-style serif' },
+  darkfantasy: { head: 'blackletter', body: 'oldstyle', cls: 'Blackletter capitals', body_cls: 'Old-style serif' },
+  jazz: { head: 'grot', body: 'grot', cls: 'Heavy lowercase grotesque, cropped and oversized', body_cls: 'Grotesque sans' },
+  gigposter: { head: 'slab', body: 'typewriter', cls: 'Wood-type slab capitals', body_cls: 'Typewriter' },
+  rave: { head: 'wide', body: 'geometric', cls: 'Extended heavy sans capitals', body_cls: 'Geometric sans' },
+  hiphop: { head: 'impact', body: 'grot', cls: 'Condensed heavy sans, stacked', body_cls: 'Grotesque sans' },
+  metal: { head: 'blackletter', body: 'grot', cls: 'Spiked blackletter logotype', body_cls: 'Grotesque sans' },
+  disco: { head: 'cooper', body: 'rounded', cls: 'Soft, heavy display serif', body_cls: 'Rounded sans' },
+  frutigeraero: { head: 'humanist', body: 'humanist', cls: 'Clean humanist sans', body_cls: 'Humanist sans' },
+  gvc: { head: 'papyrus', body: 'oldstyle', cls: 'Rough-cut calligraphic display', body_cls: 'Old-style serif' },
+  corpmemphis: { head: 'geometric', body: 'grot', cls: 'Friendly geometric sans', body_cls: 'Grotesque sans' },
+  experimental: { head: 'grot', body: 'mono', cls: 'Heavy grotesque at extreme scale against monospace', body_cls: 'Monospace' }
+};
+/* Paper surface strength (0 = flat) and an accent rule above headlines. Purely visual; geometry is unaffected. */
+const SURFACE = { punk: 0.22, grunge: 0.2, gvc: 0.16, victorian: 0.14, e1900: 0.12, e1910: 0.14, e1940: 0.14, pulp: 0.16, gigposter: 0.16, comix: 0.12, psychedelic: 0.1, illuminated: 0.16, fantasypb: 0.12, darkfantasy: 0.1, jazz: 0.1, e1950: 0.1, e1970: 0.1, midcentury: 0.1, hiphop: 0.08, artnouveau: 0.1, artdeco: 0.08, e1920: 0.08, e1930: 0.08, constructivist: 0.1, bauhaus: 0.06, destijl: 0.05, swiss: 0.04, e1960: 0.04, metal: 0.08, disco: 0.08 };
+const RULE_STYLES = new Set(['swiss', 'e1960', 'bauhaus', 'jazz', 'spaceage', 'constructivist', 'destijl']);
 const TBASE = {
   align: 'left', margin: [0.06, 0.1], cols: [1, 24], white: [0.25, 0.5], rot: 0, frame: 'none', shapes: 'none',
   halftone: false, face: 'sans', weight: 700, case: 'sentence', ls: 0, lh: 1.0, justify: false,
@@ -927,6 +1037,12 @@ function buildTradition(eraId, styleId, alt) {
   T.years = (style || era || {}).years || '';
   T.note = (style || era || {}).note || '';
   T.eraId = eraId; T.styleId = styleId; T.alt = !!alt;
+  const ty = (styleId && TYPE_MAP[styleId]) || (eraId && TYPE_MAP[eraId]) || null;
+  if (ty) { T.face = ty.head; T.bodyFace = ty.body; T.typeCls = ty.cls; T.bodyCls = ty.body_cls; }
+  const sid = styleId || eraId;
+  T.grain = sid && SURFACE[sid] != null ? SURFACE[sid] : (T.halftone ? 0.14 : 0.05);
+  if (era && style && SURFACE[eraId] != null) T.grain = Math.max(T.grain, SURFACE[eraId] * 0.6);
+  T.rule = !!(sid && RULE_STYLES.has(sid));
   return T;
 }
 function resolveTradition(st, rng) {
@@ -1460,6 +1576,7 @@ A.uxDash = g => {
 const LOREM = 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum'.split(' ');
 function loremWords(rng, n) { const s = Math.floor(rng() * LOREM.length); const out = []; for (let i = 0; i < n; i++) out.push(LOREM[(s + i) % LOREM.length]); return out; }
 function applyCase(str, c) {
+  if (c === 'keep') return str;
   if (c === 'upper') return str.toUpperCase();
   if (c === 'lower') return str.toLowerCase();
   if (c === 'title') return str.replace(/\b\w/g, m => m.toUpperCase());
@@ -1490,8 +1607,9 @@ function chooseArch(st, T, rng, recent) {
 function generateZones(st, layout) {
   const T = buildTradition(layout.era, layout.style, layout.alt);
   const D = derive(st);
-  if (layout.zones) return { zones: frozenZones(st, layout, D), T, D };
-  return { zones: buildZones(st, layout, T, D), T, D };
+  const zones = layout.zones ? frozenZones(st, layout, D) : buildZones(st, layout, T, D);
+  if (st.copy === 'sample') applySampleCopy(zones, st, T);
+  return { zones, T, D, distStatus: layout.zones ? 'hand-arranged' : zones.distStatus };
 }
 /* Hand-edited layouts: zones are stored as data. Order in the array is the stacking order. */
 function frozenZones(st, layout, D) {
@@ -1550,6 +1668,7 @@ function buildZones(st, layout, T, D) {
   });
   // white-space distribution
   const movable = zones.filter(z => !z.edge && !z.pin);
+  let distStatus = st.dist === 'none' ? 'as composed' : !movable.length ? 'nothing to move' : movable.some(z => z.bleed || z.rot) ? 'blocked' : 'full';
   if (st.dist !== 'none' && movable.length && !movable.some(z => z.bleed || z.rot)) {
     let lo = 0, hi = D.R;
     for (const z of zones) if (z.pin && !z.edge) { if (z.r[0] === 0) lo = Math.max(lo, z.r[1]); else if (z.r[0] + z.r[1] === D.R) hi = Math.min(hi, z.r[0]); }
@@ -1559,6 +1678,7 @@ function buildZones(st, layout, T, D) {
       const target = st.dist === 'top' ? hi - (e - s) : st.dist === 'bottom' ? lo : lo + Math.floor(free / 2);
       const dlt = target - s;
       movable.forEach(z => { z.r[0] += dlt; });
+      distStatus = 'applied';
     }
   }
   // tradition post-passes
@@ -1593,7 +1713,9 @@ function buildZones(st, layout, T, D) {
   // assign shapes and text deterministically
   const siRef = { n: 0 };
   zones.forEach((z, i) => dressZone(z, T, layout.seed, i, siRef));
-  return finishZones(zones);
+  const out = finishZones(zones);
+  out.distStatus = distStatus;
+  return out;
 }
 function finishZones(zones) {
   // Stacking order: base imagery, then decorative accents, then everything else; ties keep generation order.
@@ -1621,6 +1743,32 @@ function dressZone(z, T, seedBase, i, siRef) {
     if (z.role === 'masthead') { const long = LOREM.filter(w => w.length >= 5 && w.length <= 9); z.text = pick(zr, long).toUpperCase(); }
     if (z.role === 'title') z.text = applyCase(loremWords(zr, 1 + Math.floor(zr() * 2)).join(' '), 'title');
     return z;
+}
+
+/* ---------- sample copy (optional; body text stays lorem) ---------- */
+const SAMPLE = {
+  ad: { head: ['Built for the long haul', 'Taste the season', 'Your weekend starts here', 'Less noise, more signal'], kicker: ['NEW', 'LIMITED TIME', 'INTRODUCING'], deck: ['Free delivery on every order through Sunday.', 'Available at select stores while supplies last.'] },
+  poster: { head: ['Night Market Returns', 'Open Studio Weekend', 'The Long Walk Home', 'Summer Film Series'], kicker: ['FRIDAY 8 PM', 'ONE NIGHT ONLY', 'FREE ADMISSION'], deck: ['Live music, local makers and food trucks under the bridge.', 'Doors at seven. All ages welcome.'] },
+  card: { head: ['You are invited', 'With gratitude', 'Save the date', 'Happy birthday, June'], kicker: ['JOIN US', 'SATURDAY, MAY 9'], deck: ['Dinner and dancing to follow. Kindly reply by April 20.'] },
+  magazine: { head: ['The Quiet Return of Print', 'Inside the New Workshop', 'Cities After Dark'], kicker: ['FEATURE', 'DESIGN', 'REPORT'], deck: ['How a small press found its readers by slowing down.', 'Twelve studios on making things by hand again.'] },
+  book: { head: ['The Salt Archive', 'A Field Guide to Leaving', 'Northern Lights'], kicker: ['A NOVEL', 'NEW EDITION'], deck: ['A story of two sisters and the town that kept their secret.'] },
+  comic: { head: ['Issue One', 'The Last Signal'], kicker: ['CHAPTER 1'], deck: ['Meanwhile, across town...'] },
+  editorial: { head: ['Council Approves New Transit Plan', 'Rethinking the Public Library', 'A Year of Record Rainfall'], kicker: ['CITY', 'OPINION', 'SCIENCE'], deck: ['The plan adds three bus lines and a protected bike route by 2028.'] },
+  website: { head: ['Plan your next trip in minutes', 'Design tools for small teams', 'Fresh produce, delivered'], kicker: ['NEW', 'FOR TEAMS'], deck: ['Compare routes, book stays and share plans in one place.'] },
+  ux: { head: ['Welcome back', 'Your library', 'Activity'], kicker: ['STEP 1 OF 3'], deck: ['Track your progress and pick up where you left off.'], title: ['Today', 'Library', 'Inbox'] },
+  album: { head: ['Low Tide Signals', 'Night Drive', 'Paper Moons'], kicker: ['THE MERIDIANS', 'LIVE AT THE HALL'], deck: ['Featuring the single Glass Harbor.'] },
+  zine: { head: ['Notes from the Basement', 'Issue 4: Noise', 'Bike Repair for Everyone'], kicker: ['FREE', 'DIY'], deck: ['Photocopied, stapled and passed hand to hand.'] }
+};
+const SAMPLE_MASTHEADS = ['MERIDIAN', 'FIELDWORK', 'ATLAS', 'SIGNAL', 'COMMON'];
+function applySampleCopy(zones, st, T) {
+  const bank = SAMPLE[st.doc] || SAMPLE.poster;
+  zones.forEach(z => {
+    const r = mulberry32((z.seed || 1) ^ 0x9e3779b9);
+    if (z.role === 'head') { z.text = applyCase(pick(r, bank.head), T.case === 'sentence' ? 'keep' : T.case); if (z.kicker) z.kt = pick(r, bank.kicker); if (z.deck) z.dt = pick(r, bank.deck); }
+    if (z.role === 'deck') z.dt = pick(r, bank.deck);
+    if (z.role === 'masthead') z.text = pick(r, SAMPLE_MASTHEADS);
+    if (z.role === 'title') z.text = pick(r, bank.title || bank.head);
+  });
 }
 
 /* ---------- zone rectangles ---------- */
@@ -1706,7 +1854,7 @@ function bodyBlock(x, y, w, h, R, ctx, o) {
   }
   const n = Math.floor((y + h - base0) / lead + 1e-6) + 1;
   if (n < 1 || w < size * 2) return '';
-  const face = FACES[o.face || (T.face === 'mono' ? 'mono' : (T.face === 'serif' || T.face === 'slab') ? 'serif' : 'sans')];
+  const face = FACES[o.face || T.bodyFace || (T.face === 'mono' ? 'mono' : (T.face === 'serif' || T.face === 'slab') ? 'serif' : 'sans')];
   const align = o.align || (T.justify ? 'justify' : (T.align === 'center' ? 'center' : 'left'));
   let out = '', idx = Math.floor(R() * LOREM.length), paraLeft = 4 + Math.floor(R() * 5);
   let dcW = 0;
@@ -1829,6 +1977,11 @@ function renderZone(z, r, ctx) {
         const s = Math.min(h * 0.42, ctx.bodySize * 1.7);
         out += svgText(x, y + h / 2 + s * 0.35, z.text, { face, size: s, weight: 700, fill: ink });
         break;
+      }
+      if (T.rule && !z.onImage && !z.band && h > bs * 5) {
+        const rw = Math.min(w, Math.max(w * 0.22, bs * 6)), rh = Math.max(S * 3, bs * 0.4);
+        out += `<rect x="${n2(align === 'center' ? x + (w - rw) / 2 : x)}" y="${n2(top)}" width="${n2(rw)}" height="${n2(rh)}" fill="${pal.accent}"/>`;
+        top += rh + bs * 0.9;
       }
       if (z.kicker && h > bs * 4) {
         const ks = Math.min(bs * 0.9, h * 0.12);
@@ -2435,6 +2588,15 @@ function renderSVG(st, layout, opts) {
   s += `<g clip-path="url(#page)">`;
   if (T.bgGrad) s += `<linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${T.bgGrad[0]}"/><stop offset="1" stop-color="${T.bgGrad[1]}"/></linearGradient>`;
   s += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(vw)}" height="${n2(pageH)}" fill="${T.bgGrad ? 'url(#pg)' : pal.paper}"/>`;
+  const screenDoc = st.doc === 'website' || st.doc === 'ux';
+  if (opts.texture !== false && T.grain > 0 && !screenDoc) {
+    // Paper tone: a soft vignette plus fine fractal grain, multiplied over the paper. Never touches geometry.
+    const freq = Math.min(2, 1 / (S * 1.3));
+    s += `<radialGradient id="pv" cx="0.5" cy="0.45" r="0.75"><stop offset="0.6" stop-color="${pal.ink}" stop-opacity="0"/><stop offset="1" stop-color="${pal.ink}" stop-opacity="${n2(T.grain * 0.5)}"/></radialGradient>`;
+    s += `<filter id="grain" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="${freq.toFixed(4)}" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.4 1.05"/></filter>`;
+    s += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(vw)}" height="${n2(pageH)}" fill="url(#pv)"/>`;
+    s += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(vw)}" height="${n2(pageH)}" filter="url(#grain)" opacity="${n2(T.grain)}"/>`;
+  }
   const web = st.doc === 'website' || st.doc === 'ux';
   const frameOk = T.frame !== 'none' && !web && st.doc !== 'comic' && !(st.doc === 'ad' && st.sub === 'display');
   // Draw strictly in stacking order (zone number = layer; higher is in front). The page frame sits between layer groups 1 and 2.
@@ -2452,7 +2614,7 @@ function renderSVG(st, layout, opts) {
     if (opts.baseline && D.baseline > 0) {
       let p = '';
       for (let yy = D.m.t + D.baseline; yy <= D.H - D.m.b + 0.01; yy += D.baseline) p += `M${n2(D.m.l)} ${n2(yy)}H${n2(D.W - D.m.r)}`;
-      s += `<path d="${p}" stroke="${GUIDE.baseline}" stroke-opacity="0.7" stroke-width="${n2(gw * 0.7)}"/>`;
+      s += `<path d="${p}" stroke="${GUIDE.baseline}" stroke-opacity="0.42" stroke-width="${n2(gw * 0.6)}"/>`;
     }
     if (D.ok) {
       let cols = '';
@@ -2787,7 +2949,8 @@ function directionText(st, layout, T, zones, D) {
   return `${T.label}-inspired ${(sub ? sub + ' ' : '').toLowerCase()}${d.label.toLowerCase()} layout, ${fam} format (${fmtU(st.w, st.unit)} × ${fmtU(st.h, st.unit)} ${st.unit}). ${ARCH_INFO[layout.arch]}. ${D.C}-column grid with ${D.R} rows; ${al}; ${ws}${st.dist && st.dist !== 'none' ? ` (space ${st.dist === 'balanced' ? 'balanced top and bottom' : 'gathered at the ' + st.dist})` : ''}. Hierarchy: ${h.join(' → ')}. ${T.note} Placeholder content only; this is layout direction, not a finished design.`;
 }
 function specObject(st, layout) {
-  const { zones, T, D } = generateZones(st, layout);
+  const GZ = generateZones(st, layout);
+  const { zones, T, D } = GZ;
   const AN = analyzeZones(zones, D, T, layout.arch);
   const u = st.unit, f = v => roundU(v, u);
   const d = DOCS[st.doc];
@@ -2820,7 +2983,14 @@ function specObject(st, layout) {
       'Grid area is the module span; bounds are the final object size. Use bounds for placement and the grid area for alignment.',
       'Image frames are filled (cover). Crop amounts assume the suggested source ratio.'
     ],
-    whitespace: { amount: st.white, distribution: st.dist },
+    whitespace: { amount: st.white, distribution: st.dist, distributionResult: GZ.distStatus },
+    typography: {
+      headline: { classification: T.typeCls || 'Per style', case: T.case, tracking: T.ls ? `${Math.round(T.ls * 1000)}/1000 em` : 'normal', leading: T.lh || 1, weight: T.weight, previewStack: FACES[T.face] },
+      body: { classification: T.bodyCls || 'Text face', size: roundU(D.baseline / 1.35 / UNIT_PT[u], u), leading: f(st.baseline), alignment: T.justify ? 'justified' : T.align === 'center' ? 'centered' : 'flush left, ragged right', previewStack: FACES[T.bodyFace || 'sans'] },
+      note: 'Gridder previews with system fonts. Choose final typefaces of this classification in your design app.'
+    },
+    placeholder: st.copy === 'sample' ? 'sample headlines and labels; body copy is lorem ipsum' : 'lorem ipsum',
+    surface: T.grain > 0 && !['website', 'ux'].includes(st.doc) ? { paperTexture: Math.round(T.grain * 100) + '%', note: 'Preview texture only; it is not part of the layout geometry.' } : null,
     edited: !!layout.zones,
     composition: { archetype: layout.arch, label: ARCH_SHORT[layout.arch], description: ARCH_INFO[layout.arch], alignment: T.align, hierarchy: hierarchyOf(zones) },
     layering: { rule: 'Zone numbers are the stacking order: 1 is the back-most layer and higher numbers are in front.', count: zones.length,
@@ -2848,7 +3018,9 @@ function specReadable(spec) {
   L.push(`Columns      ${G.columns.count} × ${G.columns.width}, gutter ${G.columns.gutter}`);
   L.push(`Rows         ${G.rows.count} × ${G.rows.height}, gap ${G.rows.gap}`);
   L.push(`Baseline     ${G.baseline.increment} increment, from the top margin; first baseline at y ${G.baseline.firstBaseline}${G.baseline.rowsAlignToBaseline ? '; rows align to it' : '; row modules do not land on whole baselines'}`);
-  L.push(`White space  ${Math.round(spec.whitespace.amount * 100)}%${spec.whitespace.distribution !== 'none' ? ', ' + spec.whitespace.distribution : ''}`);
+  L.push(`White space  ${Math.round(spec.whitespace.amount * 100)}%${spec.whitespace.distribution !== 'none' ? ', ' + spec.whitespace.distribution + ' (' + spec.whitespace.distributionResult + ')' : ''}`);
+  L.push(`Type         Headline: ${spec.typography.headline.classification}; ${spec.typography.headline.case} case${spec.typography.headline.tracking !== 'normal' ? ', tracking ' + spec.typography.headline.tracking : ''}`);
+  L.push(`             Body: ${spec.typography.body.classification}, ${spec.typography.body.size}/${spec.typography.body.leading} ${u}, ${spec.typography.body.alignment}`);
   L.push('');
   L.push(`Composition  ${spec.composition.description}${spec.edited ? ' (arranged by hand on the grid)' : ''}`);
   L.push(`Hierarchy    ${spec.composition.hierarchy.join(' → ')}`);
@@ -2933,7 +3105,7 @@ function guideScaffoldSVG(st, layout) {
   return s;
 }
 
-if (typeof module !== 'undefined') module.exports = { freezeLayout, addZone, zoneGeom, ADD_DEFAULTS, STYLE_GROUPS, styleGroupOf, DOCS, DOC_ORDER, TRADS, ERA_IDS, STYLE_IDS, ALT_IDS, rollGeometry, derive, generateZones, renderSVG, specObject, specReadable, guideScaffoldSVG, resolveTradition, buildTradition, chooseArch, archWeights, mulberry32, toPt, fromPt, fmtU, roundU, UNIT_PT, UNIT_PREC, shapeFamily, RATIOS, ARCH_SHORT, ARCH_INFO, setMeasure: f => { measureWord = f; } };
+if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeLayout, addZone, zoneGeom, ADD_DEFAULTS, STYLE_GROUPS, styleGroupOf, DOCS, DOC_ORDER, TRADS, ERA_IDS, STYLE_IDS, ALT_IDS, rollGeometry, derive, generateZones, renderSVG, specObject, specReadable, guideScaffoldSVG, resolveTradition, buildTradition, chooseArch, archWeights, mulberry32, toPt, fromPt, fmtU, roundU, UNIT_PT, UNIT_PREC, shapeFamily, RATIOS, ARCH_SHORT, ARCH_INFO, setMeasure: f => { measureWord = f; } };
 </script>
 <script>
 /* ============ Gridder UI ============ */
@@ -2949,10 +3121,10 @@ if (typeof module !== 'undefined') module.exports = { freezeLayout, addZone, zon
     doc: 'poster', sub: 'event', preset: 'p:1', family: 'all',
     unit: 'in', w: 18, h: 24, bleed: 0.125, safe: 0.375,
     m: { t: 1, r: 1, b: 1, l: 1 }, cols: 12, gutter: 0.25, rows: 8, rowGap: 0.25, baseline: 0.3, white: 0.4, dist: 'none',
-    era: 'any', style: 'swiss', alt: false,
+    era: 'any', style: 'swiss', alt: false, copy: 'lorem',
     locks: { size: false, margins: false, cols: false, rows: false, baseline: false, white: false }
   };
-  const view = { guides: true, baseline: false, labels: false, annot: true, specFmt: 'read' };
+  const view = { guides: true, baseline: false, labels: false, annot: true, specFmt: 'read', texture: true };
   let layout = null;
   const past = [];
   const recentArch = [], recentSig = [];
@@ -3085,6 +3257,24 @@ if (typeof module !== 'undefined') module.exports = { freezeLayout, addZone, zon
     $('readout').innerHTML = `<b>${esc(T.label)}</b> <span class="dim">${esc(T.years)}${T.years ? ' · ' : ''}inspiration</span> — ${esc(ARCH_SHORT[layout.arch])} <button type="button" class="chk" id="chk" hidden title="Show checks in Handoff"></button><br><span class="dim">${esc(T.note)}</span>`;
     $('chk').onclick = () => { $('tab-hand').click(); $('h-checks').scrollIntoView({ block: 'center' }); };
   }
+  const DIST_NOTE = { 'as composed': '', applied: '', blocked: 'This composition bleeds or tilts, so it keeps its own spacing.', full: 'No free rows to move into. Raise white space or add rows.', 'nothing to move': 'Everything is anchored.', 'hand-arranged': 'Hand-arranged; move zones in Edit.' };
+  function syncQuick(status) {
+    const T = buildTradition(layout.era, layout.style, layout.alt);
+    const sub = (DOCS[st.doc].subs.find(x => x[0] === st.sub) || [])[1];
+    const f = [`${DOCS[st.doc].label}${sub ? ' · ' + sub : ''}`, `${fmtU(st.w, st.unit)} × ${fmtU(st.h, st.unit)} ${st.unit}`];
+    const chips = f.map(t => `<span class="fact">${esc(t)}</span>`);
+    chips.push(`<span class="fact${st.era !== 'any' ? ' on' : ''}">${st.era !== 'any' ? esc(TRADS[st.era].label) : 'Any era'}</span>`);
+    chips.push(`<span class="fact${st.style !== 'any' ? ' on' : ''}">${st.style !== 'any' ? esc(TRADS[st.style].label) : 'Any style'}</span>`);
+    if (st.alt) chips.push('<span class="fact on">Alternative</span>');
+    if (st.era === 'any' && st.style === 'any') chips.push(`<span class="fact">Showing ${esc(T.label)}</span>`);
+    $('facts').innerHTML = chips.join('');
+    if (document.activeElement !== $('q-white')) $('q-white').value = Math.round(st.white * 100);
+    $('q-white-v').textContent = Math.round(st.white * 100) + '%';
+    $('q-dist').value = st.dist; $('q-copy').value = st.copy || 'lorem';
+    $('q-dist-note').textContent = st.dist === 'none' ? '' : (DIST_NOTE[status] || '');
+    $('d-dist').textContent = st.dist === 'none' ? 'as composed' : $('q-dist').selectedOptions[0].textContent.toLowerCase() + (status === 'applied' ? '' : ' (no effect here)');
+    $('d-bleed').textContent = `${fmtU(st.bleed || 0, st.unit)} / ${fmtU(st.safe || 0, st.unit)} ${st.unit}`;
+  }
   function refresh(full) {
     drawPreview();
     readout(); syncGeo(); syncFilters();
@@ -3094,10 +3284,11 @@ if (typeof module !== 'undefined') module.exports = { freezeLayout, addZone, zon
     pngTimer = setTimeout(makePng, full ? 120 : 400);
   }
   function drawPreview() {
-    const svg = renderSVG(st, layout, { guides: view.guides || view.labels || ed.on, baseline: view.baseline, labels: view.labels, measure: view.labels });
+    const svg = renderSVG(st, layout, { guides: view.guides || view.labels || ed.on, baseline: view.baseline, labels: view.labels, measure: view.labels, texture: view.texture });
     $('sheet').innerHTML = svg;
     drawSelection();
     syncEdit();
+    $('v-all').checked = view.guides && view.baseline && view.labels;
   }
   let spec = null, specTxt = '', specJson = '';
   function updateHandoff() {
@@ -3107,13 +3298,16 @@ if (typeof module !== 'undefined') module.exports = { freezeLayout, addZone, zon
     $('h-dir').textContent = spec.direction;
     $('h-spec').textContent = view.specFmt === 'read' ? specTxt : specJson;
     $('h-save-spec').textContent = view.specFmt === 'read' ? 'Save .txt' : 'Save .json';
+    syncQuick(spec.whitespace.distributionResult);
+    $('h-ready-d').textContent = ` ${spec.document.typeLabel} · ${spec.document.width} × ${spec.document.height} ${spec.document.unit} · ${spec.tradition.label} · ${spec.zones.length} zones${spec.edited ? ' · arranged by hand' : ''}`;
+    $('h-ref-kind').textContent = view.annot ? 'Dimensioned reference' : 'Clean reference';
     const w = spec.checks.filter(c => c.severity === 'warning').length, i = spec.checks.filter(c => c.severity === 'intentional').length;
     $('h-checks').innerHTML = `<b>${w ? w + ' to fix or confirm' : 'No problems found'}</b> · ${i} intentional overlap${i === 1 ? '' : 's'}. Zone numbers are the layer order: 1 is at the back. Rotated zones list their corners, rotated box and clearance to the trim and safe area.`;
     $('h-checks').classList.toggle('has-warn', w > 0);
     $('chk').textContent = w ? `${w} to check` : '';
     $('chk').hidden = !w;
   }
-  function refSVG(px) { return renderSVG(st, layout, { clean: !view.annot, guides: view.annot, baseline: false, labels: view.annot, measure: view.annot, annotate: view.annot, px }); }
+  function refSVG(px) { return renderSVG(st, layout, { clean: !view.annot, guides: view.annot, baseline: false, labels: view.annot, measure: view.annot, annotate: view.annot, texture: view.texture, px }); }
   async function makePng() {
     try {
       const long = 1800;
@@ -3362,7 +3556,12 @@ if (typeof module !== 'undefined') module.exports = { freezeLayout, addZone, zon
   function wire() {
     $('btn-next').onclick = next; $('d-next').onclick = next;
     $('btn-back').onclick = back; $('d-back').onclick = back;
-    $('d-hand').onclick = () => { selectTab('hand'); $('panel').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); };
+    $('d-hand').onclick = () => { selectTab('hand'); flashReady(true); $('panel').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); };
+    $('q-white').addEventListener('input', () => { st.white = +$('q-white').value / 100; refresh(false); });
+    $('q-dist').onchange = e => { st.dist = e.target.value; refresh(false); };
+    $('q-copy').onchange = e => { st.copy = e.target.value; refresh(false); };
+    $('v-tex').onchange = e => { view.texture = e.target.checked; refresh(false); };
+    $('v-all').onchange = e => { const on = e.target.checked; view.guides = view.baseline = view.labels = on; $('v-guides').checked = $('v-base').checked = $('v-labels').checked = on; $('v-base').disabled = !on && !view.guides; refresh(false); };
     $('f-doc').onchange = e => {
       st.doc = e.target.value; st.sub = DOCS[st.doc].subs[0][0];
       buildSub();
@@ -3408,7 +3607,7 @@ if (typeof module !== 'undefined') module.exports = { freezeLayout, addZone, zon
     $('tab-hand').onclick = () => selectTab('hand');
     $('tab-edit').onclick = () => selectTab('edit');
     wireEditor();
-    $('h-annot').onchange = e => { view.annot = e.target.checked; makePng(); };
+    $('h-annot').onchange = e => { view.annot = e.target.checked; $('h-ref-kind').textContent = view.annot ? 'Dimensioned reference' : 'Clean reference'; makePng(); };
     $('s-read').onclick = () => { view.specFmt = 'read'; $('s-read').setAttribute('aria-pressed', 'true'); $('s-json').setAttribute('aria-pressed', 'false'); updateHandoff(); };
     $('s-json').onclick = () => { view.specFmt = 'json'; $('s-json').setAttribute('aria-pressed', 'true'); $('s-read').setAttribute('aria-pressed', 'false'); updateHandoff(); };
     $('h-copy-dir').onclick = () => copyText(spec.direction, 'Direction', $('h-dir'));
@@ -3450,10 +3649,15 @@ if (typeof module !== 'undefined') module.exports = { freezeLayout, addZone, zon
     mq.addEventListener ? mq.addEventListener('change', syncOpen) : mq.addListener(syncOpen);
     syncOpen();
   }
+  function flashReady(withToast) {
+    const r = $('h-ready'); r.classList.remove('flash'); void r.offsetWidth;
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) r.classList.add('flash');
+    if (withToast) toast('Ready to hand off: save or copy the reference, or copy the specification.');
+  }
   function selectTab(which) {
     for (const t of ['geo', 'edit', 'hand']) { $('tab-' + t).setAttribute('aria-selected', String(t === which)); $('pane-' + t).hidden = t !== which; }
     if (which === 'edit' && !ed.on) setEditing(true);
-    if (which === 'hand' && !pngBlob) makePng();
+    if (which === 'hand') { if (!pngBlob) makePng(); flashReady(false); }
   }
 
   buildDoc(); buildSub();
