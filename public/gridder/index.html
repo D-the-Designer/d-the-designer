@@ -668,6 +668,54 @@ const DOCS = {
     cols: [6, 12], rows: [8, 12],
     arch: { '*': { editorialCols: 5, swissAsym: 2, split: 1, centered: 1 } }
   },
+  corporate: {
+    label: 'Corporate document',
+    subs: [['report', 'Annual / corporate report'], ['handbook', 'Employee handbook'], ['standards', 'Brand standards manual'], ['sop', 'Policy / SOP'], ['safety', 'Safety manual (EHS)'], ['whitepaper', 'White paper']],
+    presets: [
+      { n: 'Letter', w: 8.5, h: 11, u: 'in', b: 0.125, sa: 0.25 },
+      { n: 'A4', w: 210, h: 297, u: 'mm', b: 3, sa: 6 },
+      { s: 'report', n: 'Annual report 9 × 12 in', w: 9, h: 12, u: 'in', b: 0.125, sa: 0.25 },
+      { s: 'report', n: 'Letter landscape', w: 11, h: 8.5, u: 'in', b: 0.125, sa: 0.25 },
+      { s: 'handbook', n: 'Handbook 6 × 9 in', w: 6, h: 9, u: 'in', b: 0.125, sa: 0.375 },
+      { s: 'handbook', n: 'A5 booklet', w: 148, h: 210, u: 'mm', b: 3, sa: 8 },
+      { s: 'standards', n: 'Letter landscape', w: 11, h: 8.5, u: 'in', b: 0.125, sa: 0.25 },
+      { s: 'standards', n: 'A4 landscape', w: 297, h: 210, u: 'mm', b: 3, sa: 6 },
+      { s: 'standards', n: 'Screen PDF 16:9', w: 1920, h: 1080, u: 'px' },
+      { s: 'sop', n: 'Letter, office print', w: 8.5, h: 11, u: 'in', sa: 0.25 },
+      { s: 'sop', n: 'A4, office print', w: 210, h: 297, u: 'mm', sa: 6 },
+      { s: 'safety', n: 'Letter, office print', w: 8.5, h: 11, u: 'in', sa: 0.25 },
+      { s: 'safety', n: 'Binder insert 5.5 × 8.5 in', w: 5.5, h: 8.5, u: 'in', sa: 0.25 },
+      { s: 'whitepaper', n: 'Letter, office print', w: 8.5, h: 11, u: 'in', sa: 0.25 }
+    ],
+    cols: [6, 12], rows: [10, 14],
+    arch: {
+      report: { corpCover: 3, corpSection: 2, corpStats: 3, corpLetter: 2, editorialCols: 1 },
+      handbook: { corpCover: 2, contents: 2, handbookPage: 5, corpSection: 1 },
+      standards: { corpCover: 1, standardsColor: 3, standardsType: 3, standardsLogo: 3, corpSection: 1 },
+      sop: { sopPage: 6, corpCover: 1 },
+      safety: { safetyPage: 5, sopPage: 2, corpCover: 1 },
+      whitepaper: { whitepaperPage: 5, corpCover: 2 }
+    }
+  },
+  stationery: {
+    label: 'Stationery',
+    subs: [['bizcard', 'Business card'], ['letterhead', 'Letterhead'], ['envelope', 'Envelope']],
+    presets: [
+      { s: 'bizcard', n: 'US card 3.5 × 2 in', w: 3.5, h: 2, u: 'in', b: 0.125, sa: 0.125 },
+      { s: 'bizcard', n: 'EU card 85 × 55 mm', w: 85, h: 55, u: 'mm', b: 3, sa: 3 },
+      { s: 'bizcard', n: 'Vertical 2 × 3.5 in', w: 2, h: 3.5, u: 'in', b: 0.125, sa: 0.125 },
+      { s: 'bizcard', n: 'Japan card 91 × 55 mm', w: 91, h: 55, u: 'mm', b: 3, sa: 3 },
+      { s: 'bizcard', n: 'Square 2.5 in', w: 2.5, h: 2.5, u: 'in', b: 0.125, sa: 0.125 },
+      { s: 'letterhead', n: 'Letter 8.5 × 11 in', w: 8.5, h: 11, u: 'in', sa: 0.25 },
+      { s: 'letterhead', n: 'A4 (DIN 5008)', w: 210, h: 297, u: 'mm', sa: 6 },
+      { s: 'envelope', n: '#10 envelope 9.5 × 4.125 in', w: 9.5, h: 4.125, u: 'in', sa: 0.25 },
+      { s: 'envelope', n: 'DL envelope 220 × 110 mm', w: 220, h: 110, u: 'mm', sa: 6 },
+      { s: 'envelope', n: 'C5 envelope 229 × 162 mm', w: 229, h: 162, u: 'mm', sa: 6 },
+      { s: 'envelope', n: 'A7 envelope 7.25 × 5.25 in', w: 7.25, h: 5.25, u: 'in', sa: 0.25 }
+    ],
+    cols: [4, 12], rows: [4, 14], colsBy: { bizcard: [4, 8], envelope: [6, 12], letterhead: [6, 12] }, rowsBy: { bizcard: [4, 6], envelope: [4, 8], letterhead: [12, 16] },
+    arch: { bizcard: { bizFront: 3, bizBack: 2 }, letterhead: { letterhead: 5 }, envelope: { envelope: 5 } }
+  },
   website: {
     label: 'Website',
     subs: [['landing', 'Landing page'], ['article', 'Article'], ['portfolio', 'Portfolio'], ['pricing', 'Pricing'], ['product', 'Product page'], ['docs', 'Documentation'], ['app', 'Web app']],
@@ -803,7 +851,7 @@ function platformGeom(st) {
   out.frames = frames;
   return out;
 }
-const DOC_ORDER = ['ad', 'social', 'poster', 'card', 'magazine', 'book', 'comic', 'editorial', 'website', 'ux', 'album', 'zine'];
+const DOC_ORDER = ['ad', 'social', 'poster', 'card', 'magazine', 'book', 'comic', 'editorial', 'corporate', 'stationery', 'website', 'ux', 'album', 'zine'];
 const MORE_PRESETS = {
   ad: [
     { s: 'print', n: 'Half page vertical', w: 3.375, h: 10, u: 'in', sa: 0.125 },
@@ -1457,7 +1505,7 @@ function rollGeometry(st, T, rng) {
     st.m = { t: fromPt(m.t, u), r: fromPt(m.r, u), b: fromPt(m.b, u), l: fromPt(m.l, u) };
   }
   if (!L.cols) {
-    let [a, b] = d.cols;
+    let [a, b] = (d.colsBy && d.colsBy[st.sub]) || d.cols;
     if (st.doc === 'website' || st.doc === 'ux') { if (wpx < 600) a = b = 4; else if (wpx < 1100) a = b = 8; else a = b = 12; }
     if (st.doc === 'social' && (st.frames || 1) > 1) { a = Math.min(24, a * st.frames); b = Math.min(24, b * st.frames); }
     if (isSpread(st)) { a = Math.min(24, a * 2); b = Math.min(24, b * 2); }
@@ -1473,7 +1521,7 @@ function rollGeometry(st, T, rng) {
     st.gutter = fromPt(g, u);
   }
   if (!L.rows) {
-    let [a, b] = d.rows;
+    let [a, b] = (d.rowsBy && d.rowsBy[st.sub]) || d.rows;
     if (st.doc === 'comic' && st.sub === 'strip') a = b = 1;
     st.rows = Math.round(lerp(a, b + 0.99) - 0.49);
     st.rows = clamp(st.rows, a, b);
@@ -1538,6 +1586,21 @@ const ARCH_INFO = {
   webProduct: 'Product page: gallery, title and price, options, add to cart, details, reviews and related products',
   webDocs: 'Documentation: section navigation, content column with code and callouts, on-this-page links',
   webApp: 'Web app: navigation, search, KPI tiles, chart, activity and data table in one viewport',
+  bizFront: 'Business card front: logo, name, title and contact lines',
+  bizBack: 'Business card back: logo on a colour field, image or plain stock',
+  letterhead: 'Letterhead: logo and contact line, recipient block placed for a window envelope, fold marks, letter text and signature',
+  envelope: 'Envelope: return address and logo, postage area, recipient block or window, postal clear zone',
+  corpCover: 'Document cover: title block over an image or colour field, logo, document details',
+  corpSection: 'Section opener: large section number, title and intro beside a bleed image',
+  corpStats: 'Highlights page: key figures, chart and commentary under a running head',
+  corpLetter: 'Leadership letter: portrait, headline, letter text and signature',
+  handbookPage: 'Handbook page: running head, section heading, policy callout, steps and text',
+  standardsColor: 'Standards page: colour palette with HEX, RGB and CMYK values',
+  standardsType: 'Standards page: type specimen and type scale',
+  standardsLogo: 'Standards page: logo clear space and do / don’t examples',
+  sopPage: 'Procedure page: document control block, numbered sections, safety message, steps with checkboxes, revision history',
+  safetyPage: 'Safety page: hazard message, safety-sign categories, procedure steps and guidance',
+  whitepaperPage: 'White paper page: title, abstract, text with a figure, pull quote and notes',
   uxList: 'List screen with search and navigation; list and detail side by side on wide screens',
   uxDetail: 'Detail screen with hero image and a primary action',
   uxOnboard: 'Onboarding screen with illustration, message, pager and primary action',
@@ -1550,7 +1613,8 @@ const ARCH_INFO = {
 const ARCH_SHORT = {
   stack: 'Image-led stack', swissAsym: 'Asymmetric modular', centered: 'Centered axis', fullbleed: 'Full-bleed image', split: 'Split field',
   editorialCols: 'Editorial columns', diagonal: 'Diagonal', collage: 'Collage', panels: 'Panel grid', typeOnly: 'Type only', banner: 'Banner line',
-  contents: 'Contents list', mastheadCover: 'Masthead cover', webLanding: 'Landing page', webGrid: 'Portfolio grid', webArticle: 'Article page', webPricing: 'Pricing page', webProduct: 'Product page', webDocs: 'Docs page', webApp: 'Web app',
+  contents: 'Contents list', mastheadCover: 'Masthead cover', bizFront: 'Card front', bizBack: 'Card back', letterhead: 'Letterhead', envelope: 'Envelope', corpCover: 'Cover', corpSection: 'Section opener', corpStats: 'Highlights', corpLetter: 'Leadership letter', handbookPage: 'Handbook page', standardsColor: 'Colour standards', standardsType: 'Type standards', standardsLogo: 'Logo standards', sopPage: 'Procedure page', safetyPage: 'Safety page', whitepaperPage: 'White paper page',
+  webLanding: 'Landing page', webGrid: 'Portfolio grid', webArticle: 'Article page', webPricing: 'Pricing page', webProduct: 'Product page', webDocs: 'Docs page', webApp: 'Web app',
   uxList: 'List screen', uxDetail: 'Detail screen', uxOnboard: 'Onboarding', uxDash: 'Dashboard', uxSettings: 'Settings', uxForm: 'Form', uxChat: 'Messages', hud: 'Heads-up display'
 };
 const Z = (role, c0, cs, r0, rs, extra) => Object.assign({ role, c: [c0, cs], r: [r0, rs] }, extra || {});
@@ -2089,6 +2153,279 @@ A.webApp = g => {
   return z;
 };
 
+/* ---------- corporate and institutional documents ---------- */
+function corpFrame(g, z, opts) {
+  // running head at the top row and folio at the bottom row; returns the free row range
+  const { C, R } = g;
+  let top = 0, bot = R;
+  if (!(opts && opts.noHead)) { z.push(Z('runhead', 0, C, 0, 1, { pin: 1 })); top = 1; }
+  if (!(opts && opts.noFolio)) { z.push(Z('folio', 0, C, R - 1, 1, { pin: 1, doc: opts && opts.doc })); bot = R - 1; }
+  return [top, bot];
+}
+A.corpCover = g => {
+  const { C, R } = g, z = [];
+  const v = g.pick(['image', 'image', 'field', 'type']);
+  const sub = g.sub;
+  const ls = Math.max(1, g.span(0.25));
+  if (v === 'image') {
+    const ir = Math.max(2, Math.round(R * g.f(0.45, 0.6)));
+    const top = g.chance(0.5);
+    z.push(Z('image', 0, C, top ? 0 : R - ir, ir, { bleed: top ? 'tlr' : 'lrb' }));
+    const r0 = top ? ir : 1, rh = R - ir - 2;
+    z.push(Z('head', 0, g.span(g.f(0.7, 1)), r0, Math.max(1, rh), { kicker: true, deck: g.chance(0.7), words: g.int(2, 6), vcenter: 1 }));
+    z.push(Z('logo', top ? C - ls : 0, ls, top ? R - 1 : 0, 1, { pin: 1 }));
+  } else if (v === 'field') {
+    z.push(Z('image', 0, C, 0, R, { bleed: 'tlrb', dark: true, field: 1 }));
+    z.push(Z('head', 0, g.span(g.f(0.67, 0.9)), Math.round(R * 0.3), Math.max(2, Math.round(R * 0.35)), { kicker: true, deck: true, onImage: 1, words: g.int(2, 6) }));
+    z.push(Z('logo', 0, ls, R - 1, 1, { pin: 1, onImage: 1 }));
+  } else {
+    z.push(Z('numeral', 0, g.span(0.5), 0, Math.max(2, Math.round(R * 0.3)), { year: 1 }));
+    z.push(Z('head', 0, g.span(0.84), Math.round(R * 0.45), Math.max(2, Math.round(R * 0.35)), { kicker: true, deck: true, words: g.int(3, 7) }));
+    z.push(Z('logo', C - ls, ls, R - 1, 1, { pin: 1 }));
+  }
+  if (sub === 'sop' || sub === 'safety') {
+    z.forEach(q => { if (q.role === 'head' && q.r[0] + q.r[1] > R - 2) q.r[1] = Math.max(1, R - 2 - q.r[0]); });
+    z.push(Z('docblock', 0, C, R - 2, 1, { compact: 1 }));
+  }
+  return z;
+};
+A.corpSection = g => {
+  const { C, R } = g, z = [];
+  const half = Math.round(C / 2), left = g.chance(0.5);
+  z.push(Z('image', left ? 0 : half, C - half, 0, R, { bleed: left ? 'tlb' : 'trb' }));
+  const c0 = left ? C - half : 0;
+  z.push(Z('numeral', c0, Math.max(1, Math.round(half * 0.6)), 1, Math.max(2, Math.round(R * 0.25))));
+  z.push(Z('head', c0, half, Math.round(R * 0.4), 2, { words: g.int(2, 4) }));
+  z.push(Z('body', c0, half, Math.round(R * 0.4) + 2, Math.max(1, Math.round(R * 0.3))));
+  z.push(Z('folio', c0, half, R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.corpStats = g => {
+  const { C, R } = g, z = [];
+  const [t, b] = corpFrame(g, z);
+  z.push(Z('head', 0, g.span(0.75), t, 2, { kicker: true, words: g.int(2, 5) }));
+  const per = C >= 12 ? g.pick([3, 4]) : C >= 6 ? 3 : 2, sw = Math.floor(C / per);
+  const nRows = R >= 12 ? 2 : 1;
+  let r = t + 2;
+  for (let k = 0; k < nRows; k++) { for (let i = 0; i < per; i++) z.push(Z('stat', i * sw, sw, r, 1, { flat: 1 })); r++; }
+  const chR = Math.max(1, b - r - 1);
+  if (C >= 8 && g.chance(0.6)) {
+    const cs = Math.round(C * 2 / 3);
+    z.push(Z('chart', 0, cs, r, chR));
+    z.push(Z('body', cs, C - cs, r, chR));
+  } else z.push(Z('chart', 0, C, r, chR));
+  z.push(Z('caption', 0, g.span(0.5), b - 1, 1));
+  return z;
+};
+A.corpLetter = g => {
+  const { C, R } = g, z = [];
+  const [t, b] = corpFrame(g, z);
+  const ps = Math.max(1, g.span(0.34));
+  z.push(Z('image', 0, ps, t, Math.max(2, Math.round((b - t) * 0.45))));
+  z.push(Z('head', ps, C - ps, t, 2, { kicker: true, words: g.int(3, 6) }));
+  z.push(Z('body', ps, C - ps, t + 2, Math.max(1, b - t - 4)));
+  z.push(Z('signature', ps, Math.max(1, Math.round((C - ps) / 2)), b - 2, 2));
+  return z;
+};
+A.handbookPage = g => {
+  const { C, R } = g, z = [];
+  const [t, b] = corpFrame(g, z);
+  const side = C >= 8 ? Math.round(C / 4) : 0;
+  if (side) z.push(Z('marker', 0, 1, t, 1));
+  z.push(Z('head', side, C - side, t, 2, { kicker: true, words: g.int(2, 5) }));
+  let r = t + 2;
+  z.push(Z('body', side, C - side, r, Math.max(1, Math.round((b - r) * 0.35)))); r += Math.max(1, Math.round((b - r) * 0.35));
+  z.push(Z('note', side, C - side, r, 1, { policy: 1 })); r += 1;
+  if (b - r >= 3) {
+    z.push(Z('head', side, C - side, r, 1, { words: g.int(2, 4), cap: 1.5 })); r += 1;
+    z.push(Z('steps', side, C - side, r, Math.max(1, Math.round((b - r) * 0.5)), { bullets: g.chance(0.5) ? 1 : 0 })); r += Math.max(1, Math.round((b - r) * 0.5));
+  }
+  if (b - r >= 1) z.push(Z('body', side, C - side, r, b - r));
+  if (side && g.chance(0.6)) z.push(Z('caption', 0, side - (side > 1 ? 1 : 0) || 1, t + 2, Math.min(3, b - t - 2), { margin: 1 }));
+  return z;
+};
+A.standardsColor = g => {
+  const { C, R } = g, z = [];
+  const [t, b] = corpFrame(g, z);
+  z.push(Z('head', 0, g.span(0.6), t, 2, { kicker: true, words: g.int(1, 3) }));
+  z.push(Z('body', C - g.span(0.34), g.span(0.34), t, 2));
+  const mainR = Math.max(2, Math.round((b - t - 2) * 0.6));
+  z.push(Z('swatch', 0, C, t + 2, mainR, { n: g.pick([2, 3]), main: 1 }));
+  if (b - (t + 2 + mainR) >= 1) z.push(Z('swatch', 0, C, t + 2 + mainR, b - (t + 2 + mainR), { n: C >= 8 ? g.pick([4, 5, 6]) : 4, off: 3 }));
+  return z;
+};
+A.standardsType = g => {
+  const { C, R } = g, z = [];
+  const [t, b] = corpFrame(g, z);
+  z.push(Z('head', 0, g.span(0.6), t, 2, { kicker: true, words: g.int(1, 3) }));
+  const side = C >= 8 || (C >= 6 && g.ratio > 1.1);
+  const half = side ? Math.round(C / 2) : C;
+  const sr = Math.max(2, Math.round((b - t - 2) * (side ? 1 : 0.45)));
+  z.push(Z('specimen', 0, half, t + 2, sr));
+  if (side) {
+    z.push(Z('typescale', half, C - half, t + 2, Math.max(1, b - t - 4)));
+    z.push(Z('body', half, C - half, b - 2, 2));
+  } else {
+    z.push(Z('typescale', 0, C, t + 2 + sr, Math.max(1, b - t - 2 - sr)));
+  }
+  return z;
+};
+A.standardsLogo = g => {
+  const { C, R } = g, z = [];
+  const [t, b] = corpFrame(g, z);
+  z.push(Z('head', 0, g.span(0.6), t, 2, { kicker: true, words: g.int(1, 3) }));
+  const wide = C >= 8 && g.ratio > 1.1;
+  if (wide) {
+    const h = Math.round(C / 2);
+    z.push(Z('clearspace', 0, h, t + 2, Math.max(2, b - t - 3)));
+    z.push(Z('caption', 0, h, b - 1, 1));
+    z.push(Z('dodont', h, C - h, t + 2, b - t - 2));
+  } else {
+    const cr = Math.max(2, Math.round((b - t - 2) * 0.45));
+    z.push(Z('clearspace', 0, C, t + 2, cr));
+    z.push(Z('dodont', 0, C, t + 2 + cr, Math.max(1, b - t - 2 - cr)));
+  }
+  return z;
+};
+A.sopPage = g => {
+  const { C, R } = g, z = [];
+  z.push(Z('docblock', 0, C, 0, 1, { pin: 1 }));
+  z.push(Z('folio', 0, C, R - 1, 1, { pin: 1, doc: 1 }));
+  let r = 1;
+  z.push(Z('head', 0, g.span(0.84), r, 1, { words: g.int(3, 6) })); r += 1;
+  let num = 0;
+  const sec = (rows) => { z.push(Z('head', 0, C, r, 1, { words: g.int(1, 3), cap: 1.4, num: ++num })); z.push(Z('body', 0, C, r + 1, rows)); r += rows + 1; };
+  if (R - r > 6) sec(1);
+  if (R - r > 6) sec(1);
+  if (g.chance(0.7) && R - r > 3) { z.push(Z('hazard', 0, C, r, 1, { level: g.pick(['warning', 'caution', 'notice', 'danger']) })); r += 1; }
+  z.push(Z('head', 0, C, r, 1, { words: g.int(1, 3), cap: 1.4, num: ++num })); r += 1;
+  const sr = Math.max(1, R - 1 - r - (R - r > 4 ? 2 : 0));
+  z.push(Z('steps', 0, C, r, sr, { check: 1 })); r += sr;
+  if (R - 1 - r >= 1) z.push(Z('table', 0, C, r, R - 1 - r, { rev: 1 }));
+  return z;
+};
+A.safetyPage = g => {
+  const { C, R } = g, z = [];
+  const [t, b] = corpFrame(g, z);
+  z.push(Z('head', 0, g.span(0.75), t, 2, { kicker: true, words: g.int(2, 5) }));
+  let r = t + 2;
+  z.push(Z('hazard', 0, C, r, Math.min(2, b - r - 3), { level: g.pick(['danger', 'warning', 'warning', 'caution']) })); r += Math.min(2, b - r - 3);
+  z.push(Z('signs', 0, C, r, 2)); r += 2;
+  const half = C >= 8 ? Math.round(C / 2) : C;
+  if (C >= 8) {
+    z.push(Z('steps', 0, half, r, b - r, { check: 1 }));
+    z.push(Z('body', half, C - half, r, b - r));
+  } else {
+    const sr = Math.max(1, Math.round((b - r) / 2));
+    z.push(Z('steps', 0, C, r, sr, { check: 1 }));
+    if (b - r - sr >= 1) z.push(Z('body', 0, C, r + sr, b - r - sr));
+  }
+  return z;
+};
+A.whitepaperPage = g => {
+  const { C, R } = g, z = [];
+  const [t, b] = corpFrame(g, z);
+  const first = g.chance(0.5);
+  let r = t;
+  if (first) {
+    z.push(Z('head', 0, g.span(0.84), r, 2, { kicker: true, words: g.int(4, 9) })); r += 2;
+    z.push(Z('byline', 0, g.span(0.5), r, 1)); r += 1;
+    z.push(Z('note', 0, C, r, 2, { abstract: 1 })); r += 2;
+  }
+  const fr = Math.max(2, Math.round((b - r) * 0.35));
+  const fs = C >= 8 ? Math.round(C / 2) : C;
+  const figTop = g.chance(0.5);
+  if (figTop) { z.push(Z('image', C - fs, fs, r, fr, { figure: 1 })); z.push(Z('caption', C - fs, fs, r + fr, 1, { wrapme: 1 })); }
+  z.push(Z('body', 0, C, r, b - r - 1, { wrap: true }));
+  if (!figTop) z.push(Z('deck', 0, Math.round(C / 2), b - 3, 2));
+  z.push(Z('caption', 0, C, b - 1, 1, { notes: 1 }));
+  return z;
+};
+/* ---------- stationery: business card, letterhead, envelope ---------- */
+const IN = 72, MM = 72 / 25.4;
+function fixedZone(role, x, y, w, h, extra) { return Object.assign({ role, edge: 'float', abs: { x, y, w, h } }, extra || {}); }
+function rowAtPt(g, y) { return clamp(Math.ceil((y - g.mt) / (g.rowPt + g.rgPt) - 1e-6), 0, g.R - 1); }
+A.bizFront = g => {
+  const { C, R } = g, z = [];
+  const v = g.pick(['corner', 'corner', 'centered', 'band']);
+  if (v === 'centered') {
+    const ls = Math.max(1, g.span(0.4));
+    z.push(Z('logo', g.mid(ls), ls, 0, Math.max(1, Math.round(R * 0.35)), { center: 1 }));
+    z.push(Z('contact', 0, C, Math.max(1, Math.round(R * 0.45)), R - Math.max(1, Math.round(R * 0.45)), { align: 'center' }));
+  } else if (v === 'band') {
+    const bs = Math.max(1, g.span(0.34));
+    z.push(Z('image', 0, bs, 0, R, { bleed: 'tlb', field: 1 }));
+    z.push(Z('logo', 0, bs, 0, 1, { onImage: 1 }));
+    z.push(Z('contact', bs, C - bs, 0, R));
+  } else {
+    const ls = Math.max(1, g.span(0.34));
+    z.push(Z('logo', 0, ls, 0, 1, { left: 1 }));
+    const nr = Math.max(1, Math.round(R / 2));
+    if (C >= 6 && g.ratio > 1.2) {
+      const h = Math.round(C / 2);
+      z.push(Z('contact', 0, h, R - nr, nr, { nameOnly: 1 }));
+      z.push(Z('contact', h, C - h, R - nr, nr, { linesOnly: 1 }));
+    } else z.push(Z('contact', 0, C, R - nr, nr));
+  }
+  return z;
+};
+A.bizBack = g => {
+  const { C, R } = g, z = [];
+  const v = g.pick(['field', 'field', 'image', 'paper']);
+  if (v === 'field') z.push(Z('image', 0, C, 0, R, { bleed: 'tlrb', field: 1 }));
+  if (v === 'image') z.push(Z('image', 0, C, 0, R, { bleed: 'tlrb', dark: true }));
+  const ls = Math.max(1, g.span(g.f(0.35, 0.55)));
+  z.push(Z('logo', g.mid(ls), ls, Math.max(0, Math.floor(R / 2) - 1), Math.min(R, 2), { center: 1, onImage: v !== 'paper' ? 1 : 0 }));
+  if (g.chance(0.5)) z.push(Z('caption', 0, C, R - 1, 1, { align: 'center', url: 1, onImage: v !== 'paper' ? 1 : 0 }));
+  return z;
+};
+A.letterhead = g => {
+  const { C, R } = g, z = [], metric = g.unit === 'mm';
+  const ls = Math.max(1, g.span(0.3));
+  const center = g.chance(0.3);
+  z.push(Z('logo', center ? g.mid(ls) : 0, ls, 0, 1, center ? { center: 1 } : { left: 1 }));
+  if (!center) z.push(Z('contact', C - g.span(0.34), g.span(0.34), 0, 1, { linesOnly: 1, align: 'right', small: 1 }));
+  // Recipient address where the envelope window will show it after folding.
+  const ad = metric ? fixedZone('addressee', 20 * MM, 45 * MM, 85 * MM, 45 * MM, { std: 'DIN 5008 form B address field (85 × 45 mm, 20 mm from left, 45 mm from top) for a DL window envelope' })
+    : fixedZone('addressee', 1 * IN, 2 * IN, 3.5 * IN, 1 * IN, { std: 'approximate position for a #10 window envelope after a tri-fold; test with your envelope' });
+  z.push(ad);
+  z.push(fixedZone('marks', 0, 0, metric ? 10 * MM : 0.35 * IN, g.H, { folds: metric ? [105 * MM, 210 * MM] : [11 / 3 * IN, 22 / 3 * IN], punch: metric ? 148.5 * MM : null, std: metric ? 'DIN 5008 form B fold marks at 105 and 210 mm, punch mark at 148.5 mm' : 'tri-fold marks at one third and two thirds of the sheet' }));
+  const r0 = rowAtPt(g, ad.abs.y + ad.abs.h) + 1;
+  const bodyC0 = 0;
+  if (r0 < R - 4) {
+    z.push(Z('meta', bodyC0, Math.max(1, g.span(0.4)), r0, 1, { date: 1 }));
+    z.push(Z('body', bodyC0, g.span(g.f(0.75, 1)), r0 + 1, Math.max(1, R - r0 - 4)));
+    z.push(Z('signature', bodyC0, Math.max(1, g.span(0.4)), R - 3, 2));
+  }
+  z.push(Z('contact', 0, C, R - 1, 1, { footer: 1, align: center ? 'center' : 'left', small: 1 }));
+  return z;
+};
+A.envelope = g => {
+  const { C, R } = g, z = [], metric = g.unit === 'mm', W = g.W, H = g.H;
+  const ls = Math.max(1, g.span(0.3));
+  const isDL = metric && Math.abs(W / MM - 220) < 3, is10 = !metric && Math.abs(W / IN - 9.5) < 0.1;
+  const win = (isDL || is10) && g.chance(0.4);
+  const winZ = !win ? null : is10 ? fixedZone('window', 0.875 * IN, H - 0.5 * IN - 1.125 * IN, 4.5 * IN, 1.125 * IN, { std: 'standard #10 window: 4½ × 1⅛ in, ⅞ in from left, ½ in from bottom' })
+    : fixedZone('window', 20 * MM, H - 15 * MM - 45 * MM, 90 * MM, 45 * MM, { std: 'common DL window: 90 × 45 mm, 20 mm from left, 15 mm from bottom' });
+  const limit = winZ ? winZ.abs.y - 6 : H * 0.55;
+  const bottomOf = (r0, rs) => g.mt + (r0 + rs) * (g.rowPt + g.rgPt) - g.rgPt;
+  z.push(Z('logo', 0, ls, 0, 1, { left: 1 }));
+  let rs = Math.min(2, R - 2);
+  while (rs > 0 && bottomOf(1, rs) > limit) rs--;
+  const cs = Math.max(ls, g.span(0.34));
+  if (rs > 0) z.push(Z('contact', 0, cs, 1, rs, { linesOnly: 1, small: 1, ret: 1 }));
+  else z.push(Z('contact', ls, Math.min(C - ls, cs), 0, 1, { linesOnly: 1, small: 1, ret: 1 }));
+  if (metric) z.push(fixedZone('stamp', W - 40 * MM, 10 * MM, 30 * MM, 30 * MM, { std: 'postage area, top right' }));
+  else z.push(fixedZone('stamp', W - 1.75 * IN, 0.25 * IN, 1.5 * IN, 1 * IN, { std: 'postage area, top right' }));
+  if (!metric) z.push(fixedZone('clearzone', W - 4.75 * IN, H - 0.625 * IN, 4.75 * IN, 0.625 * IN, { std: 'USPS barcode clear zone: lower right 4¾ × ⅝ in, keep free of print' }));
+  if (winZ) z.push(winZ);
+  else {
+    const aw = metric ? Math.min(90 * MM, W * 0.45) : 4 * IN, ah = metric ? 35 * MM : 1.25 * IN;
+    const ay = metric ? H * 0.5 : Math.min(H * 0.48, H - 0.625 * IN - ah - 0.15 * IN);
+    z.push(fixedZone('addressee', W * 0.45, ay, aw, ah, { std: 'recipient address area; keep it clear of the barcode zone below' }));
+  }
+  return z;
+};
 A.hud = g => {
   const { C, R } = g, z = [];
   z.push(Z('image', 0, C, 0, R, { bleed: 'tlrb', scene: 1 }));
@@ -2358,7 +2695,7 @@ function buildZones(st, layout, T, D) {
   const rng = mulberry32(layout.seed);
   const SI = screenInfo(st);
   const ctx = { C: D.C, R: D.R, w: st.white, align: T.align, ratio: st.w / st.h, doc: st.doc, sub: st.sub, T,
-    W: D.W, H: D.H, mr: D.m.r, mb: D.m.b, wpx: D.W / 0.75, cls: SI ? SI.cls : null, chrome: SI ? SI.chrome : uxChrome(st),
+    W: D.W, H: D.H, mr: D.m.r, mb: D.m.b, mt: D.m.t, rowPt: D.rowH, rgPt: D.rg, unit: st.unit, wpx: D.W / 0.75, cls: SI ? SI.cls : null, chrome: SI ? SI.chrome : uxChrome(st),
     colPx: D.colW / 0.75, gPx: D.g / 0.75, bodyPx: D.baseline / 1.35 / 0.75 };
   const g = makeG(ctx, rng);
   void g;
@@ -2408,7 +2745,7 @@ function buildZones(st, layout, T, D) {
     }
   }
   if (T.arc) zones.forEach(z => { if (z.role === 'head' && !z.band && rng() < T.arc) z.arc = true; });
-  if (T.shapes !== 'none' && (!web || T.group === 'digital') && layout.arch !== 'panels' && st.doc !== 'comic') {
+  if (T.shapes !== 'none' && (!web || T.group === 'digital') && layout.arch !== 'panels' && st.doc !== 'comic' && !(st.doc === 'corporate' && !['corpCover', 'corpSection'].includes(layout.arch)) && !(st.doc === 'stationery' && st.sub !== 'bizcard')) {
     const sn = T.shapeN || [1, 3];
     const n = sn[0] + Math.floor(rng() * (sn[1] - sn[0] + 1));
     for (let i = 0; i < n; i++) {
@@ -2460,6 +2797,12 @@ function dressZone(z, T, seedBase, i, siRef) {
 
 /* ---------- sample copy (optional; body text stays lorem) ---------- */
 const SAMPLE = {
+  'corporate:report': { head: ['Annual Report 2026', 'A Year of Steady Growth', 'Letter to Shareholders', 'Our Impact in Numbers'], kicker: ['ANNUAL REPORT', 'FISCAL 2026', 'HIGHLIGHTS'], deck: ['Results, priorities and the work ahead.'] },
+  'corporate:handbook': { head: ['Welcome to the Team', 'Time Off and Leave', 'How We Work Together', 'Code of Conduct'], kicker: ['EMPLOYEE HANDBOOK', 'SECTION 3', 'POLICIES'], deck: ['What you can expect from us, and what we expect from each other.'] },
+  'corporate:standards': { head: ['Brand Standards', 'Colour', 'Typography', 'Logo Use'], kicker: ['BRAND GUIDELINES', 'VERSION 2.0', 'IDENTITY'], deck: ['How to use the identity consistently in print and on screen.'] },
+  'corporate:sop': { head: ['Lockout / Tagout Procedure', 'Document Control', 'Incident Reporting'], kicker: ['STANDARD OPERATING PROCEDURE'], deck: ['Applies to all sites and contractors.'] },
+  'corporate:safety': { head: ['Working Safely at Height', 'Hazard Communication', 'Emergency Procedures'], kicker: ['SAFETY MANUAL', 'EHS', 'SECTION 4'], deck: ['Read before starting work. Ask your supervisor if anything is unclear.'] },
+  'corporate:whitepaper': { head: ['The Case for Modular Infrastructure', 'Designing for the Grid of 2030', 'What Changes When Reports Go Digital'], kicker: ['WHITE PAPER', 'RESEARCH'], deck: ['An analysis of costs, risks and opportunities.'] },
   ad: { head: ['Built for the long haul', 'Taste the season', 'Your weekend starts here', 'Less noise, more signal'], kicker: ['NEW', 'LIMITED TIME', 'INTRODUCING'], deck: ['Free delivery on every order through Sunday.', 'Available at select stores while supplies last.'] },
   poster: { head: ['Night Market Returns', 'Open Studio Weekend', 'The Long Walk Home', 'Summer Film Series'], kicker: ['FRIDAY 8 PM', 'ONE NIGHT ONLY', 'FREE ADMISSION'], deck: ['Live music, local makers and food trucks under the bridge.', 'Doors at seven. All ages welcome.'] },
   card: { head: ['You are invited', 'With gratitude', 'Save the date', 'Happy birthday, June'], kicker: ['JOIN US', 'SATURDAY, MAY 9'], deck: ['Dinner and dancing to follow. Kindly reply by April 20.'] },
@@ -2474,7 +2817,7 @@ const SAMPLE = {
 };
 const SAMPLE_MASTHEADS = ['MERIDIAN', 'FIELDWORK', 'ATLAS', 'SIGNAL', 'COMMON'];
 function applySampleCopy(zones, st, T) {
-  const bank = SAMPLE[st.doc] || SAMPLE.poster;
+  const bank = SAMPLE[st.doc + ':' + st.sub] || SAMPLE[st.doc] || SAMPLE.poster;
   zones.forEach(z => {
     const r = mulberry32((z.seed || 1) ^ 0x9e3779b9);
     if (z.role === 'head') { z.text = applyCase(pick(r, bank.head), T.case === 'sentence' ? 'keep' : T.case); if (z.kicker) z.kt = pick(r, bank.kicker); if (z.deck) z.dt = pick(r, bank.deck); }
@@ -2684,7 +3027,7 @@ function renderZone(z, r, ctx) {
   let out = '';
   const box = (pad) => z.box ? `<rect x="${n2(x - pad)}" y="${n2(y - pad)}" width="${n2(w + pad * 2)}" height="${n2(h + pad * 2)}" fill="${pal.paper}" stroke="${pal.ink}" stroke-width="${n2(S * 1.2)}"/>` : '';
   switch (z.role) {
-    case 'image': out = imagePlaceholder(r, z, ctx); break;
+    case 'image': out = z.field ? `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="${pal.accent}"/>` : imagePlaceholder(r, z, ctx); break;
     case 'head': case 'title': {
       out += box(S * 4);
       if (T.glass && !z.onImage) out += glassPanel(x, y, w, h, z, ctx);
@@ -2721,8 +3064,8 @@ function renderZone(z, r, ctx) {
         bot -= ps * 1.6;
       }
       const lh = T.lh || 1;
-      const cap = z.hs && ctx.ST ? ctx.ST['h' + z.hs] * 0.75 : undefined;
-      const fit = fitText(z.text, w, Math.max(4, bot - top), face, T.weight, lh, T.ls || 0, z.big ? 5 : z.hs === 2 ? 3 : 6, cap);
+      const cap = z.hs && ctx.ST ? ctx.ST['h' + z.hs] * 0.75 : z.cap ? bs * z.cap : undefined;
+      const fit = fitText(z.num ? z.num + '. ' + z.text : z.text, w, Math.max(4, bot - top), face, T.weight, lh, T.ls || 0, z.big ? 5 : z.hs === 2 ? 3 : 6, cap);
       let ty = top;
       if (z.vcenter) ty = top + (bot - top - fit.lines.length * fit.s * lh) / 2;
       if (z.band) {
@@ -2777,6 +3120,7 @@ function renderZone(z, r, ctx) {
     }
     case 'caption': case 'meta': {
       const s = ctx.bodySize * 0.82;
+      if (z.url || z.date) { out += svgText(align === 'center' ? x + w / 2 : x, y + h / 2 + s * 0.35, z.url ? 'example.com' : '13 October 2026', { face: FACES.sans, size: s, weight: z.url ? 600 : 400, fill: ink, op: 0.85, ls: z.url ? 0.06 : 0, anchor: align === 'center' ? 'middle' : null }); break; }
       if (z.section) { out += svgText(x + (ctx.sys === 'hig' ? s : 0), y + h - s * 0.8, loremWords(R, 1 + Math.floor(R() * 2)).join(' ').toUpperCase(), { face: FACES.sans, size: s * 0.9, weight: ctx.sys === 'hig' ? 400 : 700, fill: ctx.sys === 'hig' ? pal.ink : pal.accent, op: ctx.sys === 'hig' ? 0.55 : 1, ls: 0.04 }); break; }
       if (z.stamp) { out += svgText(x + w / 2, y + h / 2 + s * 0.35, 'Today 9:41', { face: FACES.sans, size: s, weight: 600, fill: pal.ink, op: 0.5, anchor: 'middle' }); break; }
       const lines = Math.max(1, Math.min(3, Math.floor(h / (s * 1.35))));
@@ -2790,7 +3134,7 @@ function renderZone(z, r, ctx) {
     }
     case 'logo': {
       const lh2 = Math.min(h * 0.7, w * 0.4);
-      const lx = x + w - Math.min(w, lh2 * 2.6), ly = y + (h - lh2) / 2;
+      const lx = z.left ? x : z.center ? x + (w - Math.min(w, lh2 * 2.6)) / 2 : x + w - Math.min(w, lh2 * 2.6), ly = y + (h - lh2) / 2;
       const lw = Math.min(w, lh2 * 2.6);
       out += `<rect x="${n2(lx)}" y="${n2(ly)}" width="${n2(lw)}" height="${n2(lh2)}" fill="none" stroke="${ink}" stroke-width="${n2(S)}" stroke-dasharray="${n2(S * 3)} ${n2(S * 2)}"/>`;
       out += svgText(lx + lw / 2, ly + lh2 / 2 + lh2 * 0.12, 'LOGO', { face: FACES.sans, size: lh2 * 0.32, weight: 700, fill: ink, anchor: 'middle', ls: 0.15, op: 0.7 });
@@ -2807,6 +3151,214 @@ function renderZone(z, r, ctx) {
       break;
     }
     case 'shape': out = drawShape(z, r, ctx); break;
+    case 'contact': {
+      const s = ctx.bodySize * (z.small ? 0.8 : 1), ink2 = z.onImage ? pal.paper : pal.ink;
+      const an = align === 'center' ? 'middle' : align === 'right' ? 'end' : null, ax = align === 'center' ? x + w / 2 : align === 'right' ? x + w : x;
+      const name = applyCase(loremWords(R, 2).join(' '), 'title');
+      const lines = ['+1 555 0' + String(100 + (z.seed % 99)), loremWords(R, 1)[0] + '@example.com', 'example.com', String(100 + (z.seed % 800)) + ' ' + applyCase(loremWords(R, 2).join(' '), 'title') + ' St'];
+      if (z.footer) { out += svgText(ax, y + h - s * 0.6, fitStr(lines.slice(0, 3).concat(lines[3]).join('  ·  '), w, s, FACES.sans, 400), { face: FACES.sans, size: s, fill: ink2, op: 0.75, anchor: an }); out += `<path d="M${n2(x)} ${n2(y + h - s * 1.9)}H${n2(x + w)}" stroke="${pal.accent}" stroke-width="${n2(S * 0.8)}"/>`; break; }
+      let yy = y + s * 1.1;
+      if (!z.linesOnly) {
+        if (!z.nameOnly && h > s * 6) yy = Math.max(yy, y + h - s * (1.3 * (z.nameOnly ? 0 : lines.length) + 3.2));
+        out += svgText(ax, yy, fitStr(name, w, s * 1.25, face, 700), { face, size: s * 1.25, weight: 700, fill: ink2, anchor: an }); yy += s * 1.45;
+        out += svgText(ax, yy, fitStr(applyCase(loremWords(R, 2).join(' '), 'title'), w, s * 0.9, FACES.sans, 400), { face: FACES.sans, size: s * 0.9, fill: z.onImage ? pal.paper : pal.accent, anchor: an }); yy += s * 1.6;
+      } else if (h > s * 5.5 && !z.ret && !z.small) yy = y + h - s * 1.3 * 4;
+      if (z.nameOnly) break;
+      if (z.ret) { out += svgText(ax, yy, fitStr(applyCase(loremWords(R, 2).join(' '), 'title') + ' Studio', w, s, FACES.sans, 700), { face: FACES.sans, size: s, weight: 700, fill: ink2, anchor: an }); yy += s * 1.3; }
+      for (const t of z.ret ? [lines[3], 'Oakland, CA 94612'] : z.small ? lines.slice(0, 3) : lines) {
+        if (yy > y + h + s * 0.2) break;
+        out += svgText(ax, yy, fitStr(t, w, s * 0.9, FACES.sans, 400), { face: FACES.sans, size: s * 0.9, fill: ink2, op: 0.8, anchor: an }); yy += s * 1.3;
+      }
+      break;
+    }
+    case 'addressee': {
+      const s = ctx.bodySize * 0.95;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.18" stroke-width="${n2(S * 0.5)}" stroke-dasharray="${n2(S * 2)} ${n2(S * 2)}"/>`;
+      const L = [applyCase(loremWords(R, 2).join(' '), 'title'), applyCase(loremWords(R, 2).join(' '), 'title') + ' Inc.', String(10 + (z.seed % 980)) + ' ' + applyCase(loremWords(R, 2).join(' '), 'title') + ' Ave', 'Sacramento, CA 95814'];
+      const step = Math.min(s * 1.3, (h - s) / L.length), fs = Math.min(s, step / 1.25);
+      L.forEach((t, i) => { out += svgText(x + fs * 0.6, y + fs * 0.6 + (i + 1) * step - (step - fs) / 2, fitStr(t, w - fs, fs, FACES.sans, 400), { face: FACES.sans, size: fs, fill: pal.ink, weight: i === 0 ? 600 : 400 }); });
+      break;
+    }
+    case 'stamp': {
+      const s = ctx.bodySize * 0.7, sw = Math.min(w * 0.55, h * 0.8);
+      out += `<rect x="${n2(x + w - sw)}" y="${n2(y)}" width="${n2(sw)}" height="${n2(sw * 1.15)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.45" stroke-width="${n2(S * 0.6)}" stroke-dasharray="${n2(S * 1.5)} ${n2(S * 1.5)}"/>`;
+      out += svgText(x + w - sw / 2, y + sw * 0.62, 'POSTAGE', { face: FACES.sans, size: s, weight: 700, fill: pal.ink, op: 0.5, anchor: 'middle', ls: 0.1 });
+      break;
+    }
+    case 'clearzone': {
+      const s = ctx.bodySize * 0.65;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="${GUIDE.bleed}" fill-opacity="0.06" stroke="${GUIDE.bleed}" stroke-opacity="0.5" stroke-width="${n2(S * 0.5)}" stroke-dasharray="${n2(S * 2)} ${n2(S * 1.5)}"/>`;
+      out += svgText(x + w / 2, y + h / 2 + s * 0.35, 'BARCODE CLEAR ZONE · KEEP BLANK', { face: FACES.sans, size: s, weight: 700, fill: GUIDE.bleed, anchor: 'middle', ls: 0.08, op: 0.8 });
+      break;
+    }
+    case 'window': {
+      const s = ctx.bodySize * 0.7;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(S * 3)}" fill="${mix(pal.paper, '#9fc3e6', 0.25)}" stroke="${pal.ink}" stroke-opacity="0.4" stroke-width="${n2(S * 0.7)}"/>`;
+      out += svgText(x + w / 2, y + h / 2 + s * 0.35, 'WINDOW', { face: FACES.sans, size: s, weight: 700, fill: pal.ink, op: 0.5, anchor: 'middle', ls: 0.12 });
+      break;
+    }
+    case 'marks': {
+      const t0 = w * 0.35, t1 = w * 0.85;
+      for (const fy of z.folds || []) out += `<path d="M${n2(t0)} ${n2(fy)}H${n2(t1)}" stroke="${pal.ink}" stroke-opacity="0.6" stroke-width="${n2(S * 0.5)}"/>`;
+      if (z.punch) out += `<path d="M${n2(t0)} ${n2(z.punch)}H${n2(t1 + w * 0.3)}" stroke="${pal.ink}" stroke-opacity="0.6" stroke-width="${n2(S * 0.5)}"/>`;
+      break;
+    }
+    case 'numeral': {
+      const str = z.year ? '2026' : String(1 + (z.seed % 9)).padStart(2, '0');
+      const s = Math.min(h * 0.92, w / (str.length * 0.62));
+      out += svgText(x, y + s * 0.82, str, { face, size: s, weight: 800, fill: z.onImage ? pal.paper : pal.accent, ls: -0.02 });
+      break;
+    }
+    case 'runhead': {
+      const s = ctx.bodySize * 0.75, by = y + Math.min(h * 0.5, s * 2);
+      out += svgText(x, by, loremWords(R, 2).join(' ').toUpperCase(), { face: FACES.sans, size: s, weight: 700, fill: pal.ink, ls: 0.12 });
+      out += svgText(x + w, by, applyCase(loremWords(R, 3).join(' '), 'title') + ' · 2026', { face: FACES.sans, size: s, fill: pal.ink, op: 0.6, anchor: 'end' });
+      out += `<path d="M${n2(x)} ${n2(by + s * 0.8)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.3" stroke-width="${n2(S * 0.6)}"/>`;
+      break;
+    }
+    case 'swatch': {
+      const s = ctx.bodySize * (z.main ? 0.85 : 0.72);
+      const all = [pal.accent, pal.ink].concat(pal.shapes || [], [pal.image, mix(pal.accent, pal.paper, 0.5), mix(pal.ink, pal.paper, 0.6), mix(pal.accent, pal.ink, 0.4)]);
+      const cols = [...new Set(all.map(c => c.toLowerCase()))].slice(z.off || 0).concat([mix(pal.paper, pal.ink, 0.15), mix(pal.paper, pal.ink, 0.35)]);
+      const n = z.n || 3, gap = ctx.D.g, cw = (w - gap * (n - 1)) / n, labH = s * 5.4, chH = Math.max(s * 2, h - labH);
+      for (let i = 0; i < n; i++) {
+        const c = cols[i % cols.length], cx = x + i * (cw + gap);
+        out += `<rect x="${n2(cx)}" y="${n2(y)}" width="${n2(cw)}" height="${n2(chH)}" fill="${c}" stroke="${pal.ink}" stroke-opacity="0.12" stroke-width="${n2(S * 0.5)}"/>`;
+        const [rr, gg, bb] = hexRgb(c), k = 1 - Math.max(rr, gg, bb) / 255, cm = v => k >= 1 ? 0 : Math.round((1 - v / 255 - k) / (1 - k) * 100);
+        const ly = y + chH + s * 1.4;
+        out += svgText(cx, ly, fitStr(applyCase(loremWords(R, 1 + (i % 2)).join(' '), 'title'), cw, s, FACES.sans, 700), { face: FACES.sans, size: s, weight: 700, fill: pal.ink });
+        const lines = [`HEX ${c.toUpperCase()}`, `RGB ${rr} ${gg} ${bb}`, `CMYK ${cm(rr)} ${cm(gg)} ${cm(bb)} ${Math.round(k * 100)}`];
+        lines.forEach((t, j) => { if (ly + (j + 1) * s * 1.25 < y + h + s * 0.2) out += svgText(cx, ly + (j + 1) * s * 1.25, fitStr(t, cw, s * 0.85, FACES.mono, 400), { face: FACES.mono, size: s * 0.85, fill: pal.ink, op: 0.75 }); });
+      }
+      break;
+    }
+    case 'specimen': {
+      const s = ctx.bodySize, big = Math.min(h * 0.5, w * 0.42);
+      out += svgText(x, y + big * 0.85, 'Aa', { face, size: big, weight: T.weight, fill: pal.ink });
+      let yy = y + big + s * 1.4;
+      out += svgText(x, yy, fitStr(T.typeCls || 'Display face', w, s * 1.05, FACES.sans, 700), { face: FACES.sans, size: s * 1.05, weight: 700, fill: pal.ink }); yy += s * 1.8;
+      for (const t of ['ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz', '0123456789 & ! ? % ( ) €  $']) {
+        if (yy > y + h) break;
+        const fs = Math.min(s * 1.25, w / (t.length * 0.58));
+        out += svgText(x, yy, t, { face, size: fs, weight: 400, fill: pal.ink, op: 0.85 }); yy += fs * 1.5;
+      }
+      if (yy + s < y + h) out += svgText(x, yy + s * 0.4, 'Regular · Medium · Bold', { face: FACES.sans, size: s * 0.85, fill: pal.ink, op: 0.6 });
+      break;
+    }
+    case 'typescale': {
+      const s = ctx.bodySize, steps = [['H1', 2.6], ['H2', 1.9], ['H3', 1.4], ['Body', 1], ['Caption', 0.8]];
+      const total = steps.reduce((a, [, k]) => a + k * 1.25 + 1.4, 0);
+      const sc = Math.min(1, h / (total * s));
+      let yy = y;
+      for (const [lab, k] of steps) {
+        const fs = s * k * sc, lead = Math.round(fs * 1.25 * 10) / 10;
+        out += svgText(x, yy + s * 0.9 * sc, `${lab} · ${n2(fs)}/${n2(lead)} pt`, { face: FACES.mono, size: s * 0.7 * sc, fill: pal.accent });
+        yy += s * 1.3 * sc;
+        out += svgText(x, yy + fs * 0.85, fitStr(applyCase(loremWords(R, k > 1.2 ? 4 : 8).join(' '), k > 1.2 ? T.case : 'sentence'), w, fs, k > 1.2 ? face : FACES[T.bodyFace || 'sans'], k > 1.2 ? T.weight : 400), { face: k > 1.2 ? face : FACES[T.bodyFace || 'sans'], size: fs, weight: k > 1.2 ? T.weight : 400, fill: pal.ink });
+        yy += fs * 1.25 + s * 0.4 * sc;
+      }
+      break;
+    }
+    case 'clearspace': {
+      const s = ctx.bodySize, lw = Math.min(w * 0.5, h * 1.1), lh2 = lw * 0.38;
+      const lx = x + (w - lw) / 2, ly = y + (h - lh2) / 2 - s, cs = lh2 * 0.5;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="${mix(pal.paper, pal.ink, 0.04)}"/>`;
+      out += `<rect x="${n2(lx - cs)}" y="${n2(ly - cs)}" width="${n2(lw + cs * 2)}" height="${n2(lh2 + cs * 2)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(S)}" stroke-dasharray="${n2(S * 3)} ${n2(S * 2)}"/>`;
+      out += `<rect x="${n2(lx)}" y="${n2(ly)}" width="${n2(lw)}" height="${n2(lh2)}" fill="${pal.ink}"/>`;
+      out += svgText(lx + lw / 2, ly + lh2 * 0.64, 'LOGO', { face: FACES.sans, size: lh2 * 0.42, weight: 800, fill: pal.paper, anchor: 'middle', ls: 0.12 });
+      const mk = (x1, y1, x2, y2, tx, ty) => `<path d="M${n2(x1)} ${n2(y1)}L${n2(x2)} ${n2(y2)}" stroke="${pal.accent}" stroke-width="${n2(S)}"/>` + svgText(tx, ty, 'x', { face: FACES.serif, size: s, fill: pal.accent, italic: true, anchor: 'middle' });
+      out += mk(lx - cs, ly + lh2 / 2, lx, ly + lh2 / 2, lx - cs / 2, ly + lh2 / 2 - s * 0.4);
+      out += mk(lx + lw / 2, ly - cs, lx + lw / 2, ly, lx + lw / 2 + s * 0.6, ly - cs / 2 + s * 0.3);
+      out += svgText(x + w / 2, y + h - s * 0.8, 'Clear space = x on every side · minimum width 1 in / 96 px', { face: FACES.sans, size: s * 0.75, fill: pal.ink, op: 0.65, anchor: 'middle' });
+      break;
+    }
+    case 'dodont': {
+      const s = ctx.bodySize * 0.8, cols = w > h * 1.2 ? 3 : 2, rows = Math.max(1, Math.min(3, Math.round(6 / cols)));
+      const gap = ctx.D.g, tw = (w - gap * (cols - 1)) / cols, th = (h - gap * (rows - 1)) / rows;
+      const tips = ['Use the full-colour logo', 'Don’t stretch it', 'Don’t rotate it', 'Don’t recolour it', 'Don’t add effects', 'Don’t crowd it'];
+      for (let i = 0; i < cols * rows; i++) {
+        const tx = x + (i % cols) * (tw + gap), ty = y + Math.floor(i / cols) * (th + gap), ih = th - s * 2.2;
+        out += `<rect x="${n2(tx)}" y="${n2(ty)}" width="${n2(tw)}" height="${n2(ih)}" fill="${mix(pal.paper, pal.ink, 0.05)}"/>`;
+        const lw = tw * 0.5, lh2 = lw * 0.36, cx = tx + tw / 2, cy = ty + ih / 2;
+        const tf = i === 1 ? `scale(1.5 0.7)` : i === 2 ? `rotate(-18)` : '';
+        const fill = i === 3 ? pal.accent : pal.ink;
+        out += `<g transform="translate(${n2(cx)} ${n2(cy)}) ${tf}"><rect x="${n2(-lw / 2)}" y="${n2(-lh2 / 2)}" width="${n2(lw)}" height="${n2(lh2)}" fill="${fill}"${i === 4 ? ` stroke="${pal.accent}" stroke-width="${n2(S * 3)}"` : ''}/></g>`;
+        if (i === 5) for (let k = 0; k < 3; k++) out += `<circle cx="${n2(cx + lw * (0.3 + k * 0.15))}" cy="${n2(cy - lh2 * 0.4)}" r="${n2(lh2 * 0.3)}" fill="${pal.accent}" fill-opacity="0.7"/>`;
+        const ok = i === 0, bx = tx + s * 0.9, by = ty + ih + s * 1.25;
+        out += `<circle cx="${n2(bx)}" cy="${n2(by - s * 0.35)}" r="${n2(s * 0.62)}" fill="${ok ? '#1E8E3E' : '#D93025'}"/>`;
+        out += ok ? `<path d="M${n2(bx - s * 0.3)} ${n2(by - s * 0.35)}l${n2(s * 0.22)} ${n2(s * 0.22)}l${n2(s * 0.4)} ${n2(-s * 0.42)}" fill="none" stroke="#fff" stroke-width="${n2(S * 1.3)}"/>` : `<path d="M${n2(bx - s * 0.25)} ${n2(by - s * 0.6)}l${n2(s * 0.5)} ${n2(s * 0.5)}M${n2(bx + s * 0.25)} ${n2(by - s * 0.6)}l${n2(-s * 0.5)} ${n2(s * 0.5)}" stroke="#fff" stroke-width="${n2(S * 1.3)}"/>`;
+        out += svgText(bx + s * 1.1, by, fitStr(tips[i % tips.length], tw - s * 2.2, s, FACES.sans, 600), { face: FACES.sans, size: s, weight: 600, fill: pal.ink });
+      }
+      break;
+    }
+    case 'docblock': {
+      const s = ctx.bodySize * 0.72, cells = [['Document no.', 'SOP-' + String(100 + (z.seed % 900))], ['Revision', String(1 + (z.seed % 6))], ['Effective', '13 Oct 2026'], ['Owner', applyCase(loremWords(R, 2).join(' '), 'title')], ['Approved', applyCase(loremWords(R, 2).join(' '), 'title')]];
+      const n = w > s * 50 ? 5 : w > s * 30 ? 4 : 3, cw = w / n, bh = Math.min(h * 0.9, s * 3.6), by = y + (h - bh) / 2;
+      out += `<rect x="${n2(x)}" y="${n2(by)}" width="${n2(w)}" height="${n2(bh)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(S * 0.8)}"/>`;
+      for (let i = 0; i < n; i++) {
+        const cx = x + i * cw;
+        if (i) out += `<path d="M${n2(cx)} ${n2(by)}V${n2(by + bh)}" stroke="${pal.ink}" stroke-width="${n2(S * 0.6)}"/>`;
+        out += svgText(cx + s * 0.6, by + bh * 0.38, cells[i][0].toUpperCase(), { face: FACES.sans, size: s * 0.8, weight: 700, fill: pal.ink, op: 0.6, ls: 0.06 });
+        out += svgText(cx + s * 0.6, by + bh * 0.78, fitStr(cells[i][1], cw - s * 1.2, s * 1.1, FACES.sans, 600), { face: FACES.sans, size: s * 1.1, weight: 600, fill: pal.ink });
+      }
+      break;
+    }
+    case 'steps': {
+      const s = ctx.bodySize, step = s * 2.4;
+      for (let i = 0; (i + 1) * step <= h + 0.5; i++) {
+        const yy = y + i * step, cy = yy + step / 2;
+        if (z.bullets) out += `<circle cx="${n2(x + s * 0.4)}" cy="${n2(cy - s * 0.3)}" r="${n2(s * 0.2)}" fill="${pal.accent}"/>`;
+        else { out += `<circle cx="${n2(x + s * 0.75)}" cy="${n2(cy - s * 0.3)}" r="${n2(s * 0.75)}" fill="${pal.accent}"/>`; out += svgText(x + s * 0.75, cy, String(i + 1), { face: FACES.sans, size: s * 0.8, weight: 700, fill: pal.paper, anchor: 'middle' }); }
+        const tx = x + s * (z.bullets ? 1.2 : 2.2), tw = w - (tx - x) - (z.check ? s * 2 : 0);
+        out += svgText(tx, cy, fitStr(applyCase(loremWords(R, 5 + Math.floor(R() * 7)).join(' '), 'sentence') + '.', tw, s, FACES[T.bodyFace || 'sans'], 400), { face: FACES[T.bodyFace || 'sans'], size: s, fill: pal.ink });
+        if (z.check) out += `<rect x="${n2(x + w - s * 1.1)}" y="${n2(cy - s * 0.95)}" width="${n2(s * 1.1)}" height="${n2(s * 1.1)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(S * 0.8)}"/>`;
+      }
+      break;
+    }
+    case 'hazard': {
+      // Safety message panel in the ANSI Z535 manner: signal word on its colour bar, then the message.
+      const LV = { danger: ['DANGER', '#C8102E', '#FFFFFF'], warning: ['WARNING', '#FF7900', '#000000'], caution: ['CAUTION', '#FFD100', '#000000'], notice: ['NOTICE', '#0057B8', '#FFFFFF'] }[z.level || 'warning'];
+      const s = ctx.bodySize, bh = Math.min(h * 0.4, s * 2.2);
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="#FFFFFF" stroke="#000000" stroke-width="${n2(S * 1.2)}"/>`;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(bh)}" fill="${LV[1]}"/>`;
+      const fs = bh * 0.62, tw = lineWidth([LV[0]], fs, FACES.sans, 800, 0.04);
+      let tx = x + w / 2 - tw / 2;
+      if (z.level !== 'notice') {
+        const a = fs * 0.95, ax = tx - a * 0.75, ay = y + bh / 2;
+        out += `<path d="M${n2(ax)} ${n2(ay - a / 2)}L${n2(ax + a * 0.58)} ${n2(ay + a / 2)}H${n2(ax - a * 0.58)}Z" fill="${z.level === 'danger' ? '#FFFFFF' : '#000000'}"/>`;
+        out += `<path d="M${n2(ax)} ${n2(ay - a * 0.18)}V${n2(ay + a * 0.2)}" stroke="${LV[1]}" stroke-width="${n2(a * 0.12)}"/><circle cx="${n2(ax)}" cy="${n2(ay + a * 0.34)}" r="${n2(a * 0.06)}" fill="${LV[1]}"/>`;
+        tx += a * 0.25;
+      }
+      out += svgText(tx, y + bh / 2 + fs * 0.36, LV[0], { face: FACES.sans, size: fs, weight: 800, fill: LV[2], ls: 0.04, italic: z.level === 'notice' });
+      const fit = fitText(applyCase(loremWords(R, 10 + Math.floor(R() * 10)).join(' '), 'sentence') + '.', w - s * 2, h - bh - s, FACES.sans, 600, 1.25, 0, 4, s * 1.1);
+      out += textLines(fit.lines, x + s, y + bh + s * 0.5, w - s * 2, fit.s, 1.25, { face: FACES.sans, weight: 600, fill: '#000000' });
+      break;
+    }
+    case 'signs': {
+      // Generic safety-sign shapes by category, in the ISO 7010 manner; pictograms are placeholders.
+      const s = ctx.bodySize * 0.75, kinds = [['Mandatory', 'm'], ['Warning', 'w'], ['Prohibition', 'p'], ['Safe condition', 'e'], ['Fire equipment', 'f']];
+      const n = w > s * 40 ? 5 : w > s * 24 ? 4 : 3, cw = w / n, d = Math.min(cw * 0.62, h - s * 2.4);
+      for (let i = 0; i < n; i++) {
+        const cx = x + cw * (i + 0.5), cy = y + d / 2 + S, k = kinds[i][1];
+        const glyph = (col) => `<circle cx="${n2(cx)}" cy="${n2(cy - d * 0.12)}" r="${n2(d * 0.09)}" fill="${col}"/><path d="M${n2(cx)} ${n2(cy - d * 0.02)}V${n2(cy + d * 0.2)}M${n2(cx - d * 0.13)} ${n2(cy + d * 0.04)}H${n2(cx + d * 0.13)}" stroke="${col}" stroke-width="${n2(d * 0.07)}" stroke-linecap="round"/>`;
+        if (k === 'm') out += `<circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(d / 2)}" fill="#0057B8"/>` + glyph('#FFFFFF');
+        if (k === 'w') out += `<path d="M${n2(cx)} ${n2(cy - d / 2)}L${n2(cx + d * 0.55)} ${n2(cy + d / 2)}H${n2(cx - d * 0.55)}Z" fill="#FFD100" stroke="#000" stroke-width="${n2(d * 0.06)}" stroke-linejoin="round"/>` + `<path d="M${n2(cx)} ${n2(cy - d * 0.12)}V${n2(cy + d * 0.18)}" stroke="#000" stroke-width="${n2(d * 0.08)}"/><circle cx="${n2(cx)}" cy="${n2(cy + d * 0.3)}" r="${n2(d * 0.05)}" fill="#000"/>`;
+        if (k === 'p') out += `<circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(d * 0.44)}" fill="#FFFFFF" stroke="#C8102E" stroke-width="${n2(d * 0.1)}"/>` + glyph('#000000') + `<path d="M${n2(cx - d * 0.31)} ${n2(cy - d * 0.31)}L${n2(cx + d * 0.31)} ${n2(cy + d * 0.31)}" stroke="#C8102E" stroke-width="${n2(d * 0.1)}"/>`;
+        if (k === 'e') out += `<rect x="${n2(cx - d / 2)}" y="${n2(cy - d / 2)}" width="${n2(d)}" height="${n2(d)}" fill="#009A44"/>` + glyph('#FFFFFF');
+        if (k === 'f') out += `<rect x="${n2(cx - d / 2)}" y="${n2(cy - d / 2)}" width="${n2(d)}" height="${n2(d)}" fill="#C8102E"/>` + glyph('#FFFFFF');
+        out += svgText(cx, cy + d / 2 + s * 1.6, kinds[i][0], { face: FACES.sans, size: s, weight: 600, fill: pal.ink, anchor: 'middle' });
+      }
+      break;
+    }
+    case 'signature': {
+      const s = ctx.bodySize, sy = y + h * 0.45;
+      let d = `M${n2(x)} ${n2(sy)}`;
+      for (let i = 1; i <= 8; i++) d += `Q${n2(x + w * 0.06 * (i - 0.5))} ${n2(sy - s * (i % 2 ? 1.6 : -0.6))} ${n2(x + w * 0.06 * i)} ${n2(sy + s * (R() - 0.5) * 0.4)}`;
+      out += `<path d="${d}" fill="none" stroke="${pal.ink}" stroke-width="${n2(S * 1.1)}" stroke-linecap="round"/>`;
+      out += svgText(x, sy + s * 1.8, applyCase(loremWords(R, 2).join(' '), 'title'), { face: FACES.sans, size: s, weight: 700, fill: pal.ink });
+      out += svgText(x, sy + s * 3.1, 'Chief Executive Officer', { face: FACES.sans, size: s * 0.85, fill: pal.ink, op: 0.65 });
+      break;
+    }
     case 'home': {
       const bw = Math.min(w * 0.36, 134 * 0.75), bh = Math.max(S * 1.2, 5 * 0.75 * (z.sys === 'hig' ? 1 : 0.8));
       out += `<rect x="${n2(x + (w - bw) / 2)}" y="${n2(y + h - Math.min(h * 0.5, 8 * 0.75) - bh)}" width="${n2(bw)}" height="${n2(bh)}" rx="${n2(bh / 2)}" fill="${pal.ink}" fill-opacity="0.85"/>`;
@@ -3005,13 +3557,13 @@ function renderZone(z, r, ctx) {
       const cw = w / nc;
       out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(s * 0.5)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.15" stroke-width="${n2(S)}"/>`;
       out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(rh)}" fill="${mix(pal.paper, pal.ink, 0.05)}"/>`;
-      for (let c = 0; c < nc; c++) out += svgText(x + c * cw + s, y + rh / 2 + s * 0.35, fitStr(z.cmp && c ? ['Starter', 'Team', 'Business', 'Enterprise', 'Plus'][(c - 1) % 5] : loremWords(R, 1)[0].toUpperCase(), cw - s * 1.5, s * 0.8, FACES.sans, 700), { face: FACES.sans, size: s * 0.8, weight: 700, fill: pal.ink, op: 0.7, ls: z.cmp ? 0 : 0.06 });
+      for (let c = 0; c < nc; c++) out += svgText(x + c * cw + s, y + rh / 2 + s * 0.35, fitStr(z.rev ? ['Rev', 'Date', 'Description', 'Author', 'Approved', 'Notes'][c] : z.cmp && c ? ['Starter', 'Team', 'Business', 'Enterprise', 'Plus'][(c - 1) % 5] : loremWords(R, 1)[0].toUpperCase(), cw - s * 1.5, s * 0.8, FACES.sans, 700), { face: FACES.sans, size: s * 0.8, weight: 700, fill: pal.ink, op: 0.7, ls: z.cmp ? 0 : 0.06 });
       for (let r2 = 1; y + (r2 + 1) * rh <= y + h + 0.5; r2++) {
         const yy = y + r2 * rh;
         out += `<path d="M${n2(x)} ${n2(yy)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.1"/>`;
         for (let c = 0; c < nc; c++) {
           if (z.cmp && c) { const on = R() > 0.3; out += on ? `<path d="M${n2(x + c * cw + s)} ${n2(yy + rh / 2)}l${n2(s * 0.3)} ${n2(s * 0.3)}l${n2(s * 0.55)} ${n2(-s * 0.6)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(S * 1.6)}"/>` : `<path d="M${n2(x + c * cw + s)} ${n2(yy + rh / 2)}h${n2(s * 0.8)}" stroke="${pal.ink}" stroke-opacity="0.3" stroke-width="${n2(S)}"/>`; continue; }
-          const t = c === 0 ? applyCase(loremWords(R, 2).join(' '), 'title') : c === nc - 1 && !z.cmp ? (R() > 0.5 ? 'Active' : 'Paused') : String(Math.floor(R() * 9000) + 100);
+          const t = z.rev ? [String(r2), (r2 + 2) + ' Mar 2026', applyCase(loremWords(R, 3).join(' '), 'sentence'), applyCase(loremWords(R, 1)[0], 'title'), applyCase(loremWords(R, 1)[0], 'title'), '—'][c] : c === 0 ? applyCase(loremWords(R, 2).join(' '), 'title') : c === nc - 1 && !z.cmp ? (R() > 0.5 ? 'Active' : 'Paused') : String(Math.floor(R() * 9000) + 100);
           out += svgText(x + c * cw + s, yy + rh / 2 + s * 0.35, fitStr(t, cw - s * 1.5, s, FACES.sans, 400), { face: FACES.sans, size: s, weight: c === 0 ? 600 : 400, fill: pal.ink, op: c === 0 ? 1 : 0.75 });
         }
       }
@@ -3031,6 +3583,11 @@ function renderZone(z, r, ctx) {
     case 'note': {
       const s = ctx.bodySize;
       out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(s * 0.4)}" fill="${mix(pal.paper, pal.accent, 0.12)}"/><rect x="${n2(x)}" y="${n2(y)}" width="${n2(S * 3)}" height="${n2(h)}" fill="${pal.accent}"/>`;
+      if (z.policy || z.abstract) {
+        out += svgText(x + s * 1.2, y + s * 1.6, z.policy ? 'POLICY' : 'ABSTRACT', { face: FACES.sans, size: s * 0.75, weight: 800, fill: pal.accent, ls: 0.12 });
+        out += bodyBlock(x + s * 1.2, y + s * 2.1, w - s * 2.4, h - s * 2.4, R, ctx, { snap: false });
+        break;
+      }
       out += `<circle cx="${n2(x + s * 1.6)}" cy="${n2(y + h / 2)}" r="${n2(s * 0.6)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(S * 1.4)}"/>`;
       out += bodyBlock(x + s * 3, y + Math.max(0, (h - ctx.lead * 2) / 2 - s * 0.3), w - s * 4, Math.min(h, ctx.lead * 2.2), R, ctx, { snap: false });
       break;
@@ -3099,8 +3656,9 @@ function renderZone(z, r, ctx) {
     case 'folio': {
       const s = ctx.bodySize * 0.8, by = y + h - s * 0.6;
       out += `<path d="M${n2(x)} ${n2(y + h - s * 2)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.35" stroke-width="${n2(S * 0.6)}"/>`;
-      out += svgText(x, by, String(10 + Math.floor(R() * 80)), { face: FACES.sans, size: s, weight: 700, fill: pal.ink });
-      out += svgText(x + s * 3, by, 'LOREM IPSUM · DOLOR', { face: FACES.sans, size: s, weight: 400, fill: pal.ink, op: 0.7, ls: 0.1 });
+      if (!z.doc) out += svgText(x, by, String(10 + Math.floor(R() * 80)), { face: FACES.sans, size: s, weight: 700, fill: pal.ink });
+      if (z.doc) { out += svgText(x + w, by, 'Uncontrolled when printed', { face: FACES.sans, size: s * 0.9, fill: pal.ink, op: 0.6, anchor: 'end' }); }
+      out += svgText(z.doc ? x : x + s * 3, by, z.doc ? 'Page ' + (1 + (z.seed % 4)) + ' of ' + (4 + (z.seed % 5)) : 'LOREM IPSUM · DOLOR', { face: FACES.sans, size: s, weight: 400, fill: pal.ink, op: 0.7, ls: 0.1 });
       if (ctx.spread) out += svgText(x + w, by, String(11 + Math.floor(R() * 80)), { face: FACES.sans, size: s, weight: 700, fill: pal.ink, anchor: 'end' });
       break;
     }
@@ -3952,7 +4510,7 @@ function annotationLines(st, layout, T, D) {
 }
 
 /* ---------- geometry checks ---------- */
-const TEXT_ROLES = new Set(['head', 'title', 'deck', 'body', 'caption', 'meta', 'cta', 'button', 'folio', 'masthead', 'coverline', 'list', 'legend', 'item', 'readout', 'alert', 'appbar', 'field', 'stat', 'logo', 'input', 'chips', 'feature', 'quote', 'banner', 'price', 'faq', 'toc', 'table', 'code', 'note', 'sidenav', 'pager', 'byline', 'bubble']);
+const TEXT_ROLES = new Set(['head', 'title', 'deck', 'body', 'caption', 'meta', 'cta', 'button', 'folio', 'masthead', 'coverline', 'list', 'legend', 'item', 'readout', 'alert', 'appbar', 'field', 'stat', 'logo', 'input', 'chips', 'feature', 'quote', 'banner', 'price', 'faq', 'toc', 'table', 'code', 'note', 'sidenav', 'pager', 'byline', 'bubble', 'numeral', 'runhead', 'swatch', 'specimen', 'typescale', 'docblock', 'steps', 'hazard', 'signature', 'signs', 'contact', 'addressee']);
 function zoneGeom(z, D) {
   const r = zoneRect(z, D);
   let poly = [[r.x, r.y], [r.x + r.w, r.y], [r.x + r.w, r.y + r.h], [r.x, r.y + r.h]];
@@ -3991,7 +4549,7 @@ function wrapTargets(z, zones, boxes, D) {
   const r = zoneRect(z, D);
   const out = [];
   zones.forEach((o, i) => {
-    if (o === z || !WRAP_ROLES.has(o.role)) return;
+    if (o === z || !(WRAP_ROLES.has(o.role) || o.wrapme)) return;
     const b = boxes[i];
     if (b.x < r.x + r.w && b.x + b.w > r.x && b.y < r.y + r.h && b.y + b.h > r.y) out.push(i);
   });
@@ -4073,7 +4631,7 @@ function analyzeZones(zones, D, T, arch) {
     const pct = Math.round(area / small * 100);
     let reason = null;
     const nonText = !at ? a : !bt ? b : null, text = at ? a : b;
-    const wrapper = a.role === 'body' && a.wrap && WRAP_ROLES.has(b.role) ? a : b.role === 'body' && b.wrap && WRAP_ROLES.has(a.role) ? b : null;
+    const wrapper = a.role === 'body' && a.wrap && (WRAP_ROLES.has(b.role) || b.wrapme) ? a : b.role === 'body' && b.wrap && (WRAP_ROLES.has(a.role) || a.wrapme) ? b : null;
     if (wrapper) reason = 'body text flows around it';
     else if (nonText && nonText.role === 'shape') reason = 'accent shape set behind text';
     else if (nonText && nonText.role === 'fab') reason = 'floating action button sits above the content by design';
@@ -4097,9 +4655,11 @@ const ROLE_LABEL = {
   meta: 'Info line', footer: 'Footer', readout: 'Data readout', compass: 'Heading tape', ladder: 'Ladder scale', reticle: 'Reticle', radar: 'Radar / minimap', gauge: 'Gauges', alert: 'Alert banner', ornament: 'Ornamental rule', appbar: 'App bar', item: 'List item', sidebar: 'Sidebar',
   home: 'Home indicator', fab: 'Floating action button', rail: 'Navigation rail', composer: 'Message composer', bubble: 'Message bubble', input: 'Text field', chips: 'Chips / options',
   logos: 'Logo strip', feature: 'Feature', quote: 'Testimonial', banner: 'Call-to-action band', price: 'Plan card', faq: 'FAQ item', toc: 'Table of contents', table: 'Data table',
-  code: 'Code block', note: 'Callout', sidenav: 'Section navigation', thumbs: 'Thumbnails', pager: 'Previous / next', byline: 'Byline'
+  code: 'Code block', note: 'Callout', sidenav: 'Section navigation', thumbs: 'Thumbnails', pager: 'Previous / next', byline: 'Byline',
+  numeral: 'Section number', runhead: 'Running head', swatch: 'Colour swatches', specimen: 'Type specimen', typescale: 'Type scale', clearspace: 'Logo clear space', dodont: 'Do / don’t examples', docblock: 'Document control block', steps: 'Steps', hazard: 'Safety message', signs: 'Safety signs', signature: 'Signature',
+  contact: 'Contact details', addressee: 'Recipient address', stamp: 'Postage area', clearzone: 'Barcode clear zone', window: 'Envelope window', marks: 'Fold and punch marks'
 };
-const ROLE_RANK = { reticle: 1.5, readout: 6, compass: 6, gauge: 6, radar: 6, alert: 2.5, ladder: 7, masthead: 0, head: 1, title: 1, image: 2, panel: 2, deck: 3, coverline: 3, list: 3, body: 4, card: 4, stat: 4, chart: 4, item: 5, cta: 5, button: 5, caption: 6, meta: 7, logo: 7, nav: 0.5, appbar: 0.5, banner: 3, price: 4, feature: 4, quote: 4, table: 4, code: 4, faq: 5, toc: 6, sidenav: 6, chips: 5, input: 5, bubble: 4, byline: 7, logos: 7, note: 5, pager: 6, thumbs: 6 };
+const ROLE_RANK = { reticle: 1.5, readout: 6, compass: 6, gauge: 6, radar: 6, alert: 2.5, ladder: 7, masthead: 0, head: 1, title: 1, image: 2, panel: 2, deck: 3, coverline: 3, list: 3, body: 4, card: 4, stat: 4, chart: 4, item: 5, cta: 5, button: 5, caption: 6, meta: 7, logo: 7, nav: 0.5, appbar: 0.5, banner: 3, price: 4, feature: 4, quote: 4, table: 4, code: 4, faq: 5, toc: 6, sidenav: 6, chips: 5, input: 5, bubble: 4, byline: 7, logos: 7, note: 5, pager: 6, thumbs: 6, numeral: 1.5, runhead: 7, swatch: 2, specimen: 2, typescale: 3, clearspace: 2, dodont: 3, docblock: 6, steps: 4, hazard: 2, signs: 3, signature: 6, contact: 2, addressee: 3, stamp: 7, clearzone: 8, window: 3, marks: 8 };
 
 function zoneSpecs(zones, D, u, A2) {
   const f = v => roundU(v / UNIT_PT[u], u);
@@ -4109,7 +4669,8 @@ function zoneSpecs(zones, D, u, A2) {
     const g = A2.geo[i];
     const o = { id: z.stack, stack: z.stack, role: z.role, label: ROLE_LABEL[z.role] || z.role };
     const why = [];
-    if (z.edge) { o.anchor = z.edge; why.push('anchored to the ' + z.edge + ' edge, outside the module grid'); }
+    if (z.edge === 'float') { o.anchor = 'fixed position'; why.push(z.std ? 'placed by convention: ' + z.std : 'placed at a fixed position outside the module grid'); }
+    else if (z.edge) { o.anchor = z.edge; why.push('anchored to the ' + z.edge + ' edge, outside the module grid'); }
     else {
       const g = zoneRect({ c: z.c, r: z.r }, D);
       o.grid = { column: { start: z.c[0] + 1, span: z.c[1] }, row: { start: z.r[0] + 1, span: z.r[1] }, x: f(g.x), y: f(g.y), width: f(g.w), height: f(g.h) };
