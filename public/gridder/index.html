@@ -133,6 +133,9 @@ input[type=range] { width: 100%; accent-color: var(--ink); }
 .kind { font-family: var(--display); font-stretch: 85%; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; border: 1px solid currentColor; color: var(--muted); }
 .ref-img { width: 100%; max-width: 100%; background: repeating-conic-gradient(var(--surface-2) 0 25%, var(--surface) 0 50%) 0 0/16px 16px; border: 1px solid var(--line); border-radius: 4px; display: block; cursor: grab; }
 .hint { font-size: 12px; color: var(--muted); margin: 0; }
+.checks { color: var(--ink); }
+.checks.has-warn b { color: var(--danger); }
+.chk { margin-left: 6px; border: 0; border-radius: 3px; background: #E5312B; color: #fff; font: 700 11px/1 var(--body); padding: 4px 7px; cursor: pointer; vertical-align: 2px; }
 .caveat { color: var(--ink); border-left: 3px solid var(--accent); padding-left: 8px; }
 .direction { margin: 0; font-size: 13px; line-height: 1.5; max-width: 65ch; }
 .btns { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -297,6 +300,7 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
             <button type="button" id="s-read" aria-pressed="true">Readable</button>
             <button type="button" id="s-json" aria-pressed="false">JSON</button>
           </div>
+          <p class="hint checks" id="h-checks"></p>
           <pre class="spec" id="h-spec" tabindex="0" draggable="true"></pre>
           <p class="hint">Each zone lists its <b>grid area</b> (the module span it aligns to) and its <b>bounds</b> (its final size), with the reason whenever they differ: bleed, an off-grid shift, scaling or rotation. Image frames list their exact ratio, a suggested source ratio and how much gets cropped.</p>
           <p class="hint caveat">Before final files, confirm bleed, safe area, color mode, resolution and export settings with your printer or platform.</p>
@@ -882,6 +886,8 @@ function rollGeometry(st, T, rng) {
       if (st.doc === 'comic') m = { t: base * 0.8, r: base * 0.8, b: base * 1.1, l: base * 0.8 };
       if (screen) for (const k in m) m[k] = snap(m[k], 4, 8);
     }
+    const safePt = toPt(st.safe || 0, u);
+    if (safePt > 0) for (const k in m) m[k] = Math.max(m[k], safePt * 1.15);
     st.m = { t: fromPt(m.t, u), r: fromPt(m.r, u), b: fromPt(m.b, u), l: fromPt(m.l, u) };
   }
   if (!L.cols) {
@@ -1465,6 +1471,10 @@ function generateZones(st, layout) {
     if (z.role === 'masthead') { const long = LOREM.filter(w => w.length >= 5 && w.length <= 9); z.text = pick(zr, long).toUpperCase(); }
     if (z.role === 'title') z.text = applyCase(loremWords(zr, 1 + Math.floor(zr() * 2)).join(' '), 'title');
   });
+  // Stacking order: base imagery, then decorative accents, then everything else; ties keep generation order.
+  const grp = z => (z.role === 'image' || z.role === 'sidebar' || z.role === 'footer') ? 0 : (z.under || z.role === 'shape') ? 1 : 2;
+  zones = zones.map((z, i) => ({ z, i })).sort((a, b) => grp(a.z) - grp(b.z) || a.i - b.i).map(o => o.z);
+  zones.forEach((z, i) => { z.stack = i + 1; z.layerGroup = grp(z); if (z.rot) z.rot = Math.round(z.rot * 10) / 10; if (Math.abs(z.rot || 0) < 0.05) delete z.rot; });
   return { zones, T, D };
 }
 
@@ -1685,7 +1695,7 @@ function renderZone(z, r, ctx) {
       if (z.vcenter) ty = top + (bot - top - fit.lines.length * fit.s * lh) / 2;
       if (z.band) {
         const bh = fit.lines.length * fit.s * lh + fit.s * 0.5;
-        out += `<rect x="${n2(x - ctx.D.W)}" y="${n2(ty - fit.s * 0.2)}" width="${n2(w + ctx.D.W * 2)}" height="${n2(bh)}" fill="${pal.accent}"/>`;
+        out += `<rect x="${n2(x)}" y="${n2(ty - fit.s * 0.2)}" width="${n2(w)}" height="${n2(Math.min(bh, y + h - (ty - fit.s * 0.2)))}" fill="${pal.accent}"/>`;
       }
       if (z.arc && fit.lines.length >= 1) {
         const l0 = fit.lines[0], s0 = fit.s;
@@ -1699,7 +1709,7 @@ function renderZone(z, r, ctx) {
       if (T.echo && !z.onImage) {
         const ex = fit.s * 0.35, ey = -fit.s * 0.45;
         const ghost = textLines(fit.lines, x + ex, ty + ey, w, fit.s * 1.25, lh, { face, weight: T.weight, fill: 'none', ls: T.ls || 0, align: align === 'center' ? 'center' : 'left' });
-        out += ghost.replace(/<text /g, `<text stroke="${pal.accent}" stroke-width="${n2(Math.max(S * 0.8, fit.s * 0.025))}" `);
+        out += `<clipPath id="ec${z.seed}"><rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}"/></clipPath><g clip-path="url(#ec${z.seed})">` + ghost.replace(/<text /g, `<text stroke="${pal.accent}" stroke-width="${n2(Math.max(S * 0.8, fit.s * 0.025))}" `) + '</g>';
       }
       out += textLines(fit.lines, x, ty, w, fit.s, lh, { face, weight: T.weight, fill: z.band ? pal.paper : ink, ls: T.ls || 0, align: align === 'center' ? 'center' : 'left' });
       break;
@@ -2098,7 +2108,7 @@ function drawShape(z, r, ctx) {
       return o;
     }
     case 'rays': {
-      const n = 18, R2 = Math.hypot(w, h); let o = `<clipPath id="rc${z.seed}"><circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(Math.max(w, h) * 0.55)}"/></clipPath><g clip-path="url(#rc${z.seed})">`;
+      const n = 18, R2 = Math.hypot(w, h); let o = `<clipPath id="rc${z.seed}"><rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}"/></clipPath><g clip-path="url(#rc${z.seed})">`;
       for (let i = 0; i < n; i += 2) { const a1 = i / n * Math.PI * 2, a2 = (i + 1) / n * Math.PI * 2; o += `<path d="M${n2(cx)} ${n2(cy)}L${n2(cx + Math.cos(a1) * R2)} ${n2(cy + Math.sin(a1) * R2)}L${n2(cx + Math.cos(a2) * R2)} ${n2(cy + Math.sin(a2) * R2)}Z" fill="${col}" fill-opacity="0.75"/>`; }
       return o + '</g>';
     }
@@ -2273,13 +2283,13 @@ function renderSVG(st, layout, opts) {
   s += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(vw)}" height="${n2(pageH)}" fill="${T.bgGrad ? 'url(#pg)' : pal.paper}"/>`;
   const web = st.doc === 'website' || st.doc === 'ux';
   const frameOk = T.frame !== 'none' && !web && st.doc !== 'comic' && !(st.doc === 'ad' && st.sub === 'display');
-  const isBase = z => z.role === 'image' || z.role === 'sidebar' || z.role === 'footer';
-  const base = zones.filter(isBase), deco = zones.filter(z => !isBase(z) && z.under);
-  const over = zones.filter(z => !isBase(z) && !z.under);
-  for (const z of base) s += renderZone(z, zoneRect(z, D), ctx);
-  for (const z of deco) s += renderZone(z, zoneRect(z, D), ctx);
-  if (frameOk) s += drawFrame(T, D, pal, S);
-  for (const z of over) s += renderZone(z, zoneRect(z, D), ctx);
+  // Draw strictly in stacking order (zone number = layer; higher is in front). The page frame sits between layer groups 1 and 2.
+  let framed = !frameOk;
+  for (const z of zones) {
+    if (!framed && z.layerGroup === 2) { s += drawFrame(T, D, pal, S); framed = true; }
+    s += `<g id="layer-${z.stack}" data-role="${z.role}">` + renderZone(z, zoneRect(z, D), ctx) + '</g>';
+  }
+  if (!framed) s += drawFrame(T, D, pal, S);
   if (ctx.spread) s += `<path d="M${n2(D.W / 2)} ${n2(by)}V${n2(by + pageH)}" stroke="${GUIDE.fold}" stroke-opacity="0.5" stroke-width="${n2(S)}" stroke-dasharray="${n2(S * 6)} ${n2(S * 4)}"/>`;
   s += '</g>';
   // guides
@@ -2315,8 +2325,8 @@ function renderSVG(st, layout, opts) {
     zones.forEach((z, i) => {
       if (z.role === 'shape' && opts.measure) return;
       const r = zoneRect(z, D);
-      const t = `${i + 1} ${ROLE_LABEL[z.role] || z.role}`;
-      const t2 = opts.measure ? `${fv(r.w)} × ${fv(r.h)} at ${fv(r.x)}, ${fv(r.y)}` : '';
+      const t = `${z.stack} ${ROLE_LABEL[z.role] || z.role}`;
+      const t2 = opts.measure ? `${fv(r.w)} × ${fv(r.h)} at ${fv(r.x)}, ${fv(r.y)}${z.rot ? ' · ' + z.rot + '°' : ''}` : '';
       const ls2 = ls * 0.82;
       const tw = Math.max(lineWidth(t.split(' '), ls, FACES.sans, 700, 0), t2 ? lineWidth(t2.split(' '), ls2, FACES.sans, 400, 0) : 0) + ls;
       const th = t2 ? ls * 2.75 : ls * 1.5;
@@ -2327,7 +2337,21 @@ function renderSVG(st, layout, opts) {
       if (opts.measure) s += `<rect x="${n2(r.x)}" y="${n2(r.y)}" width="${n2(r.w)}" height="${n2(r.h)}" fill="none" stroke="#111" stroke-opacity="0.55" stroke-width="${n2(gw)}" stroke-dasharray="${n2(S * 3)} ${n2(S * 2)}"${z.rot ? ` transform="rotate(${n2(z.rot)} ${n2(r.x + r.w / 2)} ${n2(r.y + r.h / 2)})"` : ''}/>`;
     });
   }
-  if (opts.measure) s += measureLayer(st, D, { bx, by, vw, pageH, fs: fsM, gw, S });
+  if (opts.measure) {
+    const AN = analyzeZones(zones, D, T, layout.arch);
+    const flagged = new Set(AN.warnings.filter(w => w.severity === 'warning').flatMap(w => w.zones));
+    zones.forEach((z, i) => {
+      const g2 = AN.geo[i];
+      if (z.rot) s += `<rect x="${n2(g2.box.x)}" y="${n2(g2.box.y)}" width="${n2(g2.box.w)}" height="${n2(g2.box.h)}" fill="none" stroke="${GUIDE.bleed}" stroke-opacity="0.7" stroke-width="${n2(gw)}" stroke-dasharray="${n2(S * 1.5)} ${n2(S * 1.5)}"/>`;
+      if (flagged.has(z.stack)) {
+        s += `<polygon points="${g2.poly.map(([x, y]) => n2(x) + ',' + n2(y)).join(' ')}" fill="none" stroke="${GUIDE.bleed}" stroke-width="${n2(gw * 2.4)}"/>`;
+        const ls3 = clamp(Math.min(D.W, D.H) / 50, S * 5, S * 14);
+        const px = clamp(g2.box.x + g2.box.w, ls3, D.W - ls3), py = clamp(g2.box.y, ls3, D.H - ls3);
+        s += `<circle cx="${n2(px)}" cy="${n2(py)}" r="${n2(ls3 * 0.75)}" fill="${GUIDE.bleed}"/>` + svgText(px, py + ls3 * 0.36, '!', { face: FACES.sans, size: ls3, weight: 800, fill: '#ffffff', anchor: 'middle' });
+      }
+    });
+    s += measureLayer(st, D, { bx, by, vw, pageH, fs: fsM, gw, S });
+  }
   if (opts.annotate) {
     const y0 = pageH + by + M.b + fsA * 1.4;
     const lines = annotationLines(st, layout, T, D);
@@ -2415,6 +2439,105 @@ function annotationLines(st, layout, T, D) {
   ];
 }
 
+/* ---------- geometry checks ---------- */
+const TEXT_ROLES = new Set(['head', 'title', 'deck', 'body', 'caption', 'meta', 'cta', 'button', 'folio', 'masthead', 'coverline', 'list', 'legend', 'item', 'readout', 'alert', 'appbar', 'field', 'stat', 'logo']);
+function zoneGeom(z, D) {
+  const r = zoneRect(z, D);
+  let poly = [[r.x, r.y], [r.x + r.w, r.y], [r.x + r.w, r.y + r.h], [r.x, r.y + r.h]];
+  const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+  if (z.rot) {
+    const a = z.rot * Math.PI / 180, c = Math.cos(a), sn = Math.sin(a);
+    poly = poly.map(([x, y]) => [cx + (x - cx) * c - (y - cy) * sn, cy + (x - cx) * sn + (y - cy) * c]);
+  }
+  const xs = poly.map(p => p[0]), ys = poly.map(p => p[1]);
+  const box = { x: Math.min(...xs), y: Math.min(...ys) };
+  box.w = Math.max(...xs) - box.x; box.h = Math.max(...ys) - box.y;
+  return { r, poly, box, cx, cy };
+}
+function polyArea(P) { let a = 0; for (let i = 0; i < P.length; i++) { const [x1, y1] = P[i], [x2, y2] = P[(i + 1) % P.length]; a += x1 * y2 - x2 * y1; } return a / 2; }
+function clipPoly(subject, clip) {
+  // Sutherland–Hodgman for convex clip polygons; normalizes clip winding.
+  if (polyArea(clip) < 0) clip = clip.slice().reverse();
+  let out = subject;
+  for (let i = 0; i < clip.length && out.length; i++) {
+    const [ax, ay] = clip[i], [bx, by] = clip[(i + 1) % clip.length];
+    const inside = ([x, y]) => (bx - ax) * (y - ay) - (by - ay) * (x - ax) >= -1e-9;
+    const cut = ([px, py], [qx, qy]) => { const dx1 = qx - px, dy1 = qy - py, dx2 = bx - ax, dy2 = by - ay; const den = dx1 * dy2 - dy1 * dx2; if (Math.abs(den) < 1e-12) return [px, py]; const t = ((ax - px) * dy2 - (ay - py) * dx2) / den; return [px + t * dx1, py + t * dy1]; };
+    const inp = out; out = [];
+    for (let j = 0; j < inp.length; j++) {
+      const P = inp[j], Q = inp[(j + 1) % inp.length];
+      const pin = inside(P), qin = inside(Q);
+      if (pin) out.push(P);
+      if (pin !== qin) out.push(cut(P, Q));
+    }
+  }
+  return out;
+}
+function analyzeZones(zones, D, T, arch) {
+  const geo = zones.map(z => zoneGeom(z, D));
+  const warnings = [];
+  const SIDES = ['top', 'right', 'bottom', 'left'];
+  const eps = Math.min(D.W, D.H) * 0.002;
+  const fmt = v => v; // raw pt; converted by caller
+  zones.forEach((z, i) => {
+    const g = geo[i];
+    const b = g.box;
+    const over = { top: -b.y, right: b.x + b.w - D.W, bottom: b.y + b.h - D.H, left: -b.x };
+    g.clearTrim = { top: -over.top, right: -over.right, bottom: -over.bottom, left: -over.left };
+    g.clearSafe = { top: g.clearTrim.top - D.safe, right: g.clearTrim.right - D.safe, bottom: g.clearTrim.bottom - D.safe, left: g.clearTrim.left - D.safe };
+    if (z.edge) return; // status / tab bars are anchored to the screen edge by design
+    const intendedBleed = new Set((z.bleed || '').split('').map(c => ({ t: 'top', r: 'right', b: 'bottom', l: 'left' }[c])));
+    const isText = TEXT_ROLES.has(z.role);
+    const deliberate = !!(z.rot || z.dx || z.dy || z.grow);
+    for (const side of SIDES) {
+      const o = over[side];
+      if (o <= eps) continue;
+      if (intendedBleed.has(side)) {
+        if (o - D.bleed > eps) warnings.push({ severity: 'warning', type: 'bleed', zones: [z.stack], edges: [side], amount: o - D.bleed, message: `extends past the bleed edge on the ${side}; that part will be cut off` });
+        continue;
+      }
+      if (z.role === 'shape') { warnings.push({ severity: 'intentional', type: 'trim', zones: [z.stack], edges: [side], amount: o, message: `accent shape runs off the ${side} trim edge` }); continue; }
+      warnings.push({ severity: 'warning', type: 'trim', zones: [z.stack], edges: [side], amount: o, message: `crosses the trim on the ${side}${o > D.bleed ? ' and goes past the bleed' : ''}; that part will be cut off${deliberate ? ' (the zone is rotated or shifted off-grid)' : ''}` });
+    }
+    if (D.safe > 0) {
+      for (const side of SIDES) {
+        const inSafe = -g.clearSafe[side];
+        if (inSafe <= eps || over[side] > eps) continue; // already reported as a trim crossing
+        if (intendedBleed.has(side) || z.role === 'shape') continue;
+        if (isText) warnings.push({ severity: 'warning', type: 'safe', zones: [z.stack], edges: [side], amount: inSafe, message: `text crosses the safe area on the ${side}` });
+        else warnings.push({ severity: 'note', type: 'safe', zones: [z.stack], edges: [side], amount: inSafe, message: `${ROLE_LABEL[z.role] || z.role} crosses the safe area on the ${side}; keep key content inside it` });
+      }
+    }
+  });
+  // overlaps involving text
+  const collageArch = arch === 'collage' || arch === 'diagonal' || arch === 'hud';
+  for (let i = 0; i < zones.length; i++) for (let j = i + 1; j < zones.length; j++) {
+    const a = zones[i], b = zones[j];
+    const at = TEXT_ROLES.has(a.role), bt = TEXT_ROLES.has(b.role);
+    if (!at && !bt) continue;
+    const ga = geo[i], gb = geo[j];
+    if (ga.box.x > gb.box.x + gb.box.w || gb.box.x > ga.box.x + ga.box.w || ga.box.y > gb.box.y + gb.box.h || gb.box.y > ga.box.y + ga.box.h) continue;
+    const inter = clipPoly(ga.poly, gb.poly);
+    if (inter.length < 3) continue;
+    const area = Math.abs(polyArea(inter));
+    const small = Math.min(Math.abs(polyArea(ga.poly)), Math.abs(polyArea(gb.poly)));
+    if (area < small * 0.01 || area < eps * eps) continue;
+    const back = a.stack < b.stack ? a : b, front = back === a ? b : a;
+    const pct = Math.round(area / small * 100);
+    let reason = null;
+    const nonText = !at ? a : !bt ? b : null, text = at ? a : b;
+    if (nonText && nonText.role === 'shape') reason = 'accent shape set behind text';
+    else if (nonText && nonText.role === 'image' && (text.onImage || nonText.scene)) reason = nonText.scene ? 'interface overlaid on the camera view' : 'text set over the image';
+    else if (nonText && nonText.role === 'image' && nonText.bleed && nonText.bleed.length >= 3) reason = 'text set over a full-bleed image';
+    else if (collageArch) reason = arch === 'hud' ? 'interface elements layered by design' : 'collage layering by design';
+    else if (T.break || T.rot >= 0.5 || a.rot || b.rot || a.dx || b.dx || a.dy || b.dy || a.grow || b.grow) reason = 'deliberate grid break';
+    else if ((a.role === 'folio' || b.role === 'folio') || (a.role === 'footer' || b.role === 'footer')) reason = null;
+    const both = at && bt ? 'text overlaps text' : 'text overlaps ' + (ROLE_LABEL[(nonText || a).role] || '').toLowerCase();
+    warnings.push({ severity: reason ? 'intentional' : 'warning', type: 'overlap', zones: [back.stack, front.stack], front: front.stack, amount: pct, message: `${both}: ${ROLE_LABEL[back.role]} (layer ${back.stack}) under ${ROLE_LABEL[front.role]} (layer ${front.stack}), ${pct}% of the smaller zone${reason ? ' — ' + reason : '; check legibility'}` });
+  }
+  return { geo, warnings };
+}
+
 /* ---------- specification ---------- */
 const ROLE_LABEL = {
   head: 'Headline', title: 'Screen title', deck: 'Pull quote', kicker: 'Kicker', body: 'Body copy', caption: 'Caption', image: 'Image', nav: 'Navigation',
@@ -2425,11 +2548,13 @@ const ROLE_LABEL = {
 };
 const ROLE_RANK = { reticle: 1.5, readout: 6, compass: 6, gauge: 6, radar: 6, alert: 2.5, ladder: 7, masthead: 0, head: 1, title: 1, image: 2, panel: 2, deck: 3, coverline: 3, list: 3, body: 4, card: 4, stat: 4, chart: 4, item: 5, cta: 5, button: 5, caption: 6, meta: 7, logo: 7, nav: 0.5, appbar: 0.5 };
 
-function zoneSpecs(zones, D, u) {
+function zoneSpecs(zones, D, u, A2) {
   const f = v => roundU(v / UNIT_PT[u], u);
+  const fp = ([x, y]) => [f(x), f(y)];
   return zones.map((z, i) => {
     const r = zoneRect(z, D);
-    const o = { id: i + 1, role: z.role, label: ROLE_LABEL[z.role] || z.role };
+    const g = A2.geo[i];
+    const o = { id: z.stack, stack: z.stack, role: z.role, label: ROLE_LABEL[z.role] || z.role };
     const why = [];
     if (z.edge) { o.anchor = z.edge; why.push('anchored to the ' + z.edge + ' edge, outside the module grid'); }
     else {
@@ -2445,7 +2570,21 @@ function zoneSpecs(zones, D, u) {
     o.matchesGrid = !z.edge && why.length === 0;
     if (why.length) o.boundsNote = why.join('; ');
     if (z.bleed) o.bleeds = z.bleed.split('').map(c => ({ t: 'top', r: 'right', b: 'bottom', l: 'left' }[c]));
-    if (z.rot) { o.rotation = Math.round(z.rot * 10) / 10; o.rotationNote = 'rotated about the center of its bounds; bounds are before rotation'; }
+    if (z.rot) {
+      o.rotation = {
+        degrees: z.rot,
+        direction: z.rot > 0 ? 'clockwise' : 'counterclockwise',
+        origin: { description: 'center of the unrotated bounds', x: f(g.cx), y: f(g.cy) },
+        corners: { topLeft: fp(g.poly[0]), topRight: fp(g.poly[1]), bottomRight: fp(g.poly[2]), bottomLeft: fp(g.poly[3]) },
+        boundingBox: { x: f(g.box.x), y: f(g.box.y), width: f(g.box.w), height: f(g.box.h) }
+      };
+    }
+    const cl = (c) => ({ top: f(c.top), right: f(c.right), bottom: f(c.bottom), left: f(c.left) });
+    o.clearance = { basis: z.rot ? 'rotated bounding box' : 'bounds', trim: cl(g.clearTrim) };
+    if (D.safe > 0) o.clearance.safeArea = cl(g.clearSafe);
+    o.clearance.note = 'Distance inside each edge; negative means the object crosses it.';
+    const ws = A2.warnings.filter(w => w.zones.includes(z.stack));
+    if (ws.length) o.checks = ws.map(w => ({ severity: w.severity, type: w.type, message: w.message }));
     if (z.role === 'image' || z.role === 'card' || z.role === 'panel') {
       const fr = z.role === 'card' ? { w: r.w, h: z.tile ? r.h - (D.baseline / 1.35) * 2.6 : r.h * 0.55 } : { w: r.w, h: r.h };
       const fit = imageFit(fr.w, fr.h);
@@ -2476,6 +2615,7 @@ function directionText(st, layout, T, zones, D) {
 }
 function specObject(st, layout) {
   const { zones, T, D } = generateZones(st, layout);
+  const AN = analyzeZones(zones, D, T, layout.arch);
   const u = st.unit, f = v => roundU(v, u);
   const d = DOCS[st.doc];
   return {
@@ -2509,7 +2649,10 @@ function specObject(st, layout) {
     ],
     whitespace: { amount: st.white, distribution: st.dist },
     composition: { archetype: layout.arch, label: ARCH_SHORT[layout.arch], description: ARCH_INFO[layout.arch], alignment: T.align, hierarchy: hierarchyOf(zones) },
-    zones: zoneSpecs(zones, D, u),
+    layering: { rule: 'Zone numbers are the stacking order: 1 is the back-most layer and higher numbers are in front.', count: zones.length,
+      pageOrnament: (T.frame !== 'none' && !['website', 'ux', 'comic'].includes(st.doc) && !(st.doc === 'ad' && st.sub === 'display')) ? { type: T.frame, sitsAbove: zones.filter(z => z.layerGroup < 2).length, note: 'The page frame ornament is not a zone; it sits above that layer and below the next.' } : null },
+    zones: zoneSpecs(zones, D, u, AN),
+    checks: AN.warnings.map(w => ({ severity: w.severity, type: w.type, zones: w.zones, edges: w.edges || null, amount: w.type === 'overlap' ? w.amount + '%' : roundU(w.amount / UNIT_PT[u], u), message: w.message })),
     direction: directionText(st, layout, T, zones, D),
     seed: layout.seed
   };
@@ -2536,18 +2679,35 @@ function specReadable(spec) {
   L.push(`Composition  ${spec.composition.description}`);
   L.push(`Hierarchy    ${spec.composition.hierarchy.join(' → ')}`);
   L.push('');
+  L.push('Layer order  ' + spec.layering.rule + (spec.layering.pageOrnament ? ` The ${spec.layering.pageOrnament.type} page frame sits above layer ${spec.layering.pageOrnament.sitsAbove}.` : ''));
+  L.push('');
   L.push('Zones (grid area = module span; bounds = final object size)');
   for (const z of spec.zones) {
-    L.push(` ${String(z.id).padStart(2)}. ${z.label}${z.contains ? ' (' + z.contains.join(' + ') + ')' : ''}`);
+    L.push(` ${String(z.id).padStart(2)}. ${z.label}${z.contains && z.contains.length > 1 ? ' (' + z.contains.join(' + ') + ')' : ''} · layer ${z.stack} of ${spec.layering.count}`);
     const rng2 = (a, n) => n === 1 ? String(a) : a + '–' + (a + n - 1);
     if (z.grid) L.push(`     Grid area  ${z.grid.column.span === 1 ? 'col' : 'cols'} ${rng2(z.grid.column.start, z.grid.column.span)}, ${z.grid.row.span === 1 ? 'row' : 'rows'} ${rng2(z.grid.row.start, z.grid.row.span)} · x ${z.grid.x}, y ${z.grid.y}, ${z.grid.width} × ${z.grid.height}`);
     L.push(`     Bounds     x ${z.bounds.x}, y ${z.bounds.y}, ${z.bounds.width} × ${z.bounds.height}${z.matchesGrid ? ' (same as grid area)' : ''}`);
     if (z.boundsNote) L.push(`     Why        ${z.boundsNote}`);
-    if (z.rotation) L.push(`     Rotation   ${z.rotation}°, ${z.rotationNote}`);
+    if (z.rotation) {
+      const R2 = z.rotation, c = R2.corners;
+      L.push(`     Rotation   ${R2.degrees}° ${R2.direction} about the center of the bounds (${R2.origin.x}, ${R2.origin.y})`);
+      L.push(`     Corners    TL ${c.topLeft.join(', ')} · TR ${c.topRight.join(', ')} · BR ${c.bottomRight.join(', ')} · BL ${c.bottomLeft.join(', ')}`);
+      L.push(`     Rotated box x ${R2.boundingBox.x}, y ${R2.boundingBox.y}, ${R2.boundingBox.width} × ${R2.boundingBox.height}`);
+      const t = z.clearance.trim, sa = z.clearance.safeArea;
+      L.push(`     Clearance  trim T ${t.top} R ${t.right} B ${t.bottom} L ${t.left}${sa ? ` · safe area T ${sa.top} R ${sa.right} B ${sa.bottom} L ${sa.left}` : ''} (negative = crosses)`);
+    }
+    if (z.checks) for (const c of z.checks) L.push(`     ${c.severity === 'warning' ? 'WARNING' : c.severity === 'intentional' ? 'Intended' : 'Note'}${' '.repeat(Math.max(1, 11 - (c.severity === 'warning' ? 7 : c.severity === 'intentional' ? 8 : 4)))}${c.message}`);
     if (z.image) L.push(`     Image      frame ${z.image.frameRatio}; suggested source ${z.image.suggestedSource}; ${z.image.fit}; crop ${z.image.crop}${z.image.mask ? '; mask ' + z.image.mask : ''}; keep key content in the ${z.image.focalSafeArea}`);
     const ex = [z.overImage && 'set over the image', z.textOnArc && 'headline on an arc'].filter(Boolean);
     if (ex.length) L.push(`     Notes      ${ex.join('; ')}`);
   }
+  L.push('');
+  const W2 = spec.checks.filter(c => c.severity === 'warning'), I2 = spec.checks.filter(c => c.severity === 'intentional'), N2 = spec.checks.filter(c => c.severity === 'note');
+  L.push(`Checks       ${W2.length} to fix or confirm · ${I2.length} intentional · ${N2.length} notes`);
+  const zl = ids => ids.map(id => `${id} ${spec.zones.find(z => z.id === id).label}`).join(' / ');
+  for (const c of W2) L.push(`  ! ${zl(c.zones)}: ${c.message}${c.type !== 'overlap' ? ` (${c.amount} ${u})` : ''}`);
+  for (const c of I2) L.push(`  ~ ${zl(c.zones)}: ${c.message}${c.type !== 'overlap' ? ` (${c.amount} ${u})` : ''}`);
+  for (const c of N2) L.push(`  · ${zl(c.zones)}: ${c.message} (${c.amount} ${u})`);
   L.push('');
   L.push('Direction');
   L.push(spec.direction);
@@ -2579,15 +2739,21 @@ function guideScaffoldSVG(st, layout) {
   }
   if (D.safe > 0) s += `<g id="safe-area"><rect x="${f(D.safe)}" y="${f(D.safe)}" width="${f(D.W - 2 * D.safe)}" height="${f(D.H - 2 * D.safe)}" fill="none" stroke="${GUIDE.safe}" stroke-dasharray="${f(4)} ${f(3)}" stroke-width="${f(0.5)}"/></g>\n`;
   const { zones } = generateZones(st, layout);
-  s += `<g id="zones" fill="none" stroke="#111" stroke-width="${f(0.75)}" stroke-dasharray="${f(3)} ${f(2)}">`;
-  zones.forEach((z, i) => { const r = zoneRect(z, D); s += `<rect id="zone-${i + 1}-${z.role}" x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}"${z.rot ? ` transform="rotate(${Math.round(z.rot * 10) / 10} ${f(r.x + r.w / 2)} ${f(r.y + r.h / 2)})"` : ''}><title>${esc(ROLE_LABEL[z.role] || z.role)}</title></rect>`; });
+  const AN = analyzeZones(zones, D, buildTradition(layout.era, layout.style, layout.alt), layout.arch);
+  s += `<!-- zones are listed back to front: layer 1 is at the back, higher layers are in front -->\n<g id="zones" stroke="#111" stroke-width="${f(0.75)}">`;
+  zones.forEach((z, i) => { const r = zoneRect(z, D); const tint = TEXT_ROLES.has(z.role) ? '#FFFFFF' : z.role === 'image' ? '#D9D9D9' : '#EFEFEF'; s += `<rect id="layer-${z.stack}-${z.role}" x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" fill="${tint}" fill-opacity="0.72" stroke-dasharray="${f(3)} ${f(2)}"${z.rot ? ` transform="rotate(${z.rot} ${f(r.x + r.w / 2)} ${f(r.y + r.h / 2)})"` : ''}><title>Layer ${z.stack}: ${esc(ROLE_LABEL[z.role] || z.role)}${z.rot ? ', rotated ' + z.rot + '°' : ''}</title></rect>`; });
+  s += `</g>\n<g id="rotated-bounding-boxes" fill="none" stroke="#E5312B" stroke-width="${f(0.5)}" stroke-dasharray="${f(1.5)} ${f(1.5)}">`;
+  zones.forEach((z, i) => { if (!z.rot) return; const b = AN.geo[i].box; s += `<rect x="${f(b.x)}" y="${f(b.y)}" width="${f(b.w)}" height="${f(b.h)}"><title>Layer ${z.stack} rotated bounding box</title></rect>`; });
+  s += `</g>\n<g id="checks" fill="none" stroke="#E5312B" stroke-width="${f(1.5)}">`;
+  const flagged = new Set(AN.warnings.filter(w => w.severity === 'warning').flatMap(w => w.zones));
+  zones.forEach((z, i) => { if (!flagged.has(z.stack)) return; const P = AN.geo[i].poly; s += `<polygon points="${P.map(([x, y]) => f(x) + ',' + f(y)).join(' ')}"><title>Layer ${z.stack}: ${esc(AN.warnings.filter(w => w.severity === 'warning' && w.zones.includes(z.stack)).map(w => w.message).join('; '))}</title></polygon>`; });
   s += `</g>\n`;
   const fsz = Math.max(D.m.t, D.m.l) * 0.28;
   s += `<g id="labels" font-family="Helvetica, Arial, sans-serif" font-size="${f(Math.min(fsz, Math.min(D.W, D.H) / 50))}" fill="${GUIDE.column}">`;
   for (let i = 0; i < D.C; i++) s += `<text x="${f(D.m.l + i * (D.colW + D.g) + D.colW / 2)}" y="${f(D.m.t * 0.7)}" text-anchor="middle">${i + 1}</text>`;
   for (let i = 0; i < D.R; i++) s += `<text x="${f(D.m.l * 0.5)}" y="${f(D.m.t + i * (D.rowH + D.rg) + D.rowH / 2)}" text-anchor="middle">${i + 1}</text>`;
   s += `<text x="${f(D.W / 2)}" y="${f(D.H - D.m.b * 0.35)}" text-anchor="middle" fill="${GUIDE.margin}">margins T ${fmtU(st.m.t, u)} R ${fmtU(st.m.r, u)} B ${fmtU(st.m.b, u)} L ${fmtU(st.m.l, u)} · ${D.C} col × ${fmtU(D.colW * k, u)}, gutter ${fmtU(st.gutter, u)} · ${D.R} rows × ${fmtU(D.rowH * k, u)}, gap ${fmtU(st.rowGap, u)} (${u})</text>`;
-  zones.forEach((z, i) => { const r = zoneRect(z, D); s += `<text x="${f(r.x + D.m.l * 0.08)}" y="${f(r.y + Math.min(fsz, Math.min(D.W, D.H) / 50) * 1.2)}" fill="#111">${i + 1} ${esc(ROLE_LABEL[z.role] || z.role)} · ${fmtU(r.w * k, u)} × ${fmtU(r.h * k, u)}</text>`; });
+  zones.forEach((z, i) => { const r = zoneRect(z, D); s += `<text x="${f(r.x + D.m.l * 0.08)}" y="${f(r.y + Math.min(fsz, Math.min(D.W, D.H) / 50) * 1.2)}" fill="#111"${z.rot ? ` transform="rotate(${z.rot} ${f(r.x + r.w / 2)} ${f(r.y + r.h / 2)})"` : ''}>${z.stack} ${esc(ROLE_LABEL[z.role] || z.role)} · layer ${z.stack} · ${fmtU(r.w * k, u)} × ${fmtU(r.h * k, u)}${z.rot ? ' · ' + z.rot + '°' : ''}</text>`; });
   s += `</g>\n</svg>\n`;
   return s;
 }
@@ -2737,7 +2903,8 @@ if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf
   let pngTimer = null, pngBlob = null, pngUrl = null;
   function readout() {
     const T = buildTradition(layout.era, layout.style, layout.alt);
-    $('readout').innerHTML = `<b>${esc(T.label)}</b> <span class="dim">${esc(T.years)}${T.years ? ' · ' : ''}inspiration</span> — ${esc(ARCH_SHORT[layout.arch])}<br><span class="dim">${esc(T.note)}</span>`;
+    $('readout').innerHTML = `<b>${esc(T.label)}</b> <span class="dim">${esc(T.years)}${T.years ? ' · ' : ''}inspiration</span> — ${esc(ARCH_SHORT[layout.arch])} <button type="button" class="chk" id="chk" hidden title="Show checks in Handoff"></button><br><span class="dim">${esc(T.note)}</span>`;
+    $('chk').onclick = () => { $('tab-hand').click(); $('h-checks').scrollIntoView({ block: 'center' }); };
   }
   function refresh(full) {
     const svg = renderSVG(st, layout, { guides: view.guides || view.labels, baseline: view.baseline, labels: view.labels, measure: view.labels });
@@ -2756,6 +2923,11 @@ if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf
     $('h-dir').textContent = spec.direction;
     $('h-spec').textContent = view.specFmt === 'read' ? specTxt : specJson;
     $('h-save-spec').textContent = view.specFmt === 'read' ? 'Save .txt' : 'Save .json';
+    const w = spec.checks.filter(c => c.severity === 'warning').length, i = spec.checks.filter(c => c.severity === 'intentional').length;
+    $('h-checks').innerHTML = `<b>${w ? w + ' to fix or confirm' : 'No problems found'}</b> · ${i} intentional overlap${i === 1 ? '' : 's'}. Zone numbers are the layer order: 1 is at the back. Rotated zones list their corners, rotated box and clearance to the trim and safe area.`;
+    $('h-checks').classList.toggle('has-warn', w > 0);
+    $('chk').textContent = w ? `${w} to check` : '';
+    $('chk').hidden = !w;
   }
   function refSVG(px) { return renderSVG(st, layout, { clean: !view.annot, guides: view.annot, baseline: false, labels: view.annot, measure: view.annot, annotate: view.annot, px }); }
   async function makePng() {
