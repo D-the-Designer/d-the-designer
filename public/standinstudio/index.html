@@ -98,6 +98,8 @@ textarea{width:100%;min-height:130px;background:var(--raise);border:1px solid va
 .hud.r{left:auto;right:10px}
 .hint{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:11px;color:var(--muted);pointer-events:none}
 .recbadge{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;font-weight:600;font-size:12px;padding:4px 10px;border-radius:99px}
+.noclips .timeline{display:none!important}
+.noclips .stage{grid-row:2/4}
 .timeline{grid-column:2;grid-row:3;border-top:1px solid var(--rule);background:var(--panel);display:flex;align-items:center;gap:12px;padding-inline:14px;min-width:0}
 .howto{border:1px solid var(--blue-line);background:var(--blue-soft);border-radius:8px;padding:10px 12px;margin:4px 0 12px;font-size:12.5px;line-height:1.45}
 .howto ol{margin:6px 0 6px 18px;padding:0}.howto p{margin:0;color:var(--muted,#56616b)}
@@ -123,6 +125,7 @@ input[type=color]{width:100%;height:26px;border:1px solid var(--rule);border-rad
   .top{flex-wrap:wrap;padding-block:8px;gap:8px}
   .stage{grid-column:1;grid-row:2}
   .timeline{grid-column:1;grid-row:3}
+  .noclips .stage{grid-row:2/4}
   .right{grid-column:1;grid-row:4;border-left:0;border-top:1px solid var(--rule)}
   .left{grid-column:1;grid-row:5;border-right:0;border-top:1px solid var(--rule)}
   .pane{max-height:none;overflow:visible}
@@ -131,7 +134,7 @@ input[type=color]{width:100%;height:26px;border:1px solid var(--rule);border-rad
 @media (prefers-reduced-motion: reduce){#toast{transition:none}}
 </style>
 
-<div class="app" id="app">
+<div class="app noclips" id="app">
   <header class="top">
     <div class="brand"><span class="mark" aria-hidden="true"></span><b>Stand-In</b><span>Studio</span><a class="byline" href="https://d-the-designer.com/" target="_blank" rel="noopener">by D THE DESIGNER</a></div>
     <div class="seg" id="styleSeg" role="group" aria-label="Render style"></div>
@@ -2242,7 +2245,7 @@ const rightPane=document.getElementById('rightPane');
 let REFS={};
 function renderRight(){
   const tabs=document.getElementById('rightTabs'); tabs.innerHTML='';
-  const names=['Body','Pose','Camera','Look','Clip','Export']; if(S.rightTab==='Prop') names.splice(2,0,'Prop');
+  const names=['Body','Pose','Camera','Look'].concat(CLIPS_ON?['Clip']:[],['Export']); if(!CLIPS_ON&&S.rightTab==='Clip') S.rightTab='Body'; if(S.rightTab==='Prop') names.splice(2,0,'Prop');
   names.forEach(k=>tabs.appendChild(h('button',{role:'tab','aria-selected':String(S.rightTab===k),onclick:()=>{S.rightTab=k;renderRight();}},k)));
   rightPane.innerHTML=''; REFS={};
   ({Body:panelBody,Pose:panelPose,Prop:panelProp,Camera:panelCamera,Look:panelLook,Clip:panelClip,Export:panelExport})[S.rightTab]();
@@ -2437,6 +2440,7 @@ function panelClip(){
       S.clips.length?h('button',{class:'btn',onclick:()=>exportAllClips()},'Record all (.zip)'):null),
     h('p',{class:'note'},'A coverage set saves 8 clips of the current moment, each with a different camera move: orbits, push-ins, a crane and a dolly zoom. Handy for testing which move works.')));
 }
+const CLIPS_ON=false; /* Clips are off for this build; flip to true to bring back the timeline and Clip tab. */
 const COVERAGE=['orbitR','dollyIn','pushIn','craneUp','truckL','arc','vertigo','orbitL'];
 function clipSnapshot(){return {dur:clip.dur,fps:clip.fps,ease:clip.ease,move:clip.move,amt:clip.amt,shake:clip.shake,follow:clip.follow,
   start:clip.start?JSON.parse(JSON.stringify(clip.start)):null,end:clip.end?JSON.parse(JSON.stringify(clip.end)):null,motions:{...clip.motions}};}
@@ -2464,7 +2468,7 @@ function panelExport(){
     h('button',{class:'btn',onclick:()=>exportTurnaround()},'Turnaround (.zip)')),
     check('Figures only (hide sets and loose props)',S.exp.sheetFigOnly!==false,v=>S.exp.sheetFigOnly=v),
     h('p',{class:'note'},'The same pose from eight directions around the figure, plus a high angle and a low angle, on one labeled sheet in the current style.')));
-  rightPane.append(sec('Clip',h('div',{class:'btnrow'},
+  if(CLIPS_ON) rightPane.append(sec('Clip',h('div',{class:'btnrow'},
     h('button',{class:'btn rec',onclick:()=>exportVideo()},'Record video'),
     h('button',{class:'btn',onclick:()=>exportFrames()},'Frames (.zip)'),
     h('button',{class:'btn',onclick:()=>exportFirstLast()},'First + last frame')),
