@@ -359,7 +359,7 @@ const JLABEL={hips:'Hips',spine:'Waist',chest:'Chest',neck:'Neck',head:'Head',cl
 const BONE={hips:[0,1,0],spine:[0,1,0],chest:[0,1,0],neck:[0,1,0],head:[0,1,0],clavL:[1,0,0],clavR:[-1,0,0],ftL:[0,0,1],ftR:[0,0,1]};
 const boneDir=n=>BONE[n]||[0,-1,0];
 const PART_IDS=[
-  ['pelvis','hips','sph'],['glL','hips','sph'],['glR','hips','sph'],['abs','spine','cap'],['chest','chest','cap'],['bustL','chest','sph'],['bustR','chest','sph'],
+  ['pelvis','hips','sph'],['glL','hips','sph'],['glR','hips','sph'],['abs','spine','cap'],['chest','chest','cap'],['bustL','chest','sph'],['bustR','chest','sph'],['belly','spine','sph'],
   ['neck','neck','cap'],['head','head','sph'],['nose','head','sph'],
   ['deltL','uaL','sph'],['uaL','uaL','cap'],['faL','faL','cap'],['hdL','hdL','cap'],
   ['deltR','uaR','sph'],['uaR','uaR','cap'],['faR','faR','cap'],['hdR','hdR','cap'],
@@ -387,18 +387,22 @@ const BODY_PRESETS={
   Giant:{height:1,build:.75,muscle:.85,shoulders:1,bust:.15,waist:.6,hips:.6,glutes:.5,legs:.5,arms:.6,head:.35,scale:1.25},
   'Little person':{height:.4,build:.45,muscle:.3,shoulders:.5,bust:.3,waist:.5,hips:.55,glutes:.45,legs:0,arms:0,head:.85,scale:0.8},
   'Big-head stylized':{height:.4,build:.3,muscle:.2,shoulders:.4,bust:.15,waist:.4,hips:.45,glutes:.4,legs:.35,arms:.4,head:1,scale:0.9,headX:1.45},
+  Voluptuous:{height:.45,build:.55,muscle:.15,shoulders:.4,bust:1.7,waist:.35,hips:1.35,glutes:1.4,legs:.5,arms:.48,head:.5},
+  'Very large':{height:.45,build:1.9,muscle:.15,shoulders:.7,bust:1.2,waist:1.9,hips:1.5,glutes:1.3,legs:.4,arms:.45,head:.5},
   Teen:{kid:1,height:.5,build:.25,muscle:.2,shoulders:.4,bust:0,waist:.35,hips:.4,glutes:.3,legs:.6,arms:.55,head:.5,scale:0.9},
   Child:{kid:1,height:.5,build:.3,muscle:.1,shoulders:.3,bust:0,waist:.45,hips:.35,glutes:.2,legs:.5,arms:.5,head:.5,scale:0.68},
   Toddler:{kid:1,height:.5,build:.6,muscle:0,shoulders:.25,bust:0,waist:.6,hips:.4,glutes:.25,legs:.25,arms:.35,head:.6,scale:0.5},
   Infant:{kid:1,height:.5,build:.75,muscle:0,shoulders:.2,bust:0,waist:.7,hips:.4,glutes:.25,legs:.15,arms:.25,head:.8,scale:0.36}
 };
 const BODY_GROUPS=[['Common',['Average','Slender','Athletic','Muscular','Curvy','Heavyset','Stocky','Tall & lean','Petite']],
-  ['Distinct',['Elderly','Bodybuilder','Large','Pear','Apple','Lanky','Very tall','Giant','Little person','Big-head stylized']],
+  ['Distinct',['Elderly','Bodybuilder','Large','Very large','Voluptuous','Pear','Apple','Lanky','Very tall','Giant','Little person','Big-head stylized']],
   ['Young',['Teen','Child','Toddler','Infant']]];
 const isKid=b=>!!b.kid;
+const BODY_MAX={bust:2.5,build:2.2,waist:2.2,hips:1.8,glutes:2,muscle:1.4};
 const LIMB_OPTS={arm:[['full','Full'],['below','Below elbow'],['above','Above elbow']],leg:[['full','Full'],['prosBelow','Prosthetic, below knee'],['below','Below knee'],['above','Above knee']]};
 function layout(b){
   const sc=b.scale||1,kid=!!b.kid;
+  if(kid){b={...b};for(const k in BODY_MAX)if(b[k]>1)b[k]=1;}
   const H=(0.82+0.36*b.height)*sc,W=b.build,M=b.muscle,L=(0.9+0.2*b.legs)*(0.85+0.15*sc)*(b.legs<0.05&&sc<0.9?0.78:1),A=(0.9+0.2*b.arms)*(b.arms<0.05&&sc<0.9?0.8:1),hs=(0.9+0.2*b.head)*(1+Math.max(0,1-sc)*1.2)*(b.headX||1);
   const d={H,hs};
   d.thigh=0.42*H*L;d.shin=0.41*H*L;d.ankle=0.065*H;d.hipsY=d.thigh+d.shin+d.ankle+0.05*H;
@@ -422,8 +426,11 @@ function layout(b){
   P.glR={p:[-d.hipHalf*0.45,-0.055*H,-d.absD*0.3],s:[glR*2,glR*2,glR*1.8]};
   P.abs={p:[0,0.1*H,0],s:cs(d.waistW,0.26*H,d.absD)};
   P.chest={p:[0,0.15*H,-0.005*H],s:cs(d.chestW,0.33*H,d.chestD)};
-  P.bustL={p:[0.062*H,0.13*H,d.chestD*0.34],s:[bR*2,bR*1.9,bR*1.8],hide:kid||b.bust<0.06};
-  P.bustR={p:[-0.062*H,0.13*H,d.chestD*0.34],s:[bR*2,bR*1.9,bR*1.8],hide:kid||b.bust<0.06};
+  const bx_=Math.max(0.062*H,bR*0.82), by_=0.13*H-Math.max(0,bR-0.08*H)*0.55, bz_=d.chestD*0.34+Math.max(0,bR-0.08*H)*0.35;
+  P.bustL={p:[bx_,by_,bz_],s:[bR*2,bR*1.9,bR*1.8],hide:kid||b.bust<0.06};
+  P.bustR={p:[-bx_,by_,bz_],s:[bR*2,bR*1.9,bR*1.8],hide:kid||b.bust<0.06};
+  const fat=Math.max(0,W-0.55)+Math.max(0,b.waist-0.8)*0.6, beR=(0.07+0.11*fat)*H;
+  P.belly={p:[0,0.06*H-fat*0.02*H,d.absD*0.3+beR*0.3],s:[beR*2.2,beR*1.9,beR*1.9],hide:fat<0.08};
   P.neck={p:[0,0.05*H,0],s:cs(d.nw,0.15*H,d.nw*0.95)};
   P.head={p:[0,0.11*H,0.01*H],s:[0.175*H*hs,0.235*H*hs,0.205*H*hs]};
   P.nose={p:[0,0.095*H*hs,0.1*H*hs+0.004],s:[0.028*H,0.045*H,0.04*H]};
@@ -1514,7 +1521,7 @@ function panelBody(){
   const limbSec=sec('Limb differences',limbSel('armL','arm','Left arm'),limbSel('armR','arm','Right arm'),limbSel('legL','leg','Left leg'),limbSel('legR','leg','Right leg'));
   const ht=h('p',{class:'note',id:'htNote'});
   const updH=()=>{const cmv=Math.round(f.height()*100);const inch=f.height()/0.0254;ht.textContent=`Standing height ${cmv} cm · ${Math.floor(inch/12)}′${Math.round(inch%12)}″`;};
-  const rows=BODY_KEYS.filter(([k])=>!(isKid(f.body)&&(k==='bust'||k==='glutes'))).map(([k,l])=>slider(l,0,1,0.01,f.body[k],pct,v=>{f.body[k]=v;f.bodyName='Custom';f.applyBody();updH();}));
+  const rows=BODY_KEYS.filter(([k])=>!(isKid(f.body)&&(k==='bust'||k==='glutes'))).map(([k,l])=>slider(l,0,isKid(f.body)?1:(BODY_MAX[k]||1),0.01,f.body[k],pct,v=>{f.body[k]=v;f.bodyName='Custom';f.applyBody();updH();}));
   updH();
   rightPane.append(sec('Proportions',ht,...rows,h('div',{class:'btnrow'},h('button',{class:'btn small',onclick:()=>{BODY_KEYS.forEach(([k])=>f.body[k]=clamp(0.5+(Math.random()-0.5)*0.9,0,1));f.bodyName='Custom';f.applyBody();renderRight();}},'Randomize'))));
   rightPane.append(limbSec);
