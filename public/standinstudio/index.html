@@ -1,0 +1,1847 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Stand-In Studio: a low-poly posing studio for AI previs by D the Designer. Dial body types, pose figures with props, frame shots, animate camera moves, and export drawn-style stills and clips.">
+<style>:root{color-scheme:light}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Stand-In Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=Martian+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: storyboard drafting table — library left, paper frame center, inspector right, timeline under the frame. Non-photo blue marks selection, red pencil marks keys and recording. */
+:root{
+  --bg:#E8ECEF; --panel:#F5F7F8; --raise:#FFFFFF; --ink:#151B21; --muted:#5A6773; --rule:#D1D8DE;
+  --blue:#2A76B5; --blue-soft:#D7EAF6; --blue-line:#9BCBE8; --red:#C2413A; --stage:#D9DFE4; --shadow:rgba(20,30,40,.12);
+  --font-ui:"Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-num:"Martian Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1317; --panel:#151A1F; --raise:#1C2329; --ink:#E3E8EC; --muted:#8D9AA5; --rule:#27303A;
+  --blue:#74B9EC; --blue-soft:#1B3345; --blue-line:#3B6C90; --red:#EE6B5F; --stage:#0B0E11; --shadow:rgba(0,0,0,.4); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1317; --panel:#151A1F; --raise:#1C2329; --ink:#E3E8EC; --muted:#8D9AA5; --rule:#27303A;
+  --blue:#74B9EC; --blue-soft:#1B3345; --blue-line:#3B6C90; --red:#EE6B5F; --stage:#0B0E11; --shadow:rgba(0,0,0,.4); color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:13px;overflow:hidden}
+*{box-sizing:border-box}
+button,select,input{font:inherit;color:inherit}
+.app{height:100%;display:grid;grid-template-columns:268px minmax(0,1fr) 316px;grid-template-rows:50px minmax(0,1fr) 62px;}
+.top{grid-column:1/-1;display:flex;align-items:center;gap:16px;padding-inline:16px;border-bottom:1px solid var(--rule);background:var(--panel)}
+.brand{display:flex;align-items:baseline;gap:6px;white-space:nowrap}
+.brand b{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.brand span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.14em;font-weight:600}
+.mark{width:14px;height:14px;border:2px solid var(--ink);border-radius:50%;position:relative;top:2px;align-self:center}
+.mark::after{content:"";position:absolute;inset:3px;background:var(--blue);border-radius:50%}
+.seg{display:flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden;background:var(--raise)}
+.seg button{border:0;background:none;padding:6px 11px;cursor:pointer;color:var(--muted);font-weight:500;border-right:1px solid var(--rule)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--blue-soft);color:var(--ink)}
+.top .spacer{flex:1}
+.lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+select{background:var(--raise);border:1px solid var(--rule);border-radius:7px;padding:5px 8px}
+.btn{border:1px solid var(--rule);background:var(--raise);border-radius:7px;padding:6px 10px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--blue-line)}
+.btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.btn.rec{color:var(--red);border-color:color-mix(in srgb,var(--red) 40%,var(--rule))}
+.btn.small{padding:3px 8px;font-size:12px}
+.btn:focus-visible,.seg button:focus-visible,.chip:focus-visible,.card:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+aside{background:var(--panel);min-height:0;display:flex;flex-direction:column}
+.left{grid-row:2/4;border-right:1px solid var(--rule)}
+.right{grid-row:2/4;grid-column:3;border-left:1px solid var(--rule)}
+.tabs{display:flex;border-bottom:1px solid var(--rule);padding-inline:8px;gap:2px;flex-wrap:wrap}
+.tabs button{border:0;background:none;padding:10px 8px 9px;cursor:pointer;color:var(--muted);font-weight:600;font-size:12px;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--blue)}
+.pane{flex:1;min-height:0;overflow-y:auto;padding:12px 14px 18px;display:flex;flex-direction:column;gap:14px}
+.sec{display:flex;flex-direction:column;gap:8px}
+.sec h3{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{border:1px solid var(--rule);background:var(--raise);border-radius:99px;padding:3px 9px;font-size:12px;cursor:pointer;color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--blue-soft);border-color:var(--blue-line)}
+.row{display:grid;grid-template-columns:86px minmax(0,1fr) 54px;align-items:center;gap:8px}
+.row label{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row output{font-family:var(--font-num);font-size:10.5px;text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--blue);height:18px;margin:0}
+.check{display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer}
+.check input{accent-color:var(--blue)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.card{border:1px solid var(--rule);background:var(--raise);border-radius:8px;padding:0;cursor:pointer;display:flex;flex-direction:column;overflow:hidden;text-align:left}
+.card:hover{border-color:var(--blue-line)}
+.card[aria-pressed="true"]{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+.card .th{aspect-ratio:132/168;background:#fff;display:block;width:100%;max-width:100%;object-fit:cover}
+.card .th.ph{background:repeating-linear-gradient(135deg,#f2f4f5 0 6px,#fff 6px 12px)}
+.card .nm{padding:5px 7px 6px;font-size:11.5px;line-height:1.25;font-weight:500;min-height:2.6em}
+.card .tg{display:flex;gap:4px;padding:0 6px 6px;flex-wrap:wrap}
+.card .tg button{font-size:10.5px;border:1px solid var(--rule);border-radius:5px;background:var(--panel);padding:1px 6px;cursor:pointer}
+.search{width:100%;background:var(--raise);border:1px solid var(--rule);border-radius:7px;padding:6px 9px}
+.list{display:flex;flex-direction:column;gap:4px}
+.item{display:flex;align-items:center;gap:8px;border:1px solid var(--rule);background:var(--raise);border-radius:7px;padding:6px 8px;cursor:pointer}
+.item[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-soft)}
+.item .meta{color:var(--muted);font-size:11px;margin-left:auto}
+.note{font-size:12px;color:var(--muted);line-height:1.45;margin:0}
+.ikrow{display:flex;align-items:center;gap:8px;font-size:12px;border:1px dashed var(--blue-line);border-radius:7px;padding:6px 8px}
+.ikrow span{flex:1}
+.btnrow{display:flex;flex-wrap:wrap;gap:6px}
+.jgroup{display:grid;grid-template-columns:62px minmax(0,1fr);gap:6px;align-items:start}
+.jgroup .lbl{padding-top:4px;font-size:10px}
+textarea{width:100%;min-height:130px;background:var(--raise);border:1px solid var(--rule);border-radius:7px;padding:8px;font-family:var(--font-num);font-size:11px;line-height:1.5;resize:vertical;color:var(--ink)}
+.stage{grid-column:2;grid-row:2;position:relative;background:var(--stage);display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:hidden}
+.frame{position:relative;box-shadow:0 1px 0 var(--rule),0 10px 30px var(--shadow);background:#fff}
+.frame canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#gl{touch-action:none;cursor:grab}
+#ov{pointer-events:none}
+.hud{position:absolute;left:10px;top:8px;font-family:var(--font-num);font-size:10.5px;color:#2A76B5;pointer-events:none;letter-spacing:.02em;background:rgba(255,255,255,.75);padding:2px 6px;border-radius:4px}
+.hud.r{left:auto;right:10px}
+.hint{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:11px;color:var(--muted);pointer-events:none}
+.recbadge{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;font-weight:600;font-size:12px;padding:4px 10px;border-radius:99px}
+.timeline{grid-column:2;grid-row:3;border-top:1px solid var(--rule);background:var(--panel);display:flex;align-items:center;gap:12px;padding-inline:14px;min-width:0}
+.tc{font-family:var(--font-num);font-size:12px;font-variant-numeric:tabular-nums;min-width:96px}
+.scrub{flex:1;position:relative;min-width:60px}
+.keys{position:absolute;inset:0;pointer-events:none}
+.key{position:absolute;top:50%;width:10px;height:10px;background:var(--red);transform:translate(-50%,-50%) rotate(45deg);border:2px solid var(--panel)}
+.play{width:36px;height:36px;border-radius:50%;border:1px solid var(--rule);background:var(--raise);cursor:pointer;display:grid;place-items:center}
+.play svg{width:14px;height:14px;fill:var(--ink)}
+#toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:8px;font-size:12.5px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9;max-width:calc(100% - 32px)}
+#toast.on{opacity:1}
+.colorrow{display:grid;grid-template-columns:86px 1fr;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+input[type=color]{width:100%;height:26px;border:1px solid var(--rule);border-radius:6px;background:var(--raise);padding:2px}
+.kbd{font-family:var(--font-num);font-size:10px;border:1px solid var(--rule);border-radius:4px;padding:0 4px;background:var(--raise)}
+@media (max-width: 900px){
+  body{overflow:auto}
+  .app{height:auto;grid-template-columns:minmax(0,1fr);grid-template-rows:auto 62vh 62px auto auto;padding-inline:0}
+  .top{flex-wrap:wrap;padding-block:8px;gap:8px}
+  .stage{grid-column:1;grid-row:2}
+  .timeline{grid-column:1;grid-row:3}
+  .right{grid-column:1;grid-row:4;border-left:0;border-top:1px solid var(--rule)}
+  .left{grid-column:1;grid-row:5;border-right:0;border-top:1px solid var(--rule)}
+  .pane{max-height:none;overflow:visible}
+  .seg{overflow-x:auto;max-width:100%}
+}
+@media (prefers-reduced-motion: reduce){#toast{transition:none}}
+</style>
+
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand"><span class="mark" aria-hidden="true"></span><b>Stand-In</b><span>Studio</span></div>
+    <div class="seg" id="styleSeg" role="group" aria-label="Render style"></div>
+    <div class="spacer"></div>
+    <label class="lbl" for="aspectSel">Frame</label>
+    <select id="aspectSel"></select>
+    <button class="btn" id="addFigTop">Add figure</button>
+    <button class="btn primary" id="quickPng">Save still</button>
+  </header>
+
+  <aside class="left">
+    <div class="tabs" role="tablist" id="leftTabs"></div>
+    <div class="pane" id="leftPane"></div>
+  </aside>
+
+  <main class="stage" id="stage">
+    <div class="frame" id="frame">
+      <canvas id="gl"></canvas>
+      <canvas id="ov"></canvas>
+      <div class="hud" id="hudL"></div>
+      <div class="hud r" id="hudR"></div>
+    </div>
+    <div class="hint" id="hint">Drag a body part to pose it · <span class="kbd">Shift</span> twist · <span class="kbd">Alt</span> move figure · drag empty space to orbit, right-drag to pan, scroll to dolly</div>
+  </main>
+
+  <div class="timeline">
+    <button class="play" id="playBtn" aria-label="Play clip"><svg viewBox="0 0 14 14" id="playIcon"><path d="M3 1.5v11l9-5.5z"/></svg></button>
+    <div class="tc" id="tc">00:00:00:00</div>
+    <div class="scrub"><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Clip time"><div class="keys" id="keys"></div></div>
+    <button class="btn small" id="tlStart">Set start</button>
+    <button class="btn small" id="tlEnd">Set end</button>
+  </div>
+
+  <aside class="right">
+    <div class="tabs" role="tablist" id="rightTabs"></div>
+    <div class="pane" id="rightPane"></div>
+  </aside>
+</div>
+<div id="toast" role="status"></div>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(function(){
+'use strict';
+const V3=THREE.Vector3, Q=THREE.Quaternion, D2R=Math.PI/180;
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+let UID=0; const uid=()=>++UID;
+const _v1=new V3(),_v2=new V3(),_v3=new V3(),_v4=new V3(),_v5=new V3(),_v6=new V3(),_v7=new V3(),_q1=new Q(),_q2=new Q();
+const DOWN=new V3(0,-1,0);
+
+/* ---------------- renderer ---------------- */
+const canvas=document.getElementById('gl'), ov=document.getElementById('ov'), octx=ov.getContext('2d');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:true,preserveDrawingBuffer:true});
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFShadowMap;
+renderer.autoClear=false;
+
+function makeGrad(steps){
+  const data=steps===3?new Uint8Array([95,175,255]):new Uint8Array([105,255]);
+  const t=new THREE.DataTexture(data,data.length,1,THREE.RedFormat);
+  t.minFilter=t.magFilter=THREE.NearestFilter; t.generateMipmaps=false; t.needsUpdate=true; return t;
+}
+let GRAD=makeGrad(2);
+const MAT={
+  body:new THREE.MeshToonMaterial({color:0xd6d6d2,gradientMap:GRAD}),
+  prop:new THREE.MeshToonMaterial({color:0xc8ccd0,gradientMap:GRAD}),
+  wpn:new THREE.MeshToonMaterial({color:0x8f979e,gradientMap:GRAD}),
+  furn:new THREE.MeshToonMaterial({color:0xd9d3c8,gradientMap:GRAD}),
+  pet:new THREE.MeshToonMaterial({color:0xcdc4b8,gradientMap:GRAD}),
+  normal:new THREE.MeshNormalMaterial(),
+  floor:new THREE.ShadowMaterial({color:0x000000,opacity:0.2})
+};
+function setToneSteps(n){ GRAD=makeGrad(n); ['body','prop','wpn','furn','pet'].forEach(k=>{MAT[k].gradientMap=GRAD;MAT[k].needsUpdate=true;});
+  if(typeof S!=='undefined') S.figures.forEach(f=>{f.mat.gradientMap=GRAD;f.mat.needsUpdate=true;}); }
+MAT.prop.userData.flatColor='#eceff1'; MAT.wpn.userData.flatColor='#cdd3d8'; MAT.furn.userData.flatColor='#f1ece4'; MAT.pet.userData.flatColor='#efe7dc';
+const FIG_TINTS=['#cfe2f4','#f6d5cc','#d4ecd6','#ece0c2','#e1d6f1','#f2d2e3','#d0eaea','#e6e6cf'];
+const FLAT=new Map();
+function flatOf(m){let f=FLAT.get(m);if(!f){f=new THREE.MeshBasicMaterial({color:m.userData.flatColor||m.color});FLAT.set(m,f);}return f;}
+function swapFlat(scn,on){scn.traverse(o=>{if(!o.isMesh)return;if(on){if(o.material&&o.material.isMeshToonMaterial){o.userData._m=o.material;o.material=flatOf(o.material);}}else if(o.userData._m){o.material=o.userData._m;o.userData._m=null;}});}
+
+const CAP=new THREE.CapsuleGeometry(0.5,1,3,10), SPH=new THREE.SphereGeometry(0.5,12,9), BOX=new THREE.BoxGeometry(1,1,1);
+const GEO_CACHE={};
+function cylGeo(rt,rb,h,seg){const k=[rt,rb,h,seg].join('|');return GEO_CACHE[k]||(GEO_CACHE[k]=new THREE.CylinderGeometry(rt,rb,h,seg));}
+
+/* scene */
+const scene=new THREE.Scene();
+const figRoot=new THREE.Group(), propRoot=new THREE.Group(); scene.add(figRoot,propRoot);
+const amb=new THREE.AmbientLight(0xffffff,0.36); scene.add(amb);
+const sun=new THREE.DirectionalLight(0xffffff,0.86); sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048); sun.shadow.bias=-0.0006; sun.shadow.normalBias=0.025;
+scene.add(sun,sun.target);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(60,60),MAT.floor); floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; floor.layers.set(1); scene.add(floor);
+
+const pcam=new THREE.PerspectiveCamera(40,16/9,0.05,200);
+const ocam=new THREE.OrthographicCamera(-1,1,1,-1,0.05,200);
+const activeCam=()=>S.ortho?ocam:pcam;
+
+/* composite */
+const COMP=new THREE.ShaderMaterial({
+  uniforms:{tColor:{value:null},tNormal:{value:null},tDepth:{value:null},res:{value:new THREE.Vector2(1,1)},thick:{value:1.5},mode:{value:0},
+    nearZ:{value:.05},farZ:{value:200},ortho:{value:0},paper:{value:new THREE.Color(1,1,1)},ink:{value:new THREE.Color(.08,.09,.1)},gridCol:{value:new THREE.Color(.45,.72,.9)},
+    bgAlpha:{value:1},dNear:{value:1},dFar:{value:10},showGrid:{value:0},invProj:{value:new THREE.Matrix4()},camWorld:{value:new THREE.Matrix4()},viewM:{value:new THREE.Matrix4()},
+    nSens:{value:.5},dSens:{value:.12},lineOn:{value:1},dotScale:{value:7},useColor:{value:1}},
+  vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}`,
+  fragmentShader:`
+varying vec2 vUv;
+uniform sampler2D tColor;uniform sampler2D tNormal;uniform sampler2D tDepth;
+uniform vec2 res;uniform float thick;uniform float mode;uniform float nearZ;uniform float farZ;uniform float ortho;
+uniform vec3 paper;uniform vec3 ink;uniform vec3 gridCol;uniform float bgAlpha;uniform float dNear;uniform float dFar;
+uniform float showGrid;uniform mat4 invProj;uniform mat4 camWorld;uniform mat4 viewM;uniform float nSens;uniform float dSens;
+uniform float lineOn;uniform float dotScale;uniform float useColor;
+float linZ(float d){return ortho>.5?nearZ+d*(farZ-nearZ):(nearZ*farZ)/(farZ-d*(farZ-nearZ));}
+void main(){
+  vec2 uv=vUv;vec2 px=vec2(thick)/res;
+  vec4 n0=texture2D(tNormal,uv);
+  vec2 oA=vec2(px.x,px.y),oC=vec2(px.x,-px.y);
+  vec4 nA=texture2D(tNormal,uv+oA),nB=texture2D(tNormal,uv-oA),nC=texture2D(tNormal,uv+oC),nD=texture2D(tNormal,uv-oC);
+  float zA=linZ(texture2D(tDepth,uv+oA).x),zB=linZ(texture2D(tDepth,uv-oA).x),zC=linZ(texture2D(tDepth,uv+oC).x),zD=linZ(texture2D(tDepth,uv-oC).x);
+  float both=step(.5,nA.a)*step(.5,nB.a)*step(.5,nC.a)*step(.5,nD.a);
+  float cE=max(abs(nA.a-nB.a),abs(nC.a-nD.a));
+  float nE=length(nA.rgb-nB.rgb)+length(nC.rgb-nD.rgb);
+  float zm=max(min(min(zA,zB),min(zC,zD)),1e-4);
+  float dE=(abs(zA-zB)+abs(zC-zD))/zm;
+  float e=cE;
+  e=max(e,both*smoothstep(nSens,nSens+.3,nE));
+  e=max(e,both*smoothstep(dSens,dSens*1.8,dE));
+  e=clamp(e,0.,1.)*lineOn;
+  float cov=n0.a;
+  vec4 cc=texture2D(tColor,uv)*useColor;
+  vec3 bg=mode>3.5?vec3(0.):paper;
+  vec3 P=bg*bgAlpha;float A=bgAlpha;
+  if(mode<.5){P=cc.rgb+P*(1.-cc.a);A=cc.a+A*(1.-cc.a);}
+  else if(mode<1.5){
+    float lum=dot(cc.rgb/max(cc.a,1e-3),vec3(.299,.587,.114));
+    float sh=cov>.5?smoothstep(.88,.64,lum):clamp(cc.a*2.4,0.,1.);
+    vec2 p=gl_FragCoord.xy/dotScale;p=mat2(.7071,-.7071,.7071,.7071)*p;vec2 f=fract(p)-.5;float rad=sqrt(sh)*.62;
+    float dt=(1.-smoothstep(rad-.09,rad+.09,length(f)))*step(.03,sh);
+    P=paper*cov+P*(1.-cov);A=cov+A*(1.-cov);
+    P=ink*dt+P*(1.-dt);A=dt+A*(1.-dt);
+  }
+  else if(mode<2.5){P=paper*cov+P*(1.-cov);A=cov+A*(1.-cov);}
+  else if(mode<3.5){P=ink*cov+P*(1.-cov);A=cov+A*(1.-cov);e=0.;}
+  else if(mode<4.5){float z=linZ(n0.a>.5?texture2D(tDepth,uv).x:1.);float g=1.-clamp((z-dNear)/max(dFar-dNear,1e-3),0.,1.);g=.08+.92*g;P=vec3(g)*cov+P*(1.-cov);A=cov+A*(1.-cov);e=0.;}
+  else{e=0.;}
+  vec2 ndc=uv*2.-1.;
+  vec4 a=invProj*vec4(ndc,-1.,1.);a/=a.w;vec4 b=invProj*vec4(ndc,1.,1.);b/=b.w;
+  vec3 o=(camWorld*vec4(a.xyz,1.)).xyz;vec3 dir=normalize((camWorld*vec4(b.xyz,1.)).xyz-o);
+  float hitOk=step(dir.y,-1e-4);
+  float t=hitOk>.5?-o.y/dir.y:0.;
+  vec3 hit=o+dir*t;
+  vec2 g=hit.xz;vec2 w=fwidth(g);vec2 gg=abs(fract(g-.5)-.5)/max(w,vec2(1e-4));float ln=1.-min(min(gg.x,gg.y),1.);
+  vec2 g2=abs(g)/max(w,vec2(1e-4));float ax=1.-min(min(g2.x,g2.y),1.);
+  if(showGrid>.5&&hitOk>.5){
+    float vz=-(viewM*vec4(hit,1.)).z;
+    float zc=linZ(texture2D(tDepth,uv).x);
+    if(cov<.5||vz<zc-.02){
+      float fade=1.-smoothstep(5.,16.,length(hit.xz-o.xz));
+      float ga=max(ln*.3,ax*.6)*fade;
+      P=gridCol*ga+P*(1.-ga);A=ga+A*(1.-ga);
+    }
+  }
+  P=ink*e+P*(1.-e);A=e+A*(1.-e);
+  gl_FragColor=vec4(A>0.?P/A:vec3(0.),A);
+}`,
+  depthTest:false,depthWrite:false
+});
+COMP.extensions={derivatives:true};
+const quadScene=new THREE.Scene(), quadCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+{const qm=new THREE.Mesh(new THREE.PlaneGeometry(2,2),COMP);qm.frustumCulled=false;quadScene.add(qm);}
+
+const TG={};
+function makeTargets(w,h){
+  const n=new THREE.WebGLRenderTarget(w,h,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter});
+  n.depthTexture=new THREE.DepthTexture(w,h); n.depthTexture.type=THREE.UnsignedIntType;
+  const c=new THREE.WebGLRenderTarget(w,h,{samples:4});
+  const o=new THREE.WebGLRenderTarget(w,h);
+  return {w,h,n,c,o};
+}
+function getTargets(key,w,h){
+  let t=TG[key];
+  if(t&&(t.w!==w||t.h!==h)){t.n.depthTexture.dispose();t.n.dispose();t.c.dispose();t.o.dispose();t=null;}
+  if(!t) t=TG[key]=makeTargets(w,h);
+  return t;
+}
+const MODES={clean:0,toon:0,manga:1,lines:2,silhouette:3,depth:4,pose:5};
+function depthRange(cam,objs){
+  const box=new THREE.Box3(); objs.forEach(o=>{if(o.visible)box.expandByObject(o)});
+  if(box.isEmpty()) return [1,10];
+  const corners=[];for(let i=0;i<8;i++)corners.push(new V3(i&1?box.max.x:box.min.x,i&2?box.max.y:box.min.y,i&4?box.max.z:box.min.z));
+  cam.updateMatrixWorld();const inv=cam.matrixWorldInverse;let mn=1e9,mx=-1e9;
+  corners.forEach(c=>{const z=-c.applyMatrix4(inv).z;mn=Math.min(mn,z);mx=Math.max(mx,z);});
+  return [Math.max(cam.near,mn),Math.max(mn+0.5,mx)];
+}
+function renderPass(scn,cam,w,h,key,style,opt){
+  opt=opt||{};
+  const T=getTargets(key,w,h);
+  renderer.setClearColor(0x000000,0);
+  cam.updateMatrixWorld(); cam.layers.set(0);
+  scn.overrideMaterial=MAT.normal; renderer.setRenderTarget(T.n); renderer.clear(); renderer.render(scn,cam); scn.overrideMaterial=null;
+  const useColor=(style==='toon'||style==='manga'||style==='clean');
+  if(useColor){cam.layers.enable(1); renderer.setRenderTarget(T.c); renderer.clear(); if(style==='clean')swapFlat(scn,true); renderer.render(scn,cam); if(style==='clean')swapFlat(scn,false); cam.layers.set(0);}
+  const u=COMP.uniforms, L=S.look;
+  u.tColor.value=T.c.texture; u.tNormal.value=T.n.texture; u.tDepth.value=T.n.depthTexture;
+  u.res.value.set(w,h); u.thick.value=opt.thick||Math.max(0.5,L.line*h/1080); u.mode.value=MODES[style];
+  u.nearZ.value=cam.near; u.farZ.value=cam.far; u.ortho.value=cam.isOrthographicCamera?1:0;
+  u.paper.value.set(L.paper); u.ink.value.set(L.ink);
+  u.bgAlpha.value=opt.transparent?0:1; u.showGrid.value=opt.grid?1:0;
+  u.invProj.value.copy(cam.projectionMatrixInverse); u.camWorld.value.copy(cam.matrixWorld); u.viewM.value.copy(cam.matrixWorldInverse);
+  u.nSens.value=0.95-L.detail*0.7; u.dSens.value=0.26-L.detail*0.2; u.lineOn.value=1; u.dotScale.value=Math.max(3,L.dot*h/1080); u.useColor.value=useColor?1:0;
+  if(style==='depth'){const r=depthRange(cam,opt.depthObjs||[figRoot,propRoot]);u.dNear.value=r[0];u.dFar.value=r[1];}
+  renderer.setRenderTarget(opt.toScreen?null:T.o);
+  if(opt.toScreen) renderer.clear();
+  renderer.render(quadScene,quadCam);
+  renderer.setRenderTarget(null);
+  return T;
+}
+function targetToCanvas(T,cv){
+  const {w,h}=T; const buf=new Uint8Array(w*h*4);
+  renderer.readRenderTargetPixels(T.o,0,0,w,h,buf);
+  cv=cv||document.createElement('canvas'); cv.width=w; cv.height=h;
+  const ctx=cv.getContext('2d'); const img=ctx.createImageData(w,h); const row=w*4;
+  for(let y=0;y<h;y++) img.data.set(buf.subarray((h-1-y)*row,(h-y)*row),y*row);
+  ctx.putImageData(img,0,0); return cv;
+}
+
+/* ---------------- figure ---------------- */
+const JOINTS=['hips','spine','chest','neck','head','clavL','uaL','faL','hdL','clavR','uaR','faR','hdR','thL','shinL','ftL','thR','shinR','ftR'];
+const PARENT={spine:'hips',chest:'spine',neck:'chest',head:'neck',clavL:'chest',uaL:'clavL',faL:'uaL',hdL:'faL',clavR:'chest',uaR:'clavR',faR:'uaR',hdR:'faR',thL:'hips',shinL:'thL',ftL:'shinL',thR:'hips',shinR:'thR',ftR:'shinR'};
+const JLABEL={hips:'Hips',spine:'Waist',chest:'Chest',neck:'Neck',head:'Head',clavL:'Left shoulder',uaL:'Left upper arm',faL:'Left forearm',hdL:'Left hand',clavR:'Right shoulder',uaR:'Right upper arm',faR:'Right forearm',hdR:'Right hand',thL:'Left thigh',shinL:'Left shin',ftL:'Left foot',thR:'Right thigh',shinR:'Right shin',ftR:'Right foot'};
+const BONE={hips:[0,1,0],spine:[0,1,0],chest:[0,1,0],neck:[0,1,0],head:[0,1,0],clavL:[1,0,0],clavR:[-1,0,0],ftL:[0,0,1],ftR:[0,0,1]};
+const boneDir=n=>BONE[n]||[0,-1,0];
+const PART_IDS=[
+  ['pelvis','hips','sph'],['glL','hips','sph'],['glR','hips','sph'],['abs','spine','cap'],['chest','chest','cap'],['bustL','chest','sph'],['bustR','chest','sph'],
+  ['neck','neck','cap'],['head','head','sph'],['nose','head','sph'],
+  ['deltL','uaL','sph'],['uaL','uaL','cap'],['faL','faL','cap'],['hdL','hdL','cap'],
+  ['deltR','uaR','sph'],['uaR','uaR','cap'],['faR','faR','cap'],['hdR','hdR','cap'],
+  ['thL','thL','cap'],['shinL','shinL','cap'],['ftL','ftL','cap'],['thR','thR','cap'],['shinR','shinR','cap'],['ftR','ftR','cap'],['pyL','shinL','cyl'],['pyR','shinR','cyl']
+].map(a=>({id:a[0],j:a[1],sh:a[2]}));
+const CYL=new THREE.CylinderGeometry(0.5,0.5,1,8);
+const BODY_KEYS=[['height','Height'],['build','Build'],['muscle','Muscle'],['shoulders','Shoulders'],['bust','Chest / bust'],['waist','Waist'],['hips','Hips'],['glutes','Glutes'],['legs','Leg length'],['arms','Arm length'],['head','Head size']];
+const BODY_PRESETS={
+  Average:{height:.5,build:.4,muscle:.3,shoulders:.5,bust:.25,waist:.45,hips:.5,glutes:.4,legs:.5,arms:.5,head:.5},
+  Slender:{height:.55,build:.1,muscle:.15,shoulders:.4,bust:.15,waist:.25,hips:.4,glutes:.3,legs:.6,arms:.55,head:.5},
+  Athletic:{height:.58,build:.35,muscle:.65,shoulders:.68,bust:.12,waist:.35,hips:.42,glutes:.5,legs:.55,arms:.52,head:.45},
+  Muscular:{height:.62,build:.55,muscle:1,shoulders:.9,bust:.08,waist:.45,hips:.45,glutes:.5,legs:.5,arms:.5,head:.42},
+  Curvy:{height:.45,build:.5,muscle:.2,shoulders:.4,bust:.75,waist:.3,hips:.9,glutes:.8,legs:.5,arms:.48,head:.5},
+  Heavyset:{height:.5,build:.95,muscle:.3,shoulders:.6,bust:.45,waist:.95,hips:.75,glutes:.6,legs:.45,arms:.45,head:.5},
+  Stocky:{height:.25,build:.7,muscle:.6,shoulders:.75,bust:.12,waist:.65,hips:.55,glutes:.5,legs:.3,arms:.4,head:.55},
+  'Tall & lean':{height:.95,build:.2,muscle:.35,shoulders:.55,bust:.15,waist:.3,hips:.4,glutes:.35,legs:.75,arms:.65,head:.45},
+  Petite:{height:.15,build:.2,muscle:.15,shoulders:.35,bust:.35,waist:.3,hips:.55,glutes:.45,legs:.5,arms:.48,head:.55},
+  Elderly:{height:.35,build:.35,muscle:0,shoulders:.4,bust:.3,waist:.55,hips:.5,glutes:.2,legs:.45,arms:.5,head:.5},
+  Bodybuilder:{height:.6,build:.6,muscle:1,shoulders:1,bust:.05,waist:.35,hips:.4,glutes:.7,legs:.5,arms:.5,head:.35},
+  Large:{height:.5,build:1,muscle:.2,shoulders:.6,bust:.65,waist:1,hips:1,glutes:.8,legs:.4,arms:.45,head:.5},
+  Pear:{height:.45,build:.5,muscle:.2,shoulders:.3,bust:.35,waist:.45,hips:1,glutes:.9,legs:.45,arms:.45,head:.5},
+  Apple:{height:.5,build:.75,muscle:.2,shoulders:.55,bust:.5,waist:1,hips:.5,glutes:.4,legs:.45,arms:.45,head:.5},
+  Lanky:{height:.85,build:0,muscle:.05,shoulders:.3,bust:.05,waist:.15,hips:.25,glutes:.15,legs:1,arms:1,head:.3},
+  'Very tall':{height:1,build:.3,muscle:.4,shoulders:.6,bust:.2,waist:.4,hips:.45,glutes:.4,legs:.7,arms:.65,head:.4,scale:1.12},
+  Giant:{height:1,build:.75,muscle:.85,shoulders:1,bust:.15,waist:.6,hips:.6,glutes:.5,legs:.5,arms:.6,head:.35,scale:1.25},
+  'Little person':{height:.4,build:.45,muscle:.3,shoulders:.5,bust:.3,waist:.5,hips:.55,glutes:.45,legs:0,arms:0,head:.85,scale:0.8},
+  'Big-head stylized':{height:.4,build:.3,muscle:.2,shoulders:.4,bust:.15,waist:.4,hips:.45,glutes:.4,legs:.35,arms:.4,head:1,scale:0.9,headX:1.45},
+  Teen:{kid:1,height:.5,build:.25,muscle:.2,shoulders:.4,bust:0,waist:.35,hips:.4,glutes:.3,legs:.6,arms:.55,head:.5,scale:0.9},
+  Child:{kid:1,height:.5,build:.3,muscle:.1,shoulders:.3,bust:0,waist:.45,hips:.35,glutes:.2,legs:.5,arms:.5,head:.5,scale:0.68},
+  Toddler:{kid:1,height:.5,build:.6,muscle:0,shoulders:.25,bust:0,waist:.6,hips:.4,glutes:.25,legs:.25,arms:.35,head:.6,scale:0.5},
+  Infant:{kid:1,height:.5,build:.75,muscle:0,shoulders:.2,bust:0,waist:.7,hips:.4,glutes:.25,legs:.15,arms:.25,head:.8,scale:0.36}
+};
+const BODY_GROUPS=[['Common',['Average','Slender','Athletic','Muscular','Curvy','Heavyset','Stocky','Tall & lean','Petite']],
+  ['Distinct',['Elderly','Bodybuilder','Large','Pear','Apple','Lanky','Very tall','Giant','Little person','Big-head stylized']],
+  ['Young',['Teen','Child','Toddler','Infant']]];
+const isKid=b=>!!b.kid;
+const LIMB_OPTS={arm:[['full','Full'],['below','Below elbow'],['above','Above elbow']],leg:[['full','Full'],['prosBelow','Prosthetic, below knee'],['below','Below knee'],['above','Above knee']]};
+function layout(b){
+  const sc=b.scale||1,kid=!!b.kid;
+  const H=(0.82+0.36*b.height)*sc,W=b.build,M=b.muscle,L=(0.9+0.2*b.legs)*(0.85+0.15*sc)*(b.legs<0.05&&sc<0.9?0.78:1),A=(0.9+0.2*b.arms)*(b.arms<0.05&&sc<0.9?0.8:1),hs=(0.9+0.2*b.head)*(1+Math.max(0,1-sc)*1.2)*(b.headX||1);
+  const d={H,hs};
+  d.thigh=0.42*H*L;d.shin=0.41*H*L;d.ankle=0.065*H;d.hipsY=d.thigh+d.shin+d.ankle+0.05*H;
+  d.ua=0.29*H*A;d.fa=0.26*H*A;d.hand=0.18*H*(0.95+0.1*A);
+  d.hipHalf=(0.105+0.05*b.hips)*H*(0.92+0.25*W);
+  d.shHalf=(0.155+0.05*b.shoulders+0.025*M)*H;
+  d.waistW=(0.2+0.08*b.waist)*H*(0.85+0.5*W);
+  d.chestW=(2*d.shHalf-0.06*H)*(0.95+0.1*W);
+  d.chestD=(0.17+0.04*M+0.05*W)*H; d.absD=(0.155+0.09*W)*H;
+  d.rU=(0.042+0.02*W+0.022*M)*H;d.rF=(0.034+0.013*W+0.016*M)*H;d.rT=(0.068+0.03*W+0.018*M+0.012*b.hips)*H;d.rS=(0.05+0.017*W+0.015*M)*H;d.nw=(0.09+0.03*M+0.02*W)*H;
+  d.top=d.hipsY+0.07*H+0.2*H+0.27*H+0.085*H+0.11*H+0.1175*H*hs;
+  const sx=d.shHalf-0.02*H;
+  d.jp={hips:[0,d.hipsY,0],spine:[0,0.07*H,0],chest:[0,0.2*H,0],neck:[0,0.27*H,0],head:[0,0.085*H,0],
+    clavL:[0.02*H,0.22*H,-0.005*H],clavR:[-0.02*H,0.22*H,-0.005*H],uaL:[sx,0,0],uaR:[-sx,0,0],faL:[0,-d.ua,0],faR:[0,-d.ua,0],hdL:[0,-d.fa,0],hdR:[0,-d.fa,0],
+    thL:[d.hipHalf*0.62,-0.05*H,0],thR:[-d.hipHalf*0.62,-0.05*H,0],shinL:[0,-d.thigh,0],shinR:[0,-d.thigh,0],ftL:[0,-d.shin,0],ftR:[0,-d.shin,0]};
+  const cs=(w,h,dd)=>[w,h/2,dd];
+  const glR=(0.06+0.045*(kid?0.2:b.glutes)+0.015*W)*H, bR=(0.03+0.065*b.bust)*H;
+  const P={};
+  P.pelvis={p:[0,-0.015*H,0],s:[2*d.hipHalf+0.06*H,0.22*H,d.absD*1.05]};
+  P.glL={p:[d.hipHalf*0.45,-0.055*H,-d.absD*0.3],s:[glR*2,glR*2,glR*1.8]};
+  P.glR={p:[-d.hipHalf*0.45,-0.055*H,-d.absD*0.3],s:[glR*2,glR*2,glR*1.8]};
+  P.abs={p:[0,0.1*H,0],s:cs(d.waistW,0.26*H,d.absD)};
+  P.chest={p:[0,0.15*H,-0.005*H],s:cs(d.chestW,0.33*H,d.chestD)};
+  P.bustL={p:[0.062*H,0.13*H,d.chestD*0.34],s:[bR*2,bR*1.9,bR*1.8],hide:kid||b.bust<0.06};
+  P.bustR={p:[-0.062*H,0.13*H,d.chestD*0.34],s:[bR*2,bR*1.9,bR*1.8],hide:kid||b.bust<0.06};
+  P.neck={p:[0,0.05*H,0],s:cs(d.nw,0.15*H,d.nw*0.95)};
+  P.head={p:[0,0.11*H,0.01*H],s:[0.175*H*hs,0.235*H*hs,0.205*H*hs]};
+  P.nose={p:[0,0.095*H*hs,0.1*H*hs+0.004],s:[0.028*H,0.045*H,0.04*H]};
+  for(const s of ['L','R']){
+    P['delt'+s]={p:[0,-0.01*H,0],s:[d.rU*2.3,d.rU*2.4,d.rU*2.3]};
+    P['ua'+s]={p:[0,-d.ua/2,0],s:cs(d.rU*2,d.ua+d.rU,d.rU*2)};
+    P['fa'+s]={p:[0,-d.fa/2,0],s:cs(d.rF*2,d.fa+d.rF,d.rF*1.85)};
+    P['hd'+s]={p:[0,-d.hand*0.45,0.004*H],s:cs(0.042*H,d.hand,0.085*H)};
+    P['th'+s]={p:[0,-d.thigh/2,0],s:cs(d.rT*2,d.thigh+d.rT,d.rT*2)};
+    P['shin'+s]={p:[0,-d.shin/2,0],s:cs(d.rS*2,d.shin+d.rS*0.6,d.rS*2)};
+    P['ft'+s]={p:[0,-d.ankle*0.5,0.055*H],s:cs(0.09*H,0.26*H,d.ankle*1.15),r:[90,0,0]};
+    P['py'+s]={p:[0,-d.shin*0.675,0],s:[0.035*H,d.shin*0.65,0.035*H],hide:true};
+  }
+  const lm=b.limbs||{};
+  for(const s of ['L','R']){
+    const arm=lm['arm'+s]||'full',leg=lm['leg'+s]||'full';
+    if(arm==='below'){const fl=d.fa*0.35;P['fa'+s]={p:[0,-fl/2,0],s:cs(d.rF*2,fl+d.rF,d.rF*1.85)};P['hd'+s].hide=true;}
+    if(arm==='above'){const ul=d.ua*0.45;P['ua'+s]={p:[0,-ul/2,0],s:cs(d.rU*2,ul+d.rU,d.rU*2)};P['fa'+s].hide=true;P['hd'+s].hide=true;}
+    if(leg==='below'||leg==='prosBelow'){const sl=d.shin*0.35;P['shin'+s]={p:[0,-sl/2,0],s:cs(d.rS*2,sl+d.rS*0.6,d.rS*2)};if(leg==='below')P['ft'+s].hide=true;else P['py'+s].hide=false;}
+    if(leg==='above'){const tl=d.thigh*0.45;P['th'+s]={p:[0,-tl/2,0],s:cs(d.rT*2,tl+d.rT,d.rT*2)};P['shin'+s].hide=true;P['ft'+s].hide=true;}
+  }
+  d.parts=P; return d;
+}
+const GEO_POS=new Map();
+function minMaxY(meshes){
+  let mn=Infinity,mx=-Infinity;
+  for(const m of meshes){ if(!m.visible) continue; const e=m.matrixWorld.elements; let a=GEO_POS.get(m.geometry); if(!a){a=m.geometry.attributes.position.array;GEO_POS.set(m.geometry,a);}
+    for(let i=0;i<a.length;i+=3){const y=e[1]*a[i]+e[5]*a[i+1]+e[9]*a[i+2]+e[13]; if(y<mn)mn=y; if(y>mx)mx=y;} }
+  return [mn,mx];
+}
+let FIG_ID=0;
+class Figure{
+  constructor(parent,body){
+    this.id=++FIG_ID; this.body={...BODY_PRESETS.Average,...(body||{})}; this.bodyName='Average';
+    this.base=new THREE.Group(); this.base.rotation.order='YXZ'; this.lifter=new THREE.Group(); this.base.add(this.lifter); parent.add(this.base);
+    this.j={}; for(const n of JOINTS){const g=new THREE.Group();g.name=n;this.j[n]=g;}
+    for(const n of JOINTS){(PARENT[n]?this.j[PARENT[n]]:this.lifter).add(this.j[n]);}
+    this.parts={};this.groundMeshes=[];this.seatMeshes=[];this.allMeshes=[];
+    for(const pd of PART_IDS){
+      if(!this.mat){this.mat=MAT.body.clone();this.tint=FIG_TINTS[0];}
+      const m=new THREE.Mesh(pd.sh==='sph'?SPH:pd.sh==='cyl'?CYL:CAP,pd.sh==='cyl'?MAT.wpn:this.mat); m.castShadow=m.receiveShadow=true; m.userData.fig=this; m.userData.joint=pd.j;
+      this.j[pd.j].add(m); this.parts[pd.id]=m; this.allMeshes.push(m);
+      if(!/^(delt|ua|fa|hd)/.test(pd.id)) this.groundMeshes.push(m);
+      if(/^(pelvis|gl|th)/.test(pd.id)) this.seatMeshes.push(m);
+      if(/^(pelvis|gl)/.test(pd.id)) (this.pelvisMeshes||(this.pelvisMeshes=[])).push(m);
+    }
+    this.autoGround=true; this.yOff=0; this.seat=null; this.lift=0; this.ik={L:null,R:null}; this.poseProps=[]; this.poseName='Neutral stand';
+    this.applyBody();
+  }
+  get name(){return 'Figure '+(S.figures.indexOf(this)+1);}
+  setColor(hex){this.mat.color.set(hex);flatOf(this.mat).color.set(hex);}
+  applyColor(){this.setColor(S.look.figColors==='one'?S.look.fill:(this.customColor||this.tint));}
+  applyBody(){
+    const d=this.d=layout(this.body);
+    for(const n of JOINTS) this.j[n].position.fromArray(d.jp[n]);
+    for(const id in this.parts){const m=this.parts[id],t=d.parts[id];m.position.fromArray(t.p);m.scale.fromArray(t.s);if(t.r)m.rotation.set(t.r[0]*D2R,t.r[1]*D2R,t.r[2]*D2R);m.visible=!t.hide;}
+    this.poseProps.forEach(p=>this.placePoseProp(p));
+  }
+  height(){return this.d.top;}
+  clearPoseProps(){
+    this.poseProps.forEach(p=>{p.group.parent&&p.group.parent.remove(p.group); if(S.selProp===p) S.selProp=null;});
+    this.poseProps=[];
+  }
+  addPoseProp(spec){
+    const def=PROP_BY_ID[spec.t]; if(!def) return null;
+    const g=buildProp(def); const inst={id:uid(),def,group:g,owner:this,spec:{...spec},key:spec.k||('p'+this.poseProps.length)};
+    tagProp(g,inst);
+    (spec.a==='root'?this.base:this.j[spec.a]).add(g); this.poseProps.push(inst); this.placePoseProp(inst); return inst;
+  }
+  placePoseProp(inst){
+    const s=inst.spec,g=inst.group,d=this.d; const inHand=/^hd/.test(s.a); const r=s.r||(inHand?(inst.def.handRot||[90,0,0]):[0,0,0]);
+    g.rotation.set(r[0]*D2R,r[1]*D2R,r[2]*D2R); g.scale.setScalar(s.s||1);
+    if(s.p){const k=s.a==='root'?1:d.H; g.position.set(s.p[0]*k,s.p[1]*k,s.p[2]*k);}
+    else if(/^hd/.test(s.a)){ placeInHand(g,inst.def,d); }
+    else g.position.set(0,0,0);
+  }
+  applyPose(pose){
+    for(const n of JOINTS) this.j[n].rotation.set(0,0,0);
+    const j=pose.j||{};
+    for(const n in j){ if(this.j[n]) this.j[n].rotation.set(j[n][0]*D2R,j[n][1]*D2R,j[n][2]*D2R); }
+    const hx=this.j.hips.rotation.x/D2R;
+    for(const s of ['L','R']){ if(j['ft'+s]) continue; const sum=hx+this.j['th'+s].rotation.x/D2R+this.j['shin'+s].rotation.x/D2R;
+      if(Math.abs(hx)<30&&Math.abs(sum)<60) this.j['ft'+s].rotation.x=-sum*D2R; }
+    this.clearPoseProps(); (pose.props||[]).forEach(p=>this.addPoseProp(p));
+    const ik=pose.ik||{}; this.ik={L:ik.L?JSON.parse(JSON.stringify(ik.L)):null,R:ik.R?JSON.parse(JSON.stringify(ik.R)):null};
+    this.seat=pose.seat!=null?pose.seat:null; this.saddle=!!pose.saddle; this.lift=pose.lift||0; this.poseName=pose.name||'Custom pose';
+  }
+  mirror(){
+    const rot={}; for(const n of JOINTS){const r=this.j[n].rotation;rot[n]=[r.x,r.y,r.z];}
+    for(const n of JOINTS){ const m=n.endsWith('L')?n.slice(0,-1)+'R':n.endsWith('R')?n.slice(0,-1)+'L':n; const r=rot[m]; this.j[n].rotation.set(r[0],-r[1],-r[2]); }
+    const mp=sp=>{if(!sp)return null;const o=JSON.parse(JSON.stringify(sp));if(o.p)o.p[0]*=-1;if(o.pole)o.pole[0]*=-1;if(o.a&&/[LR]$/.test(o.a)&&o.a!=='root')o.a=o.a.replace(/L$/,'#').replace(/R$/,'L').replace('#','R');return o;};
+    this.ik={L:mp(this.ik.R),R:mp(this.ik.L)};
+    const specs=this.poseProps.map(p=>{const s=JSON.parse(JSON.stringify(p.spec));s.k=p.key;if(s.p)s.p[0]*=-1;if(s.r){s.r[1]*=-1;s.r[2]*=-1;}if(/[LR]$/.test(s.a)&&s.a!=='root')s.a=s.a.endsWith('L')?s.a.slice(0,-1)+'R':s.a.slice(0,-1)+'L';return s;});
+    this.clearPoseProps(); specs.forEach(s=>this.addPoseProp(s));
+  }
+  update(){
+    const lf=this.lifter; this.base.updateMatrixWorld(true);
+    if(this.autoGround){
+      const [mn]=minMaxY(this.seat!=null?(this.saddle?this.pelvisMeshes:this.seatMeshes):this.groundMeshes);
+      const target=(this.seat!=null?this.seat:0)+this.lift+this.yOff;
+      if(isFinite(mn)){lf.position.y+=target-mn; this.base.updateMatrixWorld(true);}
+    } else { lf.position.y=this.yOff; this.base.updateMatrixWorld(true); }
+    if(this.ik.R) this.solveIK('R'); if(this.ik.L) this.solveIK('L');
+  }
+  ikTarget(spec,out){
+    if(spec.prop){ const inst=this.poseProps.find(p=>p.key===spec.prop); if(!inst) return null; const pt=(inst.def.pts&&inst.def.pts[spec.pt])||[0,0,0]; inst.group.updateMatrixWorld(true); return inst.group.localToWorld(out.fromArray(pt)); }
+    if(!spec.p) return null;
+    const k=spec.a==='root'?1:this.d.H; out.set(spec.p[0]*k,spec.p[1]*k,spec.p[2]*k);
+    const anc=spec.a==='root'?this.base:this.j[spec.a]; if(!anc) return null; return anc.localToWorld(out);
+  }
+  solveIK(side){
+    const spec=this.ik[side]; const T=this.ikTarget(spec,_v1); if(!T) return;
+    const ua=this.j['ua'+side],fa=this.j['fa'+side],hd=this.j['hd'+side],d=this.d;
+    const Sp=ua.getWorldPosition(_v2); const a=d.ua,b=d.fa+d.hand*0.42;
+    const dir=_v3.subVectors(T,Sp); let L=dir.length(); if(L<1e-5) return; dir.divideScalar(L);
+    L=clamp(L,Math.abs(a-b)+0.01,(a+b)*0.999);
+    const pole=_v4.fromArray(spec.pole||(side==='L'?[0.5,-1,-0.6]:[-0.5,-1,-0.6])).applyQuaternion(this.base.quaternion);
+    pole.addScaledVector(dir,-pole.dot(dir)); if(pole.lengthSq()<1e-8) pole.set(0,-1,0); pole.normalize();
+    const cosA=clamp((a*a+L*L-b*b)/(2*a*L),-1,1),sinA=Math.sqrt(1-cosA*cosA);
+    const E=_v5.copy(Sp).addScaledVector(dir,a*cosA).addScaledVector(pole,a*sinA);
+    const W=_v6.copy(Sp).addScaledVector(dir,L);
+    const dU=_v7.subVectors(E,Sp).normalize(); ua.parent.getWorldQuaternion(_q1).invert(); dU.applyQuaternion(_q1);
+    ua.quaternion.setFromUnitVectors(DOWN,dU); ua.updateMatrixWorld(true);
+    const dF=_v7.subVectors(W,E).normalize(); ua.getWorldQuaternion(_q1).invert(); dF.applyQuaternion(_q1);
+    fa.quaternion.setFromUnitVectors(DOWN,dF); hd.quaternion.identity(); fa.updateMatrixWorld(true);
+  }
+  dispose(){ this.clearPoseProps(); this.base.parent&&this.base.parent.remove(this.base); }
+}
+function placeInHand(g,def,d){
+  const palm=new V3(0,-d.hand*0.42,0.004*d.H);
+  const gp=new V3().fromArray((def.pts&&def.pts.grip)||[0,0,0]).multiply(g.scale).applyEuler(g.rotation);
+  g.position.copy(palm).sub(gp);
+}
+function limitJoint(n,j){
+  if(/^shin/.test(n)) j.rotation.set(clamp(j.rotation.x,0,165*D2R),0,0);
+  else if(/^fa/.test(n)) j.rotation.set(clamp(j.rotation.x,-160*D2R,5*D2R),clamp(j.rotation.y,-90*D2R,90*D2R),0);
+}
+
+/* ---------------- props ---------------- */
+function mk(geo,mat){const m=new THREE.Mesh(geo,mat);m.castShadow=m.receiveShadow=true;return m;}
+function bx(g,w,h,d,x,y,z,rx,ry,rz,mat){const m=mk(BOX,mat||MAT.prop);m.scale.set(w,h,d);m.position.set(x||0,y||0,z||0);m.rotation.set((rx||0)*D2R,(ry||0)*D2R,(rz||0)*D2R);g.add(m);return m;}
+function cy(g,rt,rb,h,x,y,z,rx,ry,rz,mat,seg){const m=mk(cylGeo(rt,rb,h,seg||10),mat||MAT.prop);m.position.set(x||0,y||0,z||0);m.rotation.set((rx||0)*D2R,(ry||0)*D2R,(rz||0)*D2R);g.add(m);return m;}
+function sp(g,r,x,y,z,mat,sx,sy,sz){const m=mk(SPH,mat||MAT.prop);m.scale.set(2*r*(sx||1),2*r*(sy||1),2*r*(sz||1));m.position.set(x||0,y||0,z||0);g.add(m);return m;}
+function cone(g,r,h,x,y,z,rx,mat,seg){const m=mk(new THREE.ConeGeometry(r,h,seg||8),mat||MAT.prop);m.position.set(x,y,z);m.rotation.x=(rx||0)*D2R;g.add(m);return m;}
+const W_=()=>MAT.wpn, F_=()=>MAT.furn;
+const PROP_DEFS=[
+ {id:'rifle',name:'Rifle',cat:'Ranged',hand:1,pts:{grip:[0,-0.06,-0.01],fore:[0,-0.03,0.2],mag:[0,-0.14,0.12],butt:[0,-0.02,-0.35]},build:g=>{const m=W_();
+   bx(g,.05,.08,.34,0,.02,.05,0,0,0,m);bx(g,.055,.065,.24,0,.025,.29,0,0,0,m);cy(g,.012,.012,.2,0,.035,.5,90,0,0,m,8);bx(g,.012,.05,.012,0,.07,.42,0,0,0,m);
+   bx(g,.022,.04,.07,0,.08,.03,0,0,0,m);bx(g,.045,.085,.22,0,-.005,-.22,0,0,0,m);bx(g,.05,.13,.035,0,-.02,-.34,0,0,0,m);bx(g,.035,.1,.045,0,-.06,-.01,-15,0,0,m);bx(g,.03,.15,.07,0,-.1,.12,12,0,0,m);}},
+ {id:'pistol',name:'Pistol',cat:'Ranged',hand:1,pts:{grip:[0,-0.04,-0.01],sup:[0.018,-0.05,0.0]},build:g=>{const m=W_();
+   bx(g,.03,.035,.19,0,.035,.06,0,0,0,m);bx(g,.028,.022,.15,0,.008,.045,0,0,0,m);bx(g,.03,.1,.045,0,-.04,-.01,-15,0,0,m);bx(g,.008,.02,.04,0,-.01,.035,0,0,0,m);}},
+ {id:'blaster',name:'Energy rifle',cat:'Ranged',hand:1,pts:{grip:[0,-0.06,-0.01],fore:[0,-0.05,0.22]},build:g=>{const m=W_();
+   bx(g,.07,.11,.4,0,.03,.08,0,0,0,m);cy(g,.028,.02,.22,0,.04,.38,90,0,0,m,6);bx(g,.11,.01,.12,0,.06,.3,0,0,0,m);bx(g,.01,.1,.12,0,.08,.28,0,0,0,m);
+   bx(g,.035,.1,.045,0,-.06,-.01,-15,0,0,m);cy(g,.025,.025,.16,0,-.04,.18,90,0,0,m,6);bx(g,.05,.07,.18,0,0,-.2,0,0,0,m);}},
+ {id:'heavy',name:'Heavy gun',cat:'Ranged',hand:1,pts:{grip:[0,-0.07,-0.02],fore:[0,-0.11,0.32]},build:g=>{const m=W_();
+   bx(g,.12,.16,.55,0,.04,.12,0,0,0,m);for(let i=0;i<3;i++){const a=i*120*D2R;cy(g,.018,.018,.42,Math.cos(a)*.03,.05+Math.sin(a)*.03,.6,90,0,0,m,6);}
+   bx(g,.02,.05,.2,0,.15,.1,0,0,0,m);bx(g,.035,.1,.045,0,-.07,-.02,-15,0,0,m);cy(g,.018,.018,.12,0,-.1,.32,0,0,0,m,6);bx(g,.1,.12,.14,.11,-.02,.1,0,0,0,m);}},
+ {id:'mag',name:'Magazine',cat:'Ranged',hand:1,pts:{grip:[0,-0.04,0],top:[0,0.07,0]},build:g=>{bx(g,.03,.15,.07,0,0,0,12,0,0,W_());}},
+ {id:'sword',name:'Sword',cat:'Melee',hand:1,pts:{grip:[0,-0.05,0],grip2:[0,-0.15,0],blade:[0,0.45,0]},build:g=>{const m=W_();
+   cy(g,.016,.016,.2,0,-.1,0,0,0,0,m,6);sp(g,.025,0,-.21,0,m);bx(g,.2,.025,.04,0,.012,0,0,0,0,m);bx(g,.045,.82,.01,0,.435,0,0,0,0,m);cone(g,.0225,.08,0,.885,0,0,m,4);}},
+ {id:'dagger',name:'Dagger',cat:'Melee',hand:1,pts:{grip:[0,-0.05,0]},build:g=>{const m=W_();
+   cy(g,.014,.014,.11,0,-.055,0,0,0,0,m,6);bx(g,.07,.015,.025,0,.007,0,0,0,0,m);bx(g,.03,.2,.008,0,.115,0,0,0,0,m);cone(g,.015,.04,0,.235,0,0,m,4);}},
+ {id:'axe',name:'Axe',cat:'Melee',hand:1,pts:{grip:[0,-0.25,0],g1:[0,-0.5,0],g2:[0,-0.25,0]},build:g=>{const m=W_();
+   cy(g,.018,.018,.8,0,-.15,0,0,0,0,m,6);bx(g,.02,.16,.17,0,.17,.09,0,0,0,m);bx(g,.03,.06,.05,0,.17,-.03,0,0,0,m);}},
+ {id:'staff',name:'Staff',cat:'Melee',hand:1,pts:{grip:[0,0,0],g1:[0,-0.25,0],g2:[0,0.25,0]},build:g=>{cy(g,.016,.016,1.8,0,0,0,0,0,0,W_(),6);}},
+ {id:'spear',name:'Spear',cat:'Melee',hand:1,pts:{grip:[0,0,0],g1:[0,-0.35,0],g2:[0,0.15,0]},build:g=>{const m=W_();cy(g,.016,.016,1.9,0,0,0,0,0,0,m,6);cone(g,.032,.22,0,1.06,0,0,m,4);}},
+ {id:'shield',name:'Shield',cat:'Melee',hand:1,pts:{grip:[0,0,-0.03]},handRot:[0,90,0],build:g=>{const m=W_();cy(g,.3,.3,.04,0,0,.02,90,0,0,m,14);sp(g,.06,0,0,.05,m,1,1,.6);}},
+ {id:'bow',name:'Bow',cat:'Melee',hand:1,pts:{grip:[0,0,0],string:[0,0,-0.227]},handRot:[0,0,0],build:g=>{const m=W_();const r=.75,arc=1.6;
+   const geo=new THREE.TorusGeometry(r,.014,4,14,arc);geo.rotateZ(-arc/2);geo.translate(-r,0,0);geo.rotateY(-Math.PI/2);g.add(mk(geo,m));
+   cy(g,.003,.003,2*r*Math.sin(arc/2),0,0,-(r-r*Math.cos(arc/2)),0,0,0,m,4);bx(g,.03,.11,.035,0,0,0,0,0,0,m);}},
+ {id:'phone',name:'Phone',cat:'Hand props',hand:1,pts:{grip:[0,-0.03,0],l:[0.035,0,0],r:[-0.035,0,0]},build:g=>{bx(g,.075,.15,.009);}},
+ {id:'tablet',name:'Tablet',cat:'Hand props',hand:1,pts:{grip:[0,-0.08,0],l:[0.09,0,0],r:[-0.09,0,0]},build:g=>{bx(g,.18,.25,.009);}},
+ {id:'cup',name:'Cup',cat:'Hand props',hand:1,pts:{grip:[0,0,-0.045]},build:g=>{cy(g,.042,.036,.1,0,0,0,0,0,0,MAT.prop,10);bx(g,.012,.05,.03,0,0,-.05);}},
+ {id:'book',name:'Book',cat:'Hand props',hand:1,pts:{grip:[0,-0.08,0],l:[0.08,0,0],r:[-0.08,0,0]},build:g=>{bx(g,.16,.23,.035);}},
+ {id:'laptop',name:'Laptop',cat:'Hand props',pts:{grip:[0,0,0]},build:g=>{bx(g,.33,.02,.23,0,.01,0);bx(g,.33,.22,.012,0,.115,-.145,-15,0,0);}},
+ {id:'brush',name:'Cleaning brush',cat:'Hand props',hand:1,pts:{grip:[0,-0.04,0]},build:g=>{cy(g,.006,.006,.18,0,0,0,0,0,0,MAT.prop,6);cy(g,.012,.012,.03,0,.1,0,0,0,0,MAT.wpn,6);}},
+ {id:'parts',name:'Rifle parts, stripped',cat:'Hand props',pts:{grip:[0,0,0]},build:g=>{const m=W_();
+   bx(g,.16,.07,.06,-.22,.035,-.06,0,0,0,m);bx(g,.03,.035,.02,-.22,.085,-.06,0,0,0,m);bx(g,.22,.065,.065,-.03,.033,-.06,0,0,0,m);cy(g,.012,.012,.2,.18,.033,-.06,0,0,90,m,8);
+   bx(g,.16,.05,.09,-.06,.025,.08,0,0,0,m);bx(g,.24,.045,.08,-.27,.023,.08,0,0,0,m);bx(g,.05,.035,.1,.0,.018,.15,0,-15,0,m);
+   cy(g,.014,.014,.13,.17,.014,.08,0,0,90,m,8);bx(g,.12,.012,.03,.19,.006,.16,0,8,0,m);bx(g,.15,.03,.07,.33,.015,.06,0,-20,0,m);
+   bx(g,.2,.004,.15,.32,.002,-.1,0,10,0,MAT.prop);}},
+ {id:'pparts',name:'Pistol parts, stripped',cat:'Hand props',pts:{grip:[0,0,0]},build:g=>{const m=W_();
+   bx(g,.15,.022,.028,.02,.011,-.02,0,0,0,m);bx(g,.045,.028,.1,.08,.014,.04,0,-15,0,m);cy(g,.006,.006,.09,-.13,.006,.08,0,0,90,m,6);cy(g,.003,.003,.1,-.13,.012,.08,0,0,90,m,4);
+   bx(g,.12,.022,.032,.2,.011,.1,0,25,0,m);bx(g,.2,.004,.14,-.1,.002,-.08,0,-8,0,MAT.prop);}},
+ {id:'bolt',name:'Bolt carrier',cat:'Hand props',hand:1,pts:{grip:[0,0,0]},build:g=>{const m=W_();cy(g,.014,.014,.13,0,0,0,0,0,0,m,8);cy(g,.007,.007,.04,0,.08,0,0,0,0,m,6);bx(g,.012,.03,.012,.016,.02,0,0,0,0,m);}},
+ {id:'pslide',name:'Pistol slide',cat:'Hand props',hand:1,pts:{grip:[0,0,0]},build:g=>{bx(g,.03,.19,.035,0,0,0,0,0,0,W_());}},
+ {id:'pbarrel',name:'Pistol barrel',cat:'Hand props',hand:1,pts:{grip:[0,0,0]},build:g=>{const m=W_();cy(g,.012,.012,.1,0,0,0,0,0,0,m,8);bx(g,.024,.03,.024,0,.045,0,0,0,0,m);}},
+ {id:'knife',name:'Knife',cat:'Melee',hand:1,pts:{grip:[0,-0.05,0],blade:[0,0.1,0]},build:g=>{const m=W_();bx(g,.022,.11,.016,0,-.055,0,0,0,0,m);bx(g,.04,.012,.02,0,.004,0,0,0,0,m);bx(g,.032,.19,.004,0,.105,0,0,0,0,m);cone(g,.016,.04,0,.22,0,0,m,4);}},
+ {id:'whetstone',name:'Whetstone',cat:'Hand props',pts:{grip:[0,0,0]},build:g=>{bx(g,.24,.02,.08,0,.01,0,0,0,0,MAT.furn);bx(g,.2,.025,.055,0,.0325,0,0,0,0,MAT.prop);}},
+ {id:'handstone',name:'Hand stone',cat:'Hand props',hand:1,pts:{grip:[0,0,0]},build:g=>{bx(g,.03,.14,.022,0,0,0,0,0,0,MAT.prop);}},
+ {id:'steel',name:'Honing steel',cat:'Hand props',hand:1,pts:{grip:[0,-0.05,0]},build:g=>{const m=W_();cy(g,.016,.014,.11,0,-.055,0,0,0,0,m,8);bx(g,.05,.01,.02,0,.004,0,0,0,0,m);cy(g,.006,.004,.26,0,.135,0,0,0,0,m,6);}},
+ {id:'rag',name:'Rag',cat:'Hand props',hand:1,pts:{grip:[0,0,0]},build:g=>{bx(g,.13,.03,.1,0,0,0,0,10,6,MAT.furn);bx(g,.09,.025,.07,.02,.018,.01,0,-20,-8,MAT.furn);}},
+ {id:'grenade',name:'Grenade',cat:'Ranged',hand:1,pts:{grip:[0,0,0]},build:g=>{const m=W_();sp(g,.032,0,0,0,m,1,1.2,1);cy(g,.012,.012,.03,0,.045,0,0,0,0,m,6);bx(g,.008,.06,.012,.025,.025,0,0,0,-10,m);}},
+ {id:'binoculars',name:'Binoculars',cat:'Hand props',hand:1,pts:{grip:[0,0,0],l:[0.04,-0.01,-0.03],r:[-0.04,-0.01,-0.03]},build:g=>{const m=W_();cy(g,.026,.026,.13,.037,0,0,90,0,0,m,8);cy(g,.026,.026,.13,-.037,0,0,90,0,0,m,8);bx(g,.05,.02,.04,0,0,-.01,0,0,0,m);}},
+ {id:'handset',name:'Radio handset',cat:'Hand props',hand:1,pts:{grip:[0,0,0]},build:g=>{bx(g,.05,.18,.04,0,0,0,0,0,0,W_());cy(g,.004,.004,.08,.015,.12,0,0,0,0,W_(),4);}},
+ {id:'shovel',name:'Shovel',cat:'Tools',hand:1,pts:{grip:[0,0.52,0],top:[0,0.52,0],mid:[0,0,0]},build:g=>{const m=W_();cy(g,.016,.016,1.0,0,0,0,0,0,0,MAT.furn,6);bx(g,.12,.03,.03,0,.52,0,0,0,0,m);cy(g,.025,.02,.12,0,-.53,0,0,0,0,m,6);bx(g,.22,.28,.02,0,-.72,0,0,0,0,m);}},
+ {id:'sledge',name:'Sledgehammer',cat:'Tools',hand:1,pts:{grip:[0,-0.35,0],g1:[0,-0.4,0],g2:[0,-0.12,0]},build:g=>{cy(g,.02,.02,.9,0,0,0,0,0,0,MAT.furn,6);bx(g,.09,.09,.24,0,.47,0,0,0,0,W_());}},
+ {id:'hammer',name:'Hammer',cat:'Tools',hand:1,pts:{grip:[0,-0.08,0]},build:g=>{cy(g,.013,.013,.3,0,0,0,0,0,0,MAT.furn,6);bx(g,.03,.03,.11,0,.16,0,0,0,0,W_());}},
+ {id:'broom',name:'Broom',cat:'Tools',hand:1,pts:{grip:[0,0.3,0],g1:[0,0.45,0],g2:[0,0.05,0]},build:g=>{cy(g,.014,.014,1.3,0,0,0,0,0,0,MAT.furn,6);bx(g,.3,.12,.06,0,-.7,0,0,0,0,MAT.prop);}},
+ {id:'carrybox',name:'Carton',cat:'Tools',pts:{grip:[0,0,0],l:[0.225,-0.06,0],r:[-0.225,-0.06,0]},build:g=>{bx(g,.45,.32,.32,0,0,0,0,0,0,MAT.furn);bx(g,.46,.01,.06,0,.16,0,0,0,0,MAT.prop);}},
+ {id:'plank',name:'Plank',cat:'Tools',hand:1,pts:{grip:[0,0,0],f:[0,0,0.4]},build:g=>{bx(g,.12,.05,2.4,0,0,0,0,0,0,MAT.furn);}},
+ {id:'rope',name:'Rope',cat:'Tools',pts:{grip:[0,0,0],a:[0,0,0.1],b:[0,0,0.32]},build:g=>{cy(g,.013,.013,3,0,0,1.5,90,0,0,MAT.furn,6);}},
+ {id:'ladder',name:'Ladder',cat:'Tools',pts:{},build:g=>{const m=MAT.furn;bx(g,.05,3,.06,-.22,1.5,0,0,0,0,m);bx(g,.05,3,.06,.22,1.5,0,0,0,0,m);for(let i=1;i<10;i++)cy(g,.016,.016,.44,0,.3*i,0,0,0,90,MAT.wpn,6);}},
+ {id:'wheelbarrow',name:'Wheelbarrow',cat:'Tools',pts:{hl:[0.28,0.55,-0.75],hr:[-0.28,0.55,-0.75]},build:g=>{bx(g,.6,.25,.75,0,.5,0,0,0,0,MAT.prop);cy(g,.2,.2,.08,0,.2,.5,0,0,90,W_(),12);bx(g,.03,.3,.03,.22,.2,-.25,0,0,0,W_());bx(g,.03,.3,.03,-.22,.2,-.25,0,0,0,W_());
+   cy(g,.017,.017,1.15,.28,.55,-.22,90,0,0,MAT.furn,6);cy(g,.017,.017,1.15,-.28,.55,-.22,90,0,0,MAT.furn,6);}},
+ {id:'carseat',name:'Car interior',cat:'Vehicles',pts:{l:[0.165,0.866,0.41],r:[-0.165,0.866,0.41],top:[0,0.95,0.37]},build:g=>{const m=MAT.prop;
+   bx(g,.5,.12,.5,0,.26,0,0,0,0,F_());bx(g,.5,.68,.12,0,.62,-.3,-14,0,0,F_());bx(g,.3,.18,.1,0,1.04,-.36,-14,0,0,F_());
+   const w=mk(new THREE.TorusGeometry(.19,.018,6,18),W_());w.position.set(0,.78,.45);w.rotation.x=-25*D2R;g.add(w);cy(g,.025,.025,.34,0,.72,.6,-65,0,0,W_(),6);
+   bx(g,1.3,.28,.35,0,.82,.8,0,0,0,m);bx(g,1.3,.04,.8,0,.98,1.1,-30,0,0,m);bx(g,.35,.04,.12,0,.12,.9,-40,0,0,W_());bx(g,.08,.4,1.6,.55,.5,.3,0,0,0,m);}},
+ {id:'motorbike',name:'Motorcycle',cat:'Vehicles',pts:{l:[0.33,1.02,0.45],r:[-0.33,1.02,0.45]},build:g=>{const m=MAT.prop,k=W_();
+   cy(g,.32,.32,.12,0,.32,.7,0,0,90,k,14);cy(g,.32,.32,.14,0,.32,-.68,0,0,90,k,14);bx(g,.26,.34,.9,0,.6,0,0,0,0,k);bx(g,.32,.2,.42,0,.88,.22,0,0,0,m);bx(g,.3,.08,.5,0,.84,-.24,0,0,0,F_());
+   cy(g,.025,.025,.75,0,.72,.58,-22,0,0,k,6);cy(g,.018,.018,.72,0,1.02,.45,0,0,90,k,6);sp(g,.08,0,.94,.64,m);bx(g,.4,.03,.06,0,.36,.05,0,0,0,k);}},
+ {id:'cockpit',name:'Cockpit',cat:'Vehicles',pts:{stick:[0,0.68,0.36],thr:[0.28,0.79,0.2],coll:[0.27,0.48,0.02]},build:g=>{const m=MAT.prop,k=W_();
+   bx(g,.48,.1,.48,0,.32,0,0,0,0,F_());bx(g,.48,.85,.1,0,.8,-.28,-10,0,0,F_());cy(g,.016,.022,.36,0,.46,.36,0,0,0,k,6);cy(g,.024,.024,.11,0,.68,.36,0,0,0,k,6);
+   bx(g,.08,.3,.32,.28,.5,.15,0,0,0,m);cy(g,.015,.015,.16,.28,.72,.18,-20,0,0,k,6);bx(g,.035,.04,.06,.28,.8,.2,0,0,0,k);cy(g,.014,.014,.42,.27,.4,-.12,-62,0,0,k,6);
+   bx(g,.9,.38,.1,0,.98,.88,-22,0,0,m);bx(g,.12,.1,.62,-.32,.6,.2,0,0,0,m);bx(g,.36,.04,.1,0,.18,.95,-50,0,0,k);}},
+ {id:'helm',name:'Starship helm',cat:'Vehicles',pts:{l:[0.2,0.8,0.27],r:[-0.2,0.8,0.27]},build:g=>{const m=MAT.prop,k=W_();
+   bx(g,.56,.12,.56,0,.42,0,0,0,0,F_());cy(g,.06,.08,.36,0,.18,0,0,0,0,k,8);bx(g,.56,.8,.1,0,.9,-.3,-8,0,0,F_());bx(g,.08,.06,.42,.31,.62,-.02,0,0,0,F_());bx(g,.08,.06,.42,-.31,.62,-.02,0,0,0,F_());
+   bx(g,.06,.06,.36,0,.76,.48,0,0,0,k);bx(g,.44,.045,.045,0,.76,.29,0,0,0,k);bx(g,.045,.15,.055,.21,.79,.28,0,0,0,k);bx(g,.045,.15,.055,-.21,.79,.28,0,0,0,k);
+   bx(g,1.7,.14,.55,0,.78,.82,-15,0,0,m);bx(g,1.7,.55,.05,0,1.22,1.08,-15,0,0,m);cy(g,.2,.3,.62,0,.38,.82,0,0,0,m,8);}},
+ {id:'wheelchair',name:'Wheelchair',cat:'Mobility',pts:{rimL:[0.33,0.55,0.09],rimR:[-0.33,0.55,0.09],hL:[0.2,0.97,-0.38],hR:[-0.2,0.97,-0.38]},build:g=>{const k=W_();
+   bx(g,.44,.05,.44,0,.5,0,0,0,0,F_());bx(g,.44,.48,.04,0,.76,-.22,-8,0,0,F_());bx(g,.36,.02,.14,0,.12,.42,0,0,0,k);
+   for(const s of[-1,1]){const w=mk(new THREE.TorusGeometry(.3,.02,6,20),k);w.position.set(s*.3,.32,-.05);w.rotation.y=Math.PI/2;g.add(w);
+     const r=mk(new THREE.TorusGeometry(.27,.008,4,20),k);r.position.set(s*.33,.32,-.05);r.rotation.y=Math.PI/2;g.add(r);
+     cy(g,.03,.03,.07,s*.3,.32,-.05,0,0,90,k,8);cy(g,.06,.06,.03,s*.2,.06,.3,0,0,90,k,10);bx(g,.025,.45,.025,s*.21,.28,.3,0,0,0,k);
+     bx(g,.05,.03,.35,s*.24,.72,0,0,0,0,F_());bx(g,.025,.5,.025,s*.21,.72,-.24,-8,0,0,k);cy(g,.015,.015,.12,s*.2,.97,-.33,90,0,0,k,6);bx(g,.02,.4,.02,s*.17,.3,.34,-30,0,0,k);}}},
+ {id:'powerchair',name:'Power chair',cat:'Mobility',pts:{joy:[-0.3,0.82,0.2],armL:[0.3,0.75,0.08]},build:g=>{const k=W_();
+   bx(g,.55,.28,.8,0,.24,0,0,0,0,k);for(const s of[-1,1]){cy(g,.16,.16,.08,s*.3,.16,0,0,0,90,k,12);cy(g,.08,.08,.06,s*.24,.08,.33,0,0,90,k,10);cy(g,.08,.08,.06,s*.24,.08,-.33,0,0,90,k,10);
+     bx(g,.07,.05,.42,s*.3,.7,.02,0,0,0,F_());bx(g,.03,.18,.03,s*.3,.6,-.12,0,0,0,k);}
+   bx(g,.5,.1,.5,0,.48,0,0,0,0,F_());bx(g,.5,.62,.1,0,.88,-.27,-6,0,0,F_());bx(g,.28,.18,.08,0,1.3,-.3,0,0,0,F_());
+   bx(g,.07,.06,.1,-.3,.75,.2,0,0,0,k);cy(g,.008,.008,.06,-.3,.81,.2,0,0,0,k,6);sp(g,.018,-.3,.84,.2,k);bx(g,.42,.03,.2,0,.1,.48,0,0,0,k);}},
+ {id:'cane',name:'Cane',cat:'Mobility',pts:{grip:[0,0.86,0.04],top:[0,0.88,-0.02]},build:g=>{const k=W_();cy(g,.012,.012,.84,0,.42,0,0,0,0,k,6);bx(g,.03,.03,.13,0,.86,.04,0,0,0,k);cy(g,.017,.017,.03,0,.015,0,0,0,0,MAT.furn,6);}},
+ {id:'walker',name:'Walker',cat:'Mobility',pts:{l:[0.26,0.87,0.0],r:[-0.26,0.87,0.0]},build:g=>{const k=W_();
+   for(const s of[-1,1]){cy(g,.012,.012,.86,s*.26,.43,-.05,0,0,0,k,6);cy(g,.012,.012,.86,s*.26,.43,.4,0,0,0,k,6);cy(g,.012,.012,.48,s*.26,.86,.17,90,0,0,k,6);bx(g,.035,.035,.11,s*.26,.87,0,0,0,0,F_());sp(g,.03,s*.26,.03,-.05,MAT.furn);}
+   cy(g,.012,.012,.52,0,.6,.4,0,0,90,k,6);}},
+ {id:'crutch',name:'Forearm crutch',cat:'Mobility',pts:{grip:[0,0.8,0.05]},build:g=>{const k=W_();cy(g,.012,.012,1.02,0,.51,0,0,0,0,k,6);bx(g,.025,.025,.12,0,.8,.05,0,0,0,F_());bx(g,.07,.06,.03,0,.98,-.03,0,0,0,k);cy(g,.018,.018,.04,0,.02,0,0,0,0,MAT.furn,6);}},
+ {id:'longcane',name:'Long white cane',cat:'Mobility',pts:{grip:[0,1.08,0]},build:g=>{cy(g,.006,.006,1.12,0,.56,0,0,0,0,MAT.prop,6);cy(g,.012,.012,.2,0,1.02,0,0,0,0,W_(),6);sp(g,.015,0,.015,0,W_());}},
+ {id:'officechair',name:'Office chair',cat:'Set pieces',pts:{},build:g=>{const k=W_();for(let i=0;i<5;i++){const a=i*72*D2R;bx(g,.3,.03,.04,Math.cos(a)*.15,.06,Math.sin(a)*.15,0,-i*72,0,k);}
+   cy(g,.025,.025,.36,0,.26,0,0,0,0,k,6);bx(g,.48,.08,.46,0,.48,0,0,0,0,F_());bx(g,.44,.52,.06,0,.82,-.22,-8,0,0,F_());bx(g,.05,.04,.28,.25,.68,0,0,0,0,k);bx(g,.05,.04,.28,-.25,.68,0,0,0,0,k);}},
+ {id:'monitor',name:'Monitor',cat:'Set pieces',pts:{},build:g=>{const k=W_();bx(g,.2,.012,.15,0,.006,0,0,0,0,k);bx(g,.04,.25,.03,0,.13,-.04,0,0,0,k);bx(g,.56,.33,.03,0,.38,0,0,0,0,k);}},
+ {id:'keyboard',name:'Keyboard',cat:'Set pieces',pts:{},build:g=>{bx(g,.44,.02,.14,0,.01,0,0,0,0,W_());}},
+ {id:'bookshelf',name:'Bookshelf',cat:'Set pieces',pts:{},build:g=>{const m=F_();bx(g,.04,1.9,.32,-.45,.95,0,0,0,0,m);bx(g,.04,1.9,.32,.45,.95,0,0,0,0,m);bx(g,.9,1.9,.02,0,.95,-.15,0,0,0,m);
+   for(let i=0;i<5;i++){bx(g,.9,.03,.32,0,.02+i*.46,0,0,0,0,m);if(i<4)for(let j=0;j<5;j++)bx(g,.09+((i+j)%3)*.03,.3-((i*2+j)%3)*.04,.22,-.36+j*.17,.19+i*.46-((i*2+j)%3)*.02,.02,0,0,(j===4?-12:0),MAT.prop);}}},
+ {id:'nightstand',name:'Nightstand',cat:'Set pieces',pts:{},build:g=>{bx(g,.45,.55,.4,0,.275,0,0,0,0,F_());bx(g,.38,.01,.01,0,.4,.2,0,0,0,W_());}},
+ {id:'floorlamp',name:'Floor lamp',cat:'Set pieces',pts:{},build:g=>{const k=W_();cy(g,.15,.15,.03,0,.015,0,0,0,0,k,10);cy(g,.015,.015,1.5,0,.76,0,0,0,0,k,6);cy(g,.17,.24,.26,0,1.55,0,0,0,0,MAT.prop,10);}},
+ {id:'tablelamp',name:'Table lamp',cat:'Set pieces',pts:{},build:g=>{cy(g,.07,.08,.04,0,.02,0,0,0,0,W_(),10);cy(g,.015,.015,.3,0,.18,0,0,0,0,W_(),6);cy(g,.1,.15,.17,0,.38,0,0,0,0,MAT.prop,10);}},
+ {id:'coffeetable',name:'Coffee table',cat:'Set pieces',pts:{},build:g=>{const m=F_();bx(g,1.0,.04,.55,0,.42,0,0,0,0,m);for(const x of[-.44,.44])for(const z of[-.22,.22])bx(g,.04,.4,.04,x,.2,z,0,0,0,m);}},
+ {id:'tv',name:'TV on stand',cat:'Set pieces',pts:{},build:g=>{bx(g,1.4,.5,.4,0,.25,0,0,0,0,F_());bx(g,1.2,.7,.05,0,.9,-.05,0,0,0,W_());bx(g,.3,.06,.15,0,.52,-.05,0,0,0,W_());}},
+ {id:'armchair',name:'Armchair',cat:'Set pieces',pts:{},build:g=>{const m=F_();bx(g,.85,.36,.8,0,.18,0,0,0,0,m);bx(g,.6,.12,.62,0,.42,.05,0,0,0,m);bx(g,.85,.5,.18,0,.67,-.31,0,0,0,m);bx(g,.15,.6,.8,.35,.3,0,0,0,0,m);bx(g,.15,.6,.8,-.35,.3,0,0,0,0,m);}},
+ {id:'counter',name:'Counter',cat:'Set pieces',pts:{},build:g=>{bx(g,2,.88,.6,0,.44,0,0,0,0,F_());bx(g,2.05,.04,.66,0,.9,0,0,0,0,MAT.prop);}},
+ {id:'barstool',name:'Bar stool',cat:'Set pieces',pts:{},build:g=>{const k=W_();cy(g,.18,.18,.05,0,.74,0,0,0,0,F_(),12);cy(g,.025,.025,.7,0,.36,0,0,0,0,k,6);cy(g,.2,.2,.02,0,.01,0,0,0,0,k,12);}},
+ {id:'partition',name:'Cubicle wall',cat:'Set pieces',pts:{},build:g=>{bx(g,1.5,1.4,.06,0,.7,0,0,0,0,MAT.prop);bx(g,1.52,.03,.08,0,1.415,0,0,0,0,W_());}},
+ {id:'console',name:'Control console',cat:'Set pieces',pts:{},build:g=>{const k=W_();bx(g,1.4,.7,.6,0,.35,0,0,0,0,F_());bx(g,1.4,.04,.45,0,.76,.04,18,0,0,MAT.prop);bx(g,.6,.38,.04,-.35,1.12,-.22,-10,0,0,k);bx(g,.6,.38,.04,.35,1.12,-.22,-10,0,0,k);bx(g,.06,.3,.06,0,.92,-.25,0,0,0,k);}},
+ {id:'bigscreen',name:'Wall screen',cat:'Set pieces',pts:{},build:g=>{const k=W_();bx(g,3.2,1.8,.08,0,1.7,0,0,0,0,k);bx(g,.1,.8,.1,-1.2,.4,0,0,0,0,k);bx(g,.1,.8,.1,1.2,.4,0,0,0,0,k);}},
+ {id:'chairrow',name:'Row of 3 chairs',cat:'Set pieces',pts:{},build:g=>{const k=W_();bx(g,1.75,.05,.06,0,.25,-.05,0,0,0,k);bx(g,.05,.25,.4,-.86,.125,-.05,0,0,0,k);bx(g,.05,.25,.4,.86,.125,-.05,0,0,0,k);
+   for(let i=-1;i<=1;i++){bx(g,.48,.05,.45,i*.56,.45,0,0,0,0,F_());bx(g,.48,.42,.04,i*.56,.7,-.21,-8,0,0,F_());}for(let i=0;i<4;i++)bx(g,.04,.2,.36,-.84+i*.56,.6,0,0,0,0,k);}},
+ {id:'seatrow',name:'Transit seats, pair',cat:'Set pieces',pts:{},build:g=>{for(const x of[-.25,.25]){bx(g,.46,.12,.46,x,.42,0,0,0,0,F_());bx(g,.46,.75,.12,x,.85,-.25,-10,0,0,F_());bx(g,.28,.16,.1,x,1.3,-.32,-10,0,0,F_());}bx(g,.9,.3,.06,0,.18,0,0,0,0,W_());}},
+ {id:'whiteboard',name:'Whiteboard',cat:'Set pieces',pts:{},build:g=>{bx(g,1.6,1.0,.03,0,1.45,0,0,0,0,MAT.prop);bx(g,1.6,.03,.07,0,.94,.03,0,0,0,W_());}},
+ {id:'filecab',name:'Filing cabinet',cat:'Set pieces',pts:{},build:g=>{bx(g,.45,1.3,.6,0,.65,0,0,0,0,MAT.prop);for(let i=0;i<4;i++)bx(g,.2,.02,.02,0,.25+i*.3,.3,0,0,0,W_());}},
+ {id:'fridge',name:'Fridge',cat:'Set pieces',pts:{},build:g=>{bx(g,.8,1.85,.7,0,.925,0,0,0,0,MAT.prop);bx(g,.03,.5,.03,.32,1.2,.36,0,0,0,W_());bx(g,.78,.01,.01,0,1.25,.355,0,0,0,W_());}},
+ {id:'schooldesk',name:'School desk',cat:'Set pieces',pts:{},build:g=>{const k=W_();bx(g,.65,.03,.48,0,.72,.32,0,0,0,F_());bx(g,.04,.7,.04,-.28,.35,.32,0,0,0,k);bx(g,.04,.7,.04,.28,.35,.32,0,0,0,k);
+   bx(g,.42,.04,.4,0,.44,0,0,0,0,F_());bx(g,.42,.35,.03,0,.65,-.2,-6,0,0,F_());bx(g,.03,.44,.03,-.18,.22,0,0,0,0,k);bx(g,.03,.44,.03,.18,.22,0,0,0,0,k);}},
+ {id:'rug',name:'Rug',cat:'Set pieces',pts:{},build:g=>{bx(g,2,.01,1.4,0,.005,0,0,0,0,MAT.prop);}},
+ {id:'plant',name:'Potted plant',cat:'Set pieces',pts:{},build:g=>{cy(g,.15,.12,.3,0,.15,0,0,0,0,F_(),10);const c=mk(new THREE.IcosahedronGeometry(.32,0),MAT.prop);c.position.set(0,.6,0);c.scale.set(1,1.3,1);g.add(c);}},
+ {id:'r-office',name:'Office',cat:'Rooms',room:1,pts:{},build:g=>{wall(g,4.2,0,-1.6);wall(g,3.4,-2.1,0.1,90);piece(g,'officechair',0,0);piece(g,'table',0,.62);piece(g,'monitor',0,.85,0,.75);piece(g,'keyboard',0,.5,0,.75);
+   piece(g,'bookshelf',-1.4,-1.38);piece(g,'filecab',1.3,-1.25);piece(g,'plant',1.8,.9);piece(g,'chair',-.35,1.5,180);piece(g,'chair',.35,1.5,180);piece(g,'whiteboard',.4,-1.52);}},
+ {id:'r-cubicle',name:'Cubicle row',cat:'Rooms',room:1,pts:{},build:g=>{for(const x of[-1.8,0,1.8]){piece(g,'officechair',x,0);piece(g,'table',x,.6);piece(g,'monitor',x,.82,0,.75);piece(g,'keyboard',x,.48,0,.75);
+   piece(g,'partition',x,1.0);piece(g,'partition',x+.9,.3,90);}piece(g,'partition',-2.7,.3,90);}},
+ {id:'r-control',name:'Control room',cat:'Rooms',room:1,pts:{},build:g=>{wall(g,6,-3,1.2,90);wall(g,6,3,1.2,90);piece(g,'bigscreen',0,3.6);
+   for(const z of[0,-1.7])for(const x of[-1.5,0,1.5]){piece(g,'console',x,z+.62);piece(g,'officechair',x,z);}bx(g,6,.25,1.8,0,.125,-2.1,0,0,0,MAT.furn);}},
+ {id:'r-living',name:'Living room',cat:'Rooms',room:1,pts:{},build:g=>{wall(g,4.4,0,-.62);piece(g,'sofa',0,0);piece(g,'rug',0,1.0);piece(g,'coffeetable',0,1.0);piece(g,'tv',0,2.4,180);piece(g,'armchair',1.6,1.0,-90);piece(g,'floorlamp',-1.3,-.25);piece(g,'plant',1.5,-.3);}},
+ {id:'r-bedroom',name:'Bedroom',cat:'Rooms',room:1,pts:{},build:g=>{wall(g,4.4,0,-1.12);piece(g,'bed',0,0);piece(g,'nightstand',-1.0,-.8);piece(g,'nightstand',1.0,-.8);piece(g,'tablelamp',-1.0,-.8,0,.55);piece(g,'tablelamp',1.0,-.8,0,.55);piece(g,'rug',0,1.4);piece(g,'bookshelf',-1.9,.6,90);}},
+ {id:'r-waiting',name:'Waiting room',cat:'Rooms',room:1,pts:{},build:g=>{wall(g,4.6,0,-.42);piece(g,'chairrow',-.6,0);piece(g,'chairrow',-.6,2.3,180);piece(g,'coffeetable',-.6,1.15);piece(g,'plant',1.0,-.1);piece(g,'counter',2.3,1.15,-90);}},
+ {id:'r-conference',name:'Conference room',cat:'Rooms',room:1,pts:{},build:g=>{const m=F_();bx(g,2.6,.05,1.15,0,.73,0,0,0,0,m);bx(g,1.6,.7,.5,0,.35,0,0,0,0,m);
+   for(const x of[-.85,0,.85]){piece(g,'officechair',x,-.9);piece(g,'officechair',x,.9,180);}piece(g,'officechair',-1.75,0,90);piece(g,'bigscreen',2.6,0,-90,-.4);wall(g,3.4,0,-1.8);}},
+ {id:'r-bridge',name:'Starship bridge',cat:'Rooms',room:1,pts:{},build:g=>{const m=MAT.prop;piece(g,'armchair',0,0);bx(g,1.2,.12,1.2,0,.06,0,0,0,0,MAT.furn);piece(g,'helm',-.9,1.7);piece(g,'helm',.9,1.7);
+   const sc=bx(g,5,2,.1,0,1.5,4.1,0,0,0,W_());piece(g,'console',-2.6,.6,90);piece(g,'console',2.6,.6,-90);piece(g,'officechair',-2.05,.6,-90);piece(g,'officechair',2.05,.6,90);piece(g,'console',0,-1.5,180);bx(g,3.4,1.0,.06,0,.5,-.9,0,0,0,m);}},
+ {id:'r-transit',name:'Bus or plane cabin',cat:'Rooms',room:1,pts:{},build:g=>{for(const z of[-1.7,-.85,0,.85,1.7]){piece(g,'seatrow',-.62,z);piece(g,'seatrow',.62,z);}
+   bx(g,.08,2.1,4.6,-1.2,1.05,0,0,0,0,MAT.furn);bx(g,.08,2.1,4.6,1.2,1.05,0,0,0,0,MAT.furn);for(const z of[-1.7,-.85,0,.85,1.7]){bx(g,.1,.4,.5,-1.2,1.35,z+.1,0,0,0,MAT.prop);bx(g,.1,.4,.5,1.2,1.35,z+.1,0,0,0,MAT.prop);}}},
+ {id:'r-flightdeck',name:'Flight deck, two seats',cat:'Rooms',room:1,pts:{},build:g=>{piece(g,'cockpit',-.55,0);piece(g,'cockpit',.55,0);bx(g,2.2,.1,.6,0,1.9,.4,-20,0,0,MAT.prop);bx(g,.08,.9,.08,0,1.45,1.0,-25,0,0,W_());bx(g,2.4,.06,.08,0,1.0,1.1,0,0,0,W_());bx(g,2.4,.06,.08,0,1.9,.75,0,0,0,W_());}},
+ {id:'r-kitchen',name:'Kitchen',cat:'Rooms',room:1,pts:{},build:g=>{wall(g,4.4,0,-1.35);piece(g,'counter',0,-1.0);bx(g,2,.7,.35,0,1.75,-1.12,0,0,0,MAT.prop);piece(g,'fridge',1.5,-.95);piece(g,'counter',0,.6);piece(g,'barstool',-.35,1.15);piece(g,'barstool',.35,1.15);}},
+ {id:'r-classroom',name:'Classroom',cat:'Rooms',room:1,pts:{},build:g=>{for(const z of[0,1.0,2.0])for(const x of[-1.4,-.47,.47,1.4])piece(g,'schooldesk',x,z,180);piece(g,'table',0,-1.3);piece(g,'chair',0,-1.85);piece(g,'whiteboard',0,-2.3);wall(g,4.6,0,-2.4);}},
+ {id:'rod',name:'Cleaning rod',cat:'Hand props',hand:1,pts:{grip:[0,0,0]},build:g=>{const m=W_();cy(g,.004,.004,.8,0,.38,0,0,0,0,m,6);cy(g,.012,.012,.1,0,0,0,0,0,90,m,6);}},
+ {id:'chair',name:'Chair',cat:'Furniture',pts:{},build:g=>{const m=F_();bx(g,.45,.04,.45,0,.45,0,0,0,0,m);for(const x of[-.2,.2])for(const z of[-.2,.2])cy(g,.018,.018,.43,x,.215,z,0,0,0,m,6);bx(g,.45,.42,.035,0,.69,-.21,0,0,0,m);}},
+ {id:'stool',name:'Stool',cat:'Furniture',pts:{},build:g=>{const m=F_();cy(g,.18,.18,.04,0,.45,0,0,0,0,m,12);for(let i=0;i<3;i++){const a=i*120*D2R;cy(g,.016,.02,.44,Math.cos(a)*.12,.22,Math.sin(a)*.12,0,0,0,m,6);}}},
+ {id:'table',name:'Table',cat:'Furniture',pts:{},build:g=>{const m=F_();bx(g,1.2,.04,.75,0,.73,0,0,0,0,m);for(const x of[-.55,.55])for(const z of[-.32,.32])cy(g,.025,.025,.71,x,.355,z,0,0,0,m,6);}},
+ {id:'sofa',name:'Sofa',cat:'Furniture',pts:{},build:g=>{const m=F_();bx(g,1.9,.42,.85,0,.21,0,0,0,0,m);bx(g,1.54,.12,.68,0,.48,.06,0,0,0,m);bx(g,1.9,.48,.2,0,.64,-.33,0,0,0,m);bx(g,.18,.62,.85,-.86,.31,0,0,0,0,m);bx(g,.18,.62,.85,.86,.31,0,0,0,0,m);}},
+ {id:'bed',name:'Bed',cat:'Furniture',pts:{},build:g=>{const m=F_();bx(g,1.5,.35,2.05,0,.175,0,0,0,0,m);bx(g,1.44,.2,1.98,0,.45,0,0,0,0,m);bx(g,.6,.1,.35,-.35,.6,-.75,0,0,0,m);bx(g,.6,.1,.35,.35,.6,-.75,0,0,0,m);bx(g,1.5,.9,.06,0,.45,-1.02,0,0,0,m);}},
+ {id:'crate',name:'Crate',cat:'Set blocks',pts:{},build:g=>{const m=F_();bx(g,.6,.6,.6,0,.3,0,0,0,0,m);bx(g,.62,.06,.62,0,.06,0,0,0,0,m);bx(g,.62,.06,.62,0,.54,0,0,0,0,m);}},
+ {id:'barrel',name:'Barrel',cat:'Set blocks',pts:{},build:g=>{const m=F_();cy(g,.3,.3,.9,0,.45,0,0,0,0,m,12);cy(g,.315,.315,.05,0,.2,0,0,0,0,MAT.wpn,12);cy(g,.315,.315,.05,0,.7,0,0,0,0,MAT.wpn,12);}},
+ {id:'wall',name:'Wall',cat:'Set blocks',pts:{},build:g=>{bx(g,2,2.4,.15,0,1.2,0,0,0,0,F_());}},
+ {id:'cover',name:'Low cover',cat:'Set blocks',pts:{},build:g=>{bx(g,1.4,1.0,.25,0,.5,0,0,0,0,F_());}},
+ {id:'door',name:'Doorway',cat:'Set blocks',pts:{},build:g=>{const m=F_();bx(g,.1,2.1,.15,-.5,1.05,0,0,0,0,m);bx(g,.1,2.1,.15,.5,1.05,0,0,0,0,m);bx(g,1.1,.12,.15,0,2.16,0,0,0,0,m);}},
+ {id:'stairs',name:'Stairs',cat:'Set blocks',pts:{},build:g=>{for(let i=0;i<5;i++)bx(g,1,.18*(i+1),.28,0,.09*(i+1),i*.28,0,0,0,F_());}},
+ {id:'tree',name:'Tree',cat:'Set blocks',pts:{},build:g=>{cy(g,.12,.17,1.6,0,.8,0,0,0,0,MAT.furn,6);const c=mk(new THREE.IcosahedronGeometry(.9,0),MAT.prop);c.position.set(0,2.15,0);c.scale.set(1,1.2,1);g.add(c);}},
+ {id:'car',name:'Car',cat:'Set blocks',pts:{},build:g=>{const m=MAT.prop;bx(g,4.2,.7,1.8,0,.6,0,0,0,0,m);bx(g,2.2,.55,1.62,-.2,1.22,0,0,0,0,m);for(const x of[-1.35,1.35])for(const z of[-.82,.82])cy(g,.34,.34,.25,x,.34,z,90,0,0,MAT.wpn,12);}},
+ {id:'dog',name:'Dog',cat:'Animals',pts:{},build:g=>{const m=MAT.pet;const b=mk(CAP,m);b.scale.set(.28,.32,.3);b.rotation.x=Math.PI/2;b.position.set(0,.5,0);g.add(b);
+   sp(g,.13,0,.7,.36,m);bx(g,.11,.09,.15,0,.66,.5,0,0,0,m);bx(g,.05,.11,.03,.08,.81,.34,0,0,-15,m);bx(g,.05,.11,.03,-.08,.81,.34,0,0,15,m);
+   for(const x of[-.09,.09])for(const z of[-.2,.2])cy(g,.04,.034,.42,x,.21,z,0,0,0,m,6);cy(g,.02,.012,.3,0,.64,-.42,-40,0,0,m,6);}},
+ {id:'cat',name:'Cat',cat:'Animals',pts:{},build:g=>{const m=MAT.pet;const b=mk(CAP,m);b.scale.set(.15,.2,.16);b.rotation.x=Math.PI/2;b.position.set(0,.25,0);g.add(b);
+   sp(g,.075,0,.36,.22,m);cone(g,.032,.07,.045,.45,.22,0,m,4);cone(g,.032,.07,-.045,.45,.22,0,m,4);
+   for(const x of[-.05,.05])for(const z of[-.11,.11])cy(g,.02,.018,.2,x,.1,z,0,0,0,m,6);cy(g,.014,.01,.34,0,.4,-.25,-25,0,0,m,6);}},
+ {id:'box',name:'Box',cat:'Primitives',pts:{},build:g=>{bx(g,.5,.5,.5,0,.25,0);}},
+ {id:'cylinder',name:'Cylinder',cat:'Primitives',pts:{},build:g=>{cy(g,.25,.25,.5,0,.25,0,0,0,0,MAT.prop,16);}},
+ {id:'sphere',name:'Sphere',cat:'Primitives',pts:{},build:g=>{sp(g,.25,0,.25,0);}},
+ {id:'wedge',name:'Wedge',cat:'Primitives',pts:{},build:g=>{const m=mk(cylGeo(.4,.4,.6,3),MAT.prop);m.rotation.set(0,0,Math.PI/2);m.position.set(0,.2,0);g.add(m);}},
+ {id:'cone',name:'Cone',cat:'Primitives',pts:{},build:g=>{cone(g,.25,.5,0,.25,0,0,MAT.prop,12);}},
+ {id:'panel',name:'Panel',cat:'Primitives',pts:{},build:g=>{bx(g,1,1,.02,0,.5,0);}}
+];
+/* animals */
+function quad(g,o){
+  const m=o.mat||MAT.pet,bh=o.back,d=o.d,L=o.len,w=o.w,by=bh-d/2;
+  const b=mk(CAP,m);b.scale.set(w,L/2,d);b.rotation.x=Math.PI/2;b.position.set(0,by,0);g.add(b);
+  const ll=by-d*0.15;
+  for(const x of[-1,1])for(const z of[-1,1])cy(g,o.leg,o.leg*0.8,ll,x*w*0.3,ll/2,z*L*0.32,0,0,0,m,6);
+  const a=o.neckA,N0=new V3(0,by+d*0.25,L*0.38),dir=new V3(0,Math.cos(a*D2R),Math.sin(a*D2R)),nl=o.neck;
+  const nc=N0.clone().addScaledVector(dir,nl/2);const nr=o.neckR||w*0.22;cy(g,nr*0.8,nr,nl,nc.x,nc.y,nc.z,a,0,0,m,8);
+  const N1=N0.clone().addScaledVector(dir,nl),hd=o.head,ht=o.headTilt,hdir=new V3(0,Math.cos(ht*D2R),Math.sin(ht*D2R));
+  const hc=N1.clone().addScaledVector(hdir,hd[2]*0.38);const hm=mk(CAP,m);hm.scale.set(hd[0],hd[2]/2,hd[1]);hm.rotation.x=ht*D2R;hm.position.copy(hc);g.add(hm);
+  const top=hc.y+hd[1]*0.45;
+  if(o.ears)for(const s of[-1,1])cone(g,hd[0]*0.22,hd[1]*0.45,s*hd[0]*0.32,top,N1.z,0,m,4);
+  if(o.longEars)for(const s of[-1,1]){const e=mk(CAP,m);e.scale.set(.035,.1,.02);e.position.set(s*.035,top+.08,N1.z-.01);e.rotation.z=s*-0.15;g.add(e);}
+  if(o.horns)for(const s of[-1,1]){const c=mk(new THREE.ConeGeometry(hd[0]*0.13,hd[1]*0.9,6),MAT.furn);c.position.set(s*hd[0]*0.42,top+hd[1]*0.25,N1.z);c.rotation.set(-0.3,0,-s*0.7);g.add(c);}
+  if(o.antlers)for(const s of[-1,1]){cy(g,.012,.012,.38,s*.12,top+.16,N1.z-.04,-15,0,-s*28,MAT.furn,4);cy(g,.01,.01,.18,s*.18,top+.22,N1.z+.06,40,0,-s*20,MAT.furn,4);cy(g,.01,.01,.16,s*.22,top+.34,N1.z-.02,-10,0,-s*55,MAT.furn,4);}
+  if(o.tail){const ta=o.tailA,T0=new V3(0,by+d*0.15,-L*0.45),td=new V3(0,Math.cos(ta*D2R),-Math.sin(ta*D2R)),tc=T0.clone().addScaledVector(td,o.tail/2);cy(g,o.tailR||0.02,(o.tailR||0.02)*1.6,o.tail,tc.x,tc.y,tc.z,-ta,0,0,m,6);}
+  (o.humps||[]).forEach(hp=>sp(g,hp[2],0,bh+hp[1],hp[0],m,1.1,0.9,1));
+  if(o.skirt) bx(g,w*1.02,d*0.45,L*0.85,0,by-d*0.42,0,0,0,0,m);
+  if(o.wings)for(const s of[-1,1]){bx(g,2.3,.04,1.1,s*1.45,bh+0.45,0.1,0,s*8,s*24,MAT.prop);cy(g,.05,.04,2.4,s*1.45,bh+0.5,.62,0,0,90+24*s,m,6);}
+  if(o.spikes)for(let i=0;i<6;i++)cone(g,.07,.22,0,bh+0.06,-L*0.4+i*L*0.14,0,MAT.furn,4);
+}
+function saddle(g,o){const y=o.seatTop||o.back;bx(g,.46,.08,.55,0,y+.02,o.saddleZ,0,0,0,MAT.wpn);for(const s of[-1,1]){bx(g,.015,.35,.015,s*.26,y-.2,o.saddleZ,0,0,0,W_());bx(g,.08,.015,.05,s*.26,y-.38,o.saddleZ,0,0,0,W_());}}
+const MOUNTS={
+  horse:{name:'Horse',back:1.55,len:1.7,w:.55,d:.72,leg:.065,neck:.85,neckA:35,neckR:.15,head:[.22,.24,.62],headTilt:115,ears:1,tail:.75,tailA:160,tailR:.05,saddleZ:-.05,legs:[-36,40,46]},
+  camel:{name:'Camel',back:1.85,len:1.8,w:.6,d:.8,leg:.07,neck:1.0,neckA:62,neckR:.13,head:[.2,.22,.5],headTilt:95,ears:1,humps:[[-.1,.05,.38]],tail:.5,tailA:170,saddleZ:-.1,seatTop:2.27,legs:[-60,30,60]},
+  yak:{name:'Yak',back:1.55,len:1.75,w:.85,d:1.0,leg:.11,neck:.45,neckA:75,neckR:.26,head:[.32,.32,.5],headTilt:130,horns:1,skirt:1,tail:.55,tailA:172,tailR:.05,saddleZ:-.05,legs:[-34,46,48]},
+  dragon:{name:'Dragon',mat:MAT.wpn,back:1.9,len:2.6,w:1.0,d:1.1,leg:.15,neck:1.6,neckA:35,neckR:.24,head:[.34,.34,.78],headTilt:100,horns:1,tail:2.6,tailA:125,tailR:.12,wings:1,spikes:1,saddleZ:.35,legs:[-30,52,50]}
+};
+const mountDef=(id,o)=>({id,name:o.name,cat:'Mounts',mount:o,pts:{l:[0.12,(o.seatTop||o.back)+0.24,o.saddleZ+0.42],r:[-0.12,(o.seatTop||o.back)+0.24,o.saddleZ+0.42]},build:g=>{quad(g,o);saddle(g,o);}});
+Object.keys(MOUNTS).forEach(k=>PROP_DEFS.push(mountDef(k,MOUNTS[k])));
+MOUNTS.roc={name:'Giant bird',back:1.95,saddleZ:-.05,legs:[-30,50,46]};
+PROP_DEFS.push({id:'roc',name:'Giant bird',cat:'Mounts',mount:MOUNTS.roc,pts:{l:[0.12,2.2,0.37],r:[-0.12,2.2,0.37]},build:g=>{const m=MAT.pet;
+  const b=mk(CAP,m);b.scale.set(.85,.8,.95);b.rotation.x=Math.PI/2-0.2;b.position.set(0,1.5,0);g.add(b);
+  for(const s of[-1,1]){cy(g,.07,.05,1.1,s*.22,.55,.05,0,0,0,m,6);for(const r of[-30,0,30])bx(g,.03,.03,.25,s*.22+Math.sin(r*D2R)*.1,.02,.1+Math.cos(r*D2R)*.1,0,r,0,MAT.furn);
+    bx(g,.1,.55,1.35,s*.45,1.62,-.1,-12,0,s*-8,MAT.prop);}
+  cy(g,.14,.2,.75,0,2.05,.55,-12,0,0,m,8);sp(g,.17,0,2.48,.62,m);cone(g,.08,.3,0,2.44,.88,90,MAT.furn,6);bx(g,.7,.05,.8,0,1.55,-.95,20,0,0,MAT.prop);saddle(g,MOUNTS.roc);}});
+const smallQuads={
+  smalldog:['Small dog',{back:.32,len:.42,w:.18,d:.2,leg:.025,neck:.12,neckA:40,head:[.12,.12,.18],headTilt:100,ears:1,tail:.15,tailA:30}],
+  bigdog:['Large dog',{back:.75,len:.9,w:.32,d:.36,leg:.045,neck:.24,neckA:35,head:[.2,.2,.3],headTilt:100,ears:1,tail:.36,tailA:50}],
+  wolf:['Wolf',{back:.8,len:1.0,w:.32,d:.38,leg:.045,neck:.26,neckA:45,head:[.2,.2,.34],headTilt:100,ears:1,tail:.42,tailA:150,tailR:.04}],
+  rabbit:['Rabbit',{back:.26,len:.32,w:.2,d:.24,leg:.03,neck:.06,neckA:20,head:[.12,.13,.16],headTilt:100,longEars:1,tail:.04,tailA:120,tailR:.03}],
+  pig:['Pig',{back:.8,len:1.1,w:.5,d:.55,leg:.05,neck:.12,neckA:80,neckR:.2,head:[.28,.28,.34],headTilt:95,ears:1,tail:.1,tailA:120}],
+  sheep:['Sheep',{back:.8,len:.95,w:.5,d:.55,leg:.035,neck:.25,neckA:40,head:[.15,.18,.28],headTilt:120,ears:1,tail:.1,tailA:160}],
+  goat:['Goat',{back:.75,len:.85,w:.35,d:.4,leg:.03,neck:.3,neckA:30,head:[.13,.15,.28],headTilt:120,horns:1,tail:.1,tailA:30}],
+  cow:['Cow',{back:1.4,len:1.8,w:.7,d:.85,leg:.07,neck:.45,neckA:62,neckR:.2,head:[.28,.3,.5],headTilt:130,horns:1,ears:1,tail:.8,tailA:175}],
+  deer:['Deer',{back:1.0,len:1.1,w:.38,d:.45,leg:.035,neck:.5,neckA:25,head:[.14,.16,.3],headTilt:110,antlers:1,ears:1,tail:.1,tailA:150}],
+  bear:['Bear',{back:1.1,len:1.5,w:.75,d:.85,leg:.11,neck:.3,neckA:70,neckR:.27,head:[.32,.32,.4],headTilt:100,ears:1,tail:.05,tailA:150}]
+};
+Object.keys(smallQuads).forEach(k=>{const[n,o]=smallQuads[k];PROP_DEFS.push({id:k,name:n,cat:'Animals',pts:{},build:g=>quad(g,o)});});
+PROP_DEFS.push({id:'smallbird',name:'Small bird',cat:'Animals',hand:1,pts:{grip:[0,0,0]},build:g=>{const m=MAT.pet;sp(g,.06,0,.09,0,m,1,1,1.5);sp(g,.035,0,.15,.07,m);cone(g,.012,.04,0,.15,.11,90,MAT.furn,4);bx(g,.03,.01,.09,0,.1,-.1,-20,0,0,m);cy(g,.004,.004,.05,.015,.025,0,0,0,0,MAT.furn,4);cy(g,.004,.004,.05,-.015,.025,0,0,0,0,MAT.furn,4);}});
+PROP_DEFS.push({id:'chicken',name:'Chicken',cat:'Animals',pts:{},build:g=>{const m=MAT.pet;sp(g,.14,0,.28,0,m,1,1,1.3);sp(g,.07,0,.45,.12,m);cone(g,.02,.06,0,.45,.2,90,MAT.furn,4);bx(g,.02,.06,.06,0,.53,.11,0,0,0,MAT.furn);bx(g,.12,.14,.04,0,.36,-.16,-30,0,0,m);
+  cy(g,.012,.012,.16,.05,.08,0,0,0,0,MAT.furn,4);cy(g,.012,.012,.16,-.05,.08,0,0,0,0,MAT.furn,4);}});
+const PROP_BY_ID={}; PROP_DEFS.forEach(d=>PROP_BY_ID[d.id]=d);
+const PROP_CATS=['Rooms','Set pieces','Furniture','Set blocks','Ranged','Melee','Hand props','Tools','Mobility','Vehicles','Mounts','Animals','Primitives'];
+function piece(g,id,x,z,ry,y,s){const p=buildProp(PROP_BY_ID[id]);p.position.set(x,y||0,z);p.rotation.y=(ry||0)*D2R;if(s)p.scale.setScalar(s);g.add(p);return p;}
+function wall(g,w,x,z,ry){bx(g,w,2.6,.1,x,1.3,z,0,ry||0,0,MAT.furn);}
+function buildProp(def){const g=new THREE.Group();g.name=def.id;def.build(g);return g;}
+function tagProp(g,inst){g.traverse(o=>{if(o.isMesh)o.userData.prop=inst;});g.userData.prop=inst;}
+
+/* ---------------- poses ---------------- */
+const ARMS={uaL:[0,0,6],uaR:[0,0,-6],faL:[-8,0,0],faR:[-8,0,0]};
+const STANCE={thL:[-14,0,5],shinL:[16,0,0],thR:[10,0,-6],shinR:[12,0,0],hips:[0,-6,0]};
+const WIDE={thL:[0,0,8],thR:[0,0,-8]};
+const KNEEL={thL:[-85,0,4],shinL:[87,0,0],thR:[8,0,-4],shinR:[82,0,0],ftR:[-55,0,0]};
+const SIT={thL:[-90,0,5],shinL:[86,0,0],thR:[-90,0,-5],shinR:[86,0,0]};
+const WALKL={hips:[0,6,0],thL:[-22,0,2],shinL:[8,0,0],thR:[16,0,-2],shinR:[22,0,0]};
+const RUNL={spine:[12,0,0],hips:[0,8,0],thL:[-55,0,2],shinL:[62,0,0],thR:[28,0,-2],shinR:[88,0,0]};
+const AIMHEAD={chest:[6,0,0],neck:[6,0,0],head:[12,-6,-10]};
+const RIFLE=(p,r,t)=>({t:t||'rifle',k:'w',a:'chest',p,r:r||[0,0,0]});
+const PIST=(p,r)=>({t:'pistol',k:'w',a:'chest',p,r:r||[0,0,0]});
+const RIK={R:{prop:'w',pt:'grip',pole:[-1,-0.6,-0.2]},L:{prop:'w',pt:'fore',pole:[0.3,-1,0]}};
+const PIK={R:{prop:'w',pt:'grip',pole:[-0.6,-1,0]},L:{prop:'w',pt:'sup',pole:[0.6,-1,0]}};
+const SIK={R:{prop:'w',pt:'grip',pole:[-0.6,-1,0]},L:{prop:'w',pt:'grip2',pole:[0.6,-1,0]}};
+const CHAIR={t:'chair',k:'chair',a:'root',p:[0,0,0.04]}, TABLE={t:'table',k:'tbl',a:'root',p:[0,0,0.62]};
+const J=(...o)=>Object.assign({},...o);
+const POSES=[
+ {id:'stand',name:'Neutral stand',cat:'Standing',j:J(ARMS)},
+ {id:'apose',name:'A-pose',cat:'Standing',j:{uaL:[0,0,42],uaR:[0,0,-42]}},
+ {id:'tpose',name:'T-pose',cat:'Standing',j:{uaL:[0,0,88],uaR:[0,0,-88]}},
+ {id:'contra',name:'Contrapposto',cat:'Standing',j:{hips:[0,-6,-5],spine:[0,4,3],chest:[0,6,4],head:[0,-12,-5],thL:[-10,0,7],shinL:[16,0,0],thR:[2,0,-2],uaL:[4,0,9],faL:[-10,0,0],uaR:[6,0,-7],faR:[-18,0,0]}},
+ {id:'onhips',name:'Hands on hips',cat:'Standing',j:J(WIDE,{chest:[-3,0,0]}),ik:{L:{a:'hips',p:[0.2,0.03,0],pole:[1,0,-0.5]},R:{a:'hips',p:[-0.2,0.03,0],pole:[-1,0,-0.5]}}},
+ {id:'cross',name:'Arms crossed',cat:'Standing',j:{head:[-3,0,0],thL:[-4,0,4]},ik:{L:{a:'chest',p:[-0.11,0.16,0.15],pole:[1,-0.4,0.1]},R:{a:'chest',p:[0.11,0.18,0.17],pole:[-1,-0.4,0.1]}}},
+ {id:'walk',name:'Walk',cat:'Standing',j:J(WALKL,{chest:[0,-7,0],uaL:[16,0,6],faL:[-12,0,0],uaR:[-18,0,-6],faR:[-28,0,0]})},
+ {id:'lookback',name:'Look over shoulder',cat:'Standing',j:J(ARMS,{chest:[0,22,0],neck:[0,22,0],head:[0,40,-4],thL:[-6,0,4],shinL:[8,0,0]})},
+ {id:'reach',name:'Reach up',cat:'Standing',j:{chest:[-8,0,0],head:[-25,0,0],uaL:[-12,0,168],uaR:[-12,0,-168],faL:[-6,0,0],faR:[-6,0,0]}},
+ {id:'wave',name:'Wave',cat:'Gestures',j:J(ARMS,{head:[0,6,0]}),ik:{L:{a:'chest',p:[0.42,0.62,0.12],pole:[1,-1,-0.2]}}},
+ {id:'point',name:'Point',cat:'Gestures',j:J(ARMS,{uaR:[-86,0,-4],faR:[-4,0,0],chest:[0,-10,0],head:[0,-6,0]})},
+ {id:'think',name:'Thinking',cat:'Gestures',j:{head:[10,0,4],thL:[-4,0,3]},ik:{R:{a:'head',p:[-0.01,0.02,0.15],pole:[-0.3,-1,0.3]},L:{a:'chest',p:[-0.1,0.06,0.16],pole:[1,-0.6,0]}}},
+ {id:'phone',name:'Phone call',cat:'Gestures',j:J(ARMS,{head:[4,0,-8]}),ik:{R:{a:'head',p:[-0.1,0.09,0.03],pole:[-0.6,-1,0.2]}},props:[{t:'phone',k:'ph',a:'hdR',r:[90,0,90]}]},
+ {id:'text',name:'Texting',cat:'Gestures',j:{head:[34,0,0],neck:[10,0,0]},props:[{t:'phone',k:'ph',a:'chest',p:[0,0.14,0.26],r:[-125,0,0]}],ik:{L:{prop:'ph',pt:'l'},R:{prop:'ph',pt:'r'}}},
+ {id:'salute',name:'Salute',cat:'Gestures',j:J(ARMS),ik:{R:{a:'head',p:[-0.07,0.15,0.11],pole:[-1,-0.2,0.2]}}},
+ {id:'facepalm',name:'Facepalm',cat:'Gestures',j:{head:[22,0,0],chest:[6,0,0],uaL:[0,0,6],faL:[-8,0,0]},ik:{R:{a:'head',p:[0,0.13,0.14],pole:[-0.4,-1,0.3]}}},
+ {id:'shrug',name:'Shrug',cat:'Gestures',j:{clavL:[0,0,10],clavR:[0,0,-10],uaL:[-8,0,24],uaR:[-8,0,-24],faL:[-78,0,0],faR:[-78,0,0],head:[0,0,8]}},
+ {id:'handsup',name:'Hands up',cat:'Gestures',j:{head:[-4,0,0]},ik:{L:{a:'chest',p:[0.32,0.72,0.08],pole:[1,-0.5,0]},R:{a:'chest',p:[-0.32,0.72,0.08],pole:[-1,-0.5,0]}}},
+ {id:'coffee',name:'Coffee sip',cat:'Gestures',j:J(ARMS,{head:[6,0,0]}),ik:{R:{a:'head',p:[-0.03,-0.03,0.17],pole:[-0.6,-1,-0.2]}},props:[{t:'cup',k:'cup',a:'hdR'}]},
+ {id:'guard',name:'Boxing guard',cat:'Action',j:J(STANCE,{hips:[0,-20,0],chest:[8,14,0],head:[6,-6,0]}),ik:{L:{a:'chest',p:[0.08,0.46,0.3],pole:[0.4,-1,0]},R:{a:'chest',p:[-0.06,0.44,0.2],pole:[-0.4,-1,0]}}},
+ {id:'jab',name:'Jab',cat:'Action',j:J(STANCE,{hips:[0,-24,0],chest:[8,22,0],head:[6,-10,0]}),ik:{L:{a:'chest',p:[0.06,0.44,0.62],pole:[1,-0.2,0]},R:{a:'chest',p:[-0.06,0.44,0.2],pole:[-0.4,-1,0]}}},
+ {id:'kick',name:'Front kick',cat:'Action',j:{spine:[-10,0,0],thL:[-88,0,4],shinL:[12,0,0],ftL:[40,0,0],thR:[4,0,-3]},ik:{L:{a:'chest',p:[0.1,0.42,0.22],pole:[0.4,-1,0]},R:{a:'chest',p:[-0.08,0.4,0.2],pole:[-0.4,-1,0]}}},
+ {id:'run',name:'Run',cat:'Action',j:J(RUNL,{chest:[0,-12,0],head:[-10,0,0],uaL:[38,0,8],faL:[-90,0,0],uaR:[-45,0,-8],faR:[-88,0,0]})},
+ {id:'jump',name:'Jump',cat:'Action',lift:0.45,j:{thL:[-62,0,6],shinL:[96,0,0],thR:[-48,0,-6],shinR:[88,0,0],uaL:[-150,0,14],uaR:[-150,0,-14],faL:[-20,0,0],faR:[-20,0,0],head:[-10,0,0]}},
+ {id:'leap',name:'Leap',cat:'Action',lift:0.5,j:{spine:[10,0,0],thL:[-70,0,0],shinL:[18,0,0],thR:[42,0,0],shinR:[62,0,0],uaL:[-150,0,22],uaR:[35,0,-30],faL:[-15,0,0],faR:[-20,0,0]}},
+ {id:'stagger',name:'Stagger back',cat:'Action',j:{spine:[-18,0,0],chest:[-12,0,0],head:[-18,0,0],thL:[-30,0,6],shinL:[32,0,0],thR:[8,0,-4],uaL:[-30,0,62],uaR:[-40,0,-72],faL:[-30,0,0],faR:[-30,0,0]}},
+ {id:'crouch',name:'Crouch',cat:'Action',j:{spine:[28,0,0],chest:[10,0,0],head:[-28,0,0],thL:[-115,0,18],shinL:[135,0,0],thR:[-115,0,-18],shinR:[135,0,0],uaL:[-55,0,12],faL:[-40,0,0],uaR:[-55,0,-12],faR:[-40,0,0]}},
+ {id:'sitchair',name:'Sit on chair',cat:'Seated & floor',seat:0.47,j:J(SIT,{spine:[-4,0,0]}),props:[CHAIR],ik:{L:{a:'hips',p:[0.13,0.06,0.3],pole:[0.6,-1,-0.4]},R:{a:'hips',p:[-0.13,0.06,0.3],pole:[-0.6,-1,-0.4]}}},
+ {id:'sitdesk',name:'Typing at desk',cat:'Seated & floor',seat:0.47,j:J(SIT,{spine:[8,0,0],head:[14,0,0]}),props:[CHAIR,{t:'table',k:'desk',a:'root',p:[0,0,0.62]},{t:'laptop',k:'lap',a:'root',p:[0,0.75,0.42]}],ik:{L:{a:'root',p:[0.1,0.79,0.38],pole:[0.6,-1,-0.4]},R:{a:'root',p:[-0.1,0.79,0.38],pole:[-0.6,-1,-0.4]}}},
+ {id:'tabletsit',name:'Seated with tablet',cat:'Seated & floor',seat:0.47,j:J(SIT,{spine:[6,0,0],head:[28,0,0]}),props:[CHAIR,{t:'tablet',k:'tab',a:'chest',p:[0,0.06,0.3],r:[-125,0,0]}],ik:{L:{prop:'tab',pt:'l',pole:[0.6,-1,-0.3]},R:{prop:'tab',pt:'r',pole:[-0.6,-1,-0.3]}}},
+ {id:'crossleg',name:'Sit cross-legged',cat:'Seated & floor',j:{spine:[6,0,0],thL:[-82,-28,42],shinL:[140,0,0],ftL:[20,0,0],thR:[-82,28,-42],shinR:[140,0,0],ftR:[20,0,0]},ik:{L:{a:'hips',p:[0.3,-0.04,0.26],pole:[1,-0.5,-0.3]},R:{a:'hips',p:[-0.3,-0.04,0.26],pole:[-1,-0.5,-0.3]}}},
+ {id:'hugknees',name:'Hug knees',cat:'Seated & floor',j:{spine:[28,0,0],chest:[14,0,0],head:[10,0,0],thL:[-125,0,6],shinL:[132,0,0],thR:[-125,0,-6],shinR:[132,0,0]},ik:{L:{a:'hips',p:[0.04,0.2,0.4],pole:[1,-0.3,0]},R:{a:'hips',p:[-0.04,0.18,0.42],pole:[-1,-0.3,0]}}},
+ {id:'sitfloor',name:'Sit, legs out',cat:'Seated & floor',j:{spine:[-10,0,0],thL:[-88,0,4],shinL:[2,0,0],thR:[-88,0,-4],shinR:[2,0,0]},ik:{L:{a:'hips',p:[0.22,-0.1,-0.22],pole:[0.6,0.4,-1]},R:{a:'hips',p:[-0.22,-0.1,-0.22],pole:[-0.6,0.4,-1]}}},
+ {id:'kneel',name:'Kneel on one knee',cat:'Seated & floor',j:J(KNEEL,{spine:[6,0,0]}),ik:{L:{a:'hips',p:[0.1,0.1,0.42],pole:[1,-0.4,0]},R:{a:'hips',p:[-0.22,-0.06,0.05],pole:[-1,-0.3,-0.3]}}},
+ {id:'supine',name:'Lie on back',cat:'Seated & floor',j:{hips:[-90,0,0],uaL:[0,0,22],uaR:[0,0,-22],faL:[-10,0,0],faR:[-10,0,0],thL:[0,0,5],thR:[0,0,-5],head:[-6,0,0]}},
+ {id:'prone',name:'Lie face down',cat:'Seated & floor',j:{hips:[90,0,0],uaL:[-150,0,30],uaR:[-150,0,-30],faL:[-70,0,0],faR:[-70,0,0],head:[-25,20,0]}},
+ {id:'r-aim',name:'Rifle · aim',cat:'Rifle',j:J(STANCE,AIMHEAD),props:[RIFLE([-0.08,0.35,0.34])],ik:RIK},
+ {id:'r-low',name:'Rifle · low ready',cat:'Rifle',j:J(STANCE,{chest:[4,0,0],head:[2,0,0]}),props:[RIFLE([-0.07,0.24,0.32],[35,0,0])],ik:RIK},
+ {id:'r-high',name:'Rifle · high ready',cat:'Rifle',j:J(STANCE),props:[RIFLE([-0.06,0.2,0.28],[-45,0,0])],ik:RIK},
+ {id:'r-kneel',name:'Rifle · kneeling aim',cat:'Rifle',j:J(KNEEL,AIMHEAD),props:[RIFLE([-0.08,0.35,0.34])],ik:RIK},
+ {id:'r-prone',name:'Rifle · prone',cat:'Rifle',j:{hips:[90,0,0],chest:[-25,0,0],head:[-30,0,-6],thL:[0,0,14],thR:[0,0,-14]},props:[RIFLE([-0.1,0.52,0.22],[-65,0,0])],ik:{R:{prop:'w',pt:'grip',pole:[-1,-0.3,0]},L:{prop:'w',pt:'fore',pole:[0.6,-1,0]}}},
+ {id:'r-cover',name:'Rifle · over cover',cat:'Rifle',j:J(KNEEL,AIMHEAD),props:[RIFLE([-0.08,0.35,0.34]),{t:'cover',k:'cov',a:'root',p:[0,0,0.85]}],ik:RIK},
+ {id:'r-advance',name:'Rifle · advance',cat:'Rifle',j:J(WALKL,AIMHEAD,{chest:[8,-6,0]}),props:[RIFLE([-0.08,0.35,0.34])],ik:RIK},
+ {id:'r-run',name:'Rifle · run',cat:'Rifle',j:J(RUNL,{head:[-8,0,0]}),props:[RIFLE([-0.07,0.24,0.32],[35,0,0])],ik:RIK},
+ {id:'r-patrol',name:'Rifle · patrol carry',cat:'Rifle',j:J(WALKL),props:[RIFLE([0.02,0.12,0.22],[60,0,-28])],ik:RIK},
+ {id:'r-shoulder',name:'Rifle · shoulder carry',cat:'Rifle',j:J(ARMS),props:[RIFLE([-0.21,0.16,0.08],[-80,0,0])],ik:{R:{prop:'w',pt:'grip',pole:[-0.6,-1,0.2]}}},
+ {id:'r-reload',name:'Rifle · reload',cat:'Rifle',j:J(STANCE,{head:[30,0,0],neck:[8,0,0]}),props:[RIFLE([-0.05,0.2,0.34],[18,0,-25])],ik:{R:{prop:'w',pt:'grip',pole:[-1,-0.6,-0.2]},L:{prop:'w',pt:'mag',pole:[0.6,-1,0]}}},
+ {id:'p-aim',name:'Pistol · two-hand aim',cat:'Pistol',j:J(STANCE,{head:[6,0,0]}),props:[PIST([0,0.4,0.48])],ik:PIK},
+ {id:'p-low',name:'Pistol · low ready',cat:'Pistol',j:J(STANCE),props:[PIST([0,0.12,0.4],[45,0,0])],ik:PIK},
+ {id:'p-high',name:'Pistol · high ready',cat:'Pistol',j:J(STANCE),props:[PIST([-0.06,0.4,0.24],[-80,0,0])],ik:PIK},
+ {id:'p-one',name:'Pistol · one-hand aim',cat:'Pistol',j:{hips:[0,-28,0],head:[0,28,0],thL:[-8,0,6],shinL:[8,0,0],thR:[6,0,-6],uaL:[0,0,8],faL:[-10,0,0]},props:[PIST([-0.2,0.42,0.5],[0,28,0])],ik:{R:{prop:'w',pt:'grip',pole:[-1,-0.4,0]}}},
+ {id:'p-draw',name:'Pistol · draw',cat:'Pistol',j:J(STANCE,{head:[6,0,0],uaL:[-20,0,20],faL:[-60,0,0]}),props:[{t:'pistol',k:'w',a:'hips',p:[-0.21,0.02,0.04],r:[100,0,0]}],ik:{R:{prop:'w',pt:'grip',pole:[-0.4,0,-1]}}},
+ {id:'p-corner',name:'Pistol · peek corner',cat:'Pistol',j:J(STANCE,{spine:[0,0,8],chest:[0,0,8],head:[0,0,6]}),props:[PIST([0,0.4,0.42]),{t:'wall',k:'wall',a:'root',p:[-0.55,0,-0.9],r:[0,90,0]}],ik:PIK},
+ {id:'s-mid',name:'Sword · middle guard',cat:'Melee & archery',j:{thL:[-24,0,6],shinL:[24,0,0],thR:[18,0,-6],shinR:[14,0,0],hips:[0,-12,0],chest:[4,10,0]},props:[{t:'sword',k:'w',a:'chest',p:[0,-0.02,0.36],r:[40,-10,0]}],ik:SIK},
+ {id:'s-high',name:'Sword · high guard',cat:'Melee & archery',j:{thL:[-24,0,6],shinL:[24,0,0],thR:[18,0,-6],shinR:[14,0,0],chest:[-4,0,0]},props:[{t:'sword',k:'w',a:'chest',p:[-0.06,0.6,0.14],r:[-35,0,10]}],ik:SIK},
+ {id:'s-lunge',name:'Sword · lunge',cat:'Melee & archery',j:{thL:[-72,0,4],shinL:[74,0,0],thR:[30,0,-4],shinR:[4,0,0],spine:[12,0,0]},props:[{t:'sword',k:'w',a:'chest',p:[-0.04,0.22,0.5],r:[90,0,0]}],ik:SIK},
+ {id:'s-shield',name:'Sword and shield',cat:'Melee & archery',j:J(STANCE,{uaL:[-55,0,22],faL:[-82,0,0],uaR:[-30,0,-18],faR:[-70,0,0]}),props:[{t:'sword',k:'w',a:'hdR',r:[90,0,0]},{t:'shield',k:'sh',a:'faL',p:[0.07,-0.14,0],r:[90,0,0]}]},
+ {id:'dagger',name:'Dagger · reverse grip',cat:'Melee & archery',j:{spine:[18,0,0],thL:[-40,0,14],shinL:[50,0,0],thR:[-10,0,-14],shinR:[40,0,0]},props:[{t:'dagger',k:'w',a:'hdR',r:[-90,0,0]}],ik:{R:{a:'chest',p:[-0.12,0.32,0.36],pole:[-1,-0.5,0]},L:{a:'chest',p:[0.14,0.36,0.34],pole:[1,-0.5,0]}}},
+ {id:'staff',name:'Staff · ready',cat:'Melee & archery',j:J(STANCE),props:[{t:'staff',k:'w',a:'chest',p:[0,0.1,0.34],r:[0,0,-50]}],ik:{R:{prop:'w',pt:'g1',pole:[-0.6,-1,0]},L:{prop:'w',pt:'g2',pole:[0.6,-1,0]}}},
+ {id:'spear',name:'Spear · thrust',cat:'Melee & archery',j:{thL:[-55,0,4],shinL:[56,0,0],thR:[26,0,-4],shinR:[6,0,0],spine:[8,0,0]},props:[{t:'spear',k:'w',a:'chest',p:[-0.05,0.12,0.28],r:[80,0,0]}],ik:{R:{prop:'w',pt:'g1',pole:[-1,-0.5,0]},L:{prop:'w',pt:'g2',pole:[0.6,-1,0]}}},
+ {id:'axe',name:'Axe · wind-up',cat:'Melee & archery',j:{thL:[-20,0,8],shinL:[18,0,0],thR:[12,0,-8],shinR:[10,0,0],chest:[-6,-24,0],head:[0,20,0]},props:[{t:'axe',k:'w',a:'chest',p:[-0.24,0.5,-0.04],r:[-35,0,25]}],ik:{R:{prop:'w',pt:'g2',pole:[-1,0,0]},L:{prop:'w',pt:'g1',pole:[1,-0.3,0]}}},
+ {id:'bow',name:'Bow · full draw',cat:'Melee & archery',j:{thL:[-10,0,8],shinL:[6,0,0],thR:[6,0,-8],head:[4,0,0]},props:[{t:'bow',k:'w',a:'chest',p:[0.08,0.42,0.6],r:[0,0,-8]}],ik:{L:{prop:'w',pt:'grip',pole:[1,-0.4,0]},R:{a:'chest',p:[-0.03,0.44,0.08],pole:[-1,0.1,-0.4]}}},
+ {id:'b-hip',name:'Energy rifle · hip fire',cat:'Sci-fi & heavy',j:J(STANCE,{spine:[-6,0,0]}),props:[RIFLE([-0.12,0,0.32],[0,0,0],'blaster')],ik:RIK},
+ {id:'b-aim',name:'Energy rifle · aim',cat:'Sci-fi & heavy',j:J(STANCE,AIMHEAD),props:[RIFLE([-0.08,0.33,0.34],[0,0,0],'blaster')],ik:RIK},
+ {id:'b-crouch',name:'Energy rifle · crouched',cat:'Sci-fi & heavy',j:{spine:[22,0,0],chest:[-8,0,0],head:[-6,-6,-8],thL:[-110,0,16],shinL:[130,0,0],thR:[-60,0,-14],shinR:[120,0,0]},props:[RIFLE([-0.08,0.33,0.34],[0,0,0],'blaster')],ik:RIK},
+ {id:'heavy',name:'Heavy gun · brace',cat:'Sci-fi & heavy',j:{thL:[-18,0,12],shinL:[16,0,0],thR:[12,0,-12],shinR:[12,0,0],spine:[-8,0,0]},props:[{t:'heavy',k:'w',a:'chest',p:[-0.14,-0.04,0.24],r:[-6,0,0]}],ik:RIK},
+ {id:'strip',name:'Field strip · rifle',cat:'Maintenance',seat:0.47,j:J(SIT,{spine:[16,0,0],chest:[8,0,0],neck:[10,0,0],head:[26,-8,0]}),props:[CHAIR,TABLE,{t:'parts',k:'parts',a:'root',p:[0,0.75,0.47]},{t:'bolt',k:'bolt',a:'hdR'}],ik:{R:{a:'root',p:[-0.07,0.9,0.34],pole:[-0.8,-1,-0.4]},L:{a:'root',p:[0.2,0.79,0.42],pole:[0.8,-1,-0.4]}}},
+ {id:'strip-p',name:'Field strip · pistol',cat:'Maintenance',seat:0.47,j:J(SIT,{spine:[16,0,0],chest:[8,0,0],neck:[10,0,0],head:[28,0,0]}),props:[CHAIR,TABLE,{t:'pparts',k:'parts',a:'root',p:[0,0.75,0.47]},{t:'pslide',k:'slide',a:'hdL'},{t:'pbarrel',k:'bar',a:'hdR'}],ik:{L:{a:'root',p:[0.09,0.88,0.36],pole:[0.8,-1,-0.4]},R:{a:'root',p:[-0.06,0.89,0.37],pole:[-0.8,-1,-0.4]}}},
+ {id:'clean-r',name:'Clean rifle',cat:'Maintenance',seat:0.47,j:J(SIT,{spine:[14,0,0],chest:[8,0,0],neck:[8,0,0],head:[26,14,0]}),props:[CHAIR,TABLE,{t:'rifle',k:'w',a:'root',p:[-0.08,0.78,0.44],r:[0,90,90]},{t:'rod',k:'rod',a:'hdL',r:[0,0,-90]}],ik:{R:{prop:'w',pt:'grip',pole:[-0.8,-1,-0.4]},L:{a:'root',p:[0.42,0.84,0.4],pole:[0.8,-1,-0.4]}}},
+ {id:'cleanp',name:'Clean pistol',cat:'Maintenance',seat:0.47,j:J(SIT,{spine:[14,0,0],chest:[6,0,0],head:[26,0,0]}),props:[CHAIR,TABLE,{t:'pistol',k:'w',a:'root',p:[0.06,0.9,0.36],r:[0,-70,80]},{t:'brush',k:'br',a:'hdR',r:[90,0,0]}],ik:{L:{prop:'w',pt:'grip',pole:[0.8,-1,-0.3]},R:{a:'root',p:[-0.04,0.92,0.4],pole:[-0.8,-1,-0.3]}}},
+ {id:'sharpen-k',name:'Sharpen knife on stone',cat:'Maintenance',seat:0.47,j:J(SIT,{spine:[18,0,0],chest:[8,0,0],neck:[8,0,0],head:[30,0,0]}),props:[CHAIR,TABLE,{t:'whetstone',k:'stone',a:'root',p:[0.02,0.75,0.42],r:[0,-20,0]},{t:'knife',k:'w',a:'hdR'},{t:'cup',k:'oil',a:'root',p:[0.32,0.8,0.52]}],ik:{R:{a:'root',p:[-0.1,0.83,0.4],pole:[-0.8,-1,-0.4]},L:{a:'root',p:[0.03,0.8,0.43],pole:[0.8,-1,-0.3]}}},
+ {id:'sharpen-s',name:'Sharpen sword across lap',cat:'Maintenance',seat:0.47,j:J(SIT,{spine:[22,0,0],chest:[10,0,0],head:[28,10,0]}),props:[{t:'stool',k:'stool',a:'root',p:[0,0,0]},{t:'sword',k:'w',a:'root',p:[-0.3,0.66,0.3],r:[0,0,-90]},{t:'handstone',k:'hs',a:'hdL'}],ik:{R:{prop:'w',pt:'grip',pole:[-0.8,-1,0]},L:{prop:'w',pt:'blade',pole:[0.8,-1,-0.2]}}},
+ {id:'hone',name:'Hone knife on steel',cat:'Maintenance',j:{head:[30,0,0],neck:[8,0,0],thL:[-4,0,4]},props:[{t:'steel',k:'st',a:'hdL'},{t:'knife',k:'w',a:'hdR'}],ik:{L:{a:'chest',p:[0.06,0.12,0.3],pole:[1,-1,0]},R:{a:'chest',p:[-0.08,0.16,0.3],pole:[-1,-1,0]}}},
+ {id:'wipe',name:'Wipe down sword',cat:'Maintenance',j:{head:[20,0,0],thL:[-6,0,4],shinL:[6,0,0]},props:[{t:'sword',k:'w',a:'chest',p:[-0.04,-0.02,0.34],r:[15,0,-8]},{t:'rag',k:'rag',a:'hdL'}],ik:{R:{prop:'w',pt:'grip',pole:[-1,-1,0]},L:{prop:'w',pt:'blade',pole:[1,-1,0]}}},
+ {id:'r-inspect',name:'Inspect rifle',cat:'Maintenance',j:{head:[28,8,0],neck:[8,0,0],thL:[-6,0,4],shinL:[8,0,0]},props:[RIFLE([0.06,0.18,0.36],[0,80,-10])],ik:{R:{prop:'w',pt:'grip',pole:[-1,-1,0]},L:{prop:'w',pt:'fore',pole:[1,-1,0]}}},
+ {id:'loadmag',name:'Load magazine',cat:'Maintenance',j:{head:[30,0,0],neck:[8,0,0]},props:[{t:'mag',k:'mag',a:'chest',p:[0.02,0.12,0.3],r:[-20,0,0]}],ik:{L:{prop:'mag',pt:'grip',pole:[1,-1,0]},R:{prop:'mag',pt:'top',pole:[-1,-0.6,0]}}},
+ {id:'kitcheck',name:'Kit check, kneeling',cat:'Maintenance',j:J(KNEEL,{spine:[24,0,0],head:[30,0,0]}),props:[{t:'crate',k:'crate',a:'root',p:[0,0,0.62],s:0.75},{t:'mag',k:'mag',a:'hdL',r:[90,0,0]}],ik:{L:{a:'root',p:[0.12,0.62,0.45],pole:[1,-1,0]},R:{a:'root',p:[-0.1,0.6,0.45],pole:[-1,-1,0]}}},
+ {id:'l-dig',name:'Dig with shovel',cat:'Labor',j:{spine:[30,0,0],chest:[10,0,0],head:[10,0,0],thL:[-40,0,6],shinL:[40,0,0],thR:[10,0,-8],shinR:[10,0,0]},props:[{t:'shovel',k:'w',a:'root',p:[0.04,0.78,0.55],r:[-25,0,0]}],ik:{R:{prop:'w',pt:'top',pole:[-1,-0.5,-0.4]},L:{prop:'w',pt:'mid',pole:[1,-1,0]}}},
+ {id:'l-carry',name:'Carry a carton',cat:'Labor',j:J(WALKL,{spine:[-8,0,0],head:[6,0,0]}),props:[{t:'carrybox',k:'box',a:'chest',p:[0,-0.04,0.3]}],ik:{L:{prop:'box',pt:'l',pole:[0.6,-1,-0.4]},R:{prop:'box',pt:'r',pole:[-0.6,-1,-0.4]}}},
+ {id:'l-lift',name:'Lift from the floor',cat:'Labor',j:{spine:[25,0,0],chest:[8,0,0],head:[-10,0,0],thL:[-110,0,22],shinL:[125,0,0],thR:[-110,0,-22],shinR:[125,0,0]},props:[{t:'carrybox',k:'box',a:'root',p:[0,0.17,0.4]}],ik:{L:{prop:'box',pt:'l',pole:[1,-0.4,-0.2]},R:{prop:'box',pt:'r',pole:[-1,-0.4,-0.2]}}},
+ {id:'l-push',name:'Push a heavy crate',cat:'Labor',j:{spine:[30,0,0],chest:[10,0,0],head:[-20,0,0],thL:[-42,0,4],shinL:[32,0,0],thR:[38,0,-4],shinR:[10,0,0],ftR:[-30,0,0]},props:[{t:'crate',k:'crate',a:'root',p:[0,0,0.98],s:1.4}],ik:{L:{a:'root',p:[0.2,0.75,0.55],pole:[1,-1,0]},R:{a:'root',p:[-0.2,0.75,0.55],pole:[-1,-1,0]}}},
+ {id:'l-rope',name:'Haul on a rope',cat:'Labor',j:{spine:[-22,0,0],chest:[-6,0,0],head:[12,0,0],thL:[-48,0,8],shinL:[38,0,0],thR:[12,0,-8],shinR:[8,0,0]},props:[{t:'rope',k:'rope',a:'root',p:[0,0.95,0.32]}],ik:{R:{prop:'rope',pt:'a',pole:[-1,-1,0]},L:{prop:'rope',pt:'b',pole:[1,-1,0]}}},
+ {id:'l-sledge',name:'Sledgehammer swing',cat:'Labor',j:{thL:[-22,0,10],shinL:[20,0,0],thR:[12,0,-10],shinR:[10,0,0],chest:[-8,-20,0],head:[0,18,0]},props:[{t:'sledge',k:'w',a:'chest',p:[-0.2,0.55,-0.06],r:[-30,0,22]}],ik:{R:{prop:'w',pt:'g2',pole:[-1,0,0]},L:{prop:'w',pt:'g1',pole:[1,-0.3,0]}}},
+ {id:'l-nail',name:'Hammer a nail',cat:'Labor',j:J(KNEEL,{spine:[30,0,0],chest:[10,0,0],head:[30,0,0]}),props:[{t:'plank',k:'pl',a:'root',p:[0.05,0.025,0.55],r:[0,80,0]},{t:'hammer',k:'hm',a:'hdR'}],ik:{R:{a:'root',p:[-0.16,0.62,0.42],pole:[-1,-0.3,-0.3]},L:{a:'root',p:[0.02,0.12,0.55],pole:[1,0,-0.3]}}},
+ {id:'l-plank',name:'Plank on shoulder',cat:'Labor',j:J(WALKL,{head:[0,-10,0],uaL:[16,0,6],faL:[-12,0,0]}),props:[{t:'plank',k:'pl',a:'chest',p:[-0.17,0.36,0.1]}],ik:{R:{prop:'pl',pt:'f',pole:[-1,-1,0]}}},
+ {id:'l-sweep',name:'Sweep',cat:'Labor',j:{spine:[18,0,0],head:[14,0,0],thL:[-14,0,5],shinL:[14,0,0],thR:[8,0,-5]},props:[{t:'broom',k:'w',a:'root',p:[0.1,0.82,0.42],r:[-30,0,-12]}],ik:{L:{prop:'w',pt:'g1',pole:[1,-1,-0.4]},R:{prop:'w',pt:'g2',pole:[-1,-1,-0.4]}}},
+ {id:'l-ladder',name:'Climb a ladder',cat:'Labor',lift:0.6,j:{spine:[6,0,0],head:[-15,0,0],thL:[-58,0,4],shinL:[72,0,0],thR:[2,0,-4]},props:[{t:'ladder',k:'lad',a:'root',p:[0,0,0.32]}],ik:{L:{a:'root',p:[0.2,1.85,0.31],pole:[1,-1,-0.4]},R:{a:'root',p:[-0.2,1.55,0.31],pole:[-1,-1,-0.4]}}},
+ {id:'l-barrow',name:'Push a wheelbarrow',cat:'Labor',j:J(WALKL,{spine:[12,0,0],head:[-8,0,0]}),props:[{t:'wheelbarrow',k:'wb',a:'root',p:[0,0,1.15]}],ik:{L:{prop:'wb',pt:'hl',pole:[0.6,-1,-0.4]},R:{prop:'wb',pt:'hr',pole:[-0.6,-1,-0.4]}}},
+ {id:'d-car',name:'Drive a car',cat:'Driving & piloting',seat:0.34,j:{spine:[-14,0,0],head:[12,0,0],thL:[-72,0,6],shinL:[52,0,0],thR:[-72,0,-6],shinR:[52,0,0]},props:[{t:'carseat',k:'car',a:'root',p:[0,0,0.02]}],ik:{L:{prop:'car',pt:'l',pole:[1,-1,-0.4]},R:{prop:'car',pt:'r',pole:[-1,-1,-0.4]}}},
+ {id:'d-car2',name:'Drive, relaxed',cat:'Driving & piloting',seat:0.34,j:{spine:[-18,0,0],head:[14,-8,0],thL:[-72,0,8],shinL:[52,0,0],thR:[-72,0,-6],shinR:[52,0,0]},props:[{t:'carseat',k:'car',a:'root',p:[0,0,0.02]}],ik:{L:{prop:'car',pt:'top',pole:[1,-1,-0.4]},R:{a:'hips',p:[-0.12,0.08,0.3],pole:[-1,-1,-0.4]}}},
+ {id:'d-moto',name:'Ride a motorcycle',cat:'Driving & piloting',seat:0.88,j:{spine:[26,0,0],chest:[6,0,0],head:[-24,0,0],thL:[-45,0,14],shinL:[85,0,0],thR:[-45,0,-14],shinR:[85,0,0]},props:[{t:'motorbike',k:'bike',a:'root',p:[0,0,0.12]}],ik:{L:{prop:'bike',pt:'l',pole:[1,-1,-0.4]},R:{prop:'bike',pt:'r',pole:[-1,-1,-0.4]}}},
+ {id:'d-jet',name:'Fly a jet',cat:'Driving & piloting',seat:0.37,j:{spine:[-10,0,0],head:[10,0,0],thL:[-80,0,8],shinL:[38,0,0],thR:[-80,0,-8],shinR:[38,0,0]},props:[{t:'cockpit',k:'cp',a:'root',p:[0,0,0.02]}],ik:{R:{prop:'cp',pt:'stick',pole:[-0.6,-1,-0.4]},L:{prop:'cp',pt:'thr',pole:[1,-1,-0.4]}}},
+ {id:'d-heli',name:'Fly a helicopter',cat:'Driving & piloting',seat:0.37,j:{spine:[4,0,0],head:[8,0,0],thL:[-86,0,10],shinL:[70,0,0],thR:[-86,0,-10],shinR:[70,0,0]},props:[{t:'cockpit',k:'cp',a:'root',p:[0,0,0.02]}],ik:{R:{prop:'cp',pt:'stick',pole:[-0.6,-1,-0.4]},L:{prop:'cp',pt:'coll',pole:[1,-0.6,-0.4]}}},
+ {id:'d-helm',name:'Starship helm',cat:'Driving & piloting',seat:0.48,j:J(SIT,{spine:[2,0,0],head:[4,0,0]}),props:[{t:'helm',k:'helm',a:'root',p:[0,0,0.02]}],ik:{L:{prop:'helm',pt:'l',pole:[1,-1,-0.4]},R:{prop:'helm',pt:'r',pole:[-1,-1,-0.4]}}},
+ {id:'w-grenade',name:'Throw a grenade',cat:'War',j:{thL:[-30,0,6],shinL:[30,0,0],thR:[20,0,-8],shinR:[8,0,0],chest:[-6,-30,0],head:[0,30,0],uaL:[-80,0,20],faL:[-10,0,0]},props:[{t:'grenade',k:'g',a:'hdR'}],ik:{R:{a:'chest',p:[-0.32,0.52,-0.24],pole:[-1,-0.6,0.2]}}},
+ {id:'w-binos',name:'Scan with binoculars',cat:'War',j:J(STANCE,{head:[-4,0,0]}),props:[{t:'binoculars',k:'b',a:'head',p:[0,0.12,0.2]}],ik:{L:{prop:'b',pt:'l',pole:[1,-1,0]},R:{prop:'b',pt:'r',pole:[-1,-1,0]}}},
+ {id:'w-radio',name:'Radio call, kneeling',cat:'War',j:J(KNEEL,{head:[6,0,-8]}),props:[{t:'handset',k:'h',a:'hdR'},RIFLE([0.02,0.12,0.22],[60,0,-28])],ik:{R:{a:'head',p:[-0.1,0.08,0.05],pole:[-0.6,-1,0.2]},L:{prop:'w',pt:'fore',pole:[1,-1,0]}}},
+ {id:'w-crawl',name:'Low crawl',cat:'War',j:{hips:[90,0,0],chest:[-10,0,0],head:[-30,0,0],thL:[0,0,38],thR:[0,0,-8],uaL:[-140,0,25],faL:[-30,0,0],uaR:[-120,0,-40],faR:[-60,0,0]}},
+ {id:'w-cover',name:'Back to the wall',cat:'War',j:{spine:[14,0,0],chest:[-4,0,0],head:[0,40,0],thL:[-110,0,16],shinL:[130,0,0],thR:[-110,0,-16],shinR:[130,0,0]},props:[RIFLE([-0.06,0.2,0.28],[-45,0,0]),{t:'wall',k:'wall',a:'root',p:[0,0,-0.34]}],ik:RIK},
+ {id:'w-duck',name:'Duck and cover',cat:'War',j:{spine:[45,0,0],chest:[12,0,0],head:[20,0,0],thL:[-118,0,16],shinL:[138,0,0],thR:[-118,0,-16],shinR:[138,0,0]},ik:{L:{a:'head',p:[0.06,0.2,0.02],pole:[1,0,0.4]},R:{a:'head',p:[-0.06,0.2,0.02],pole:[-1,0,0.4]}}},
+ {id:'w-charge',name:'Charge',cat:'War',j:J(RUNL,{head:[-10,0,0]}),props:[RIFLE([-0.06,0.2,0.28],[-45,0,0])],ik:RIK},
+ {id:'w-surrender',name:'Surrender, kneeling',cat:'War',j:{thL:[4,0,4],shinL:[86,0,0],ftL:[-60,0,0],thR:[4,0,-4],shinR:[86,0,0],ftR:[-60,0,0],head:[10,0,0]},ik:{L:{a:'head',p:[0.07,0.14,-0.08],pole:[1,0.2,0.2]},R:{a:'head',p:[-0.07,0.14,-0.08],pole:[-1,0.2,0.2]}}},
+ {id:'w-drag',name:'Drag a casualty',cat:'War',members:[{use:'stand',x:0,z:-1.45,yaw:0,j:{spine:[35,0,0],chest:[10,0,0],head:[-20,0,0],thL:[-70,0,10],shinL:[80,0,0],thR:[-40,0,-10],shinR:[60,0,0]},ik:{L:{a:'root',p:[0.12,0.25,0.68],pole:[1,-1,0]},R:{a:'root',p:[-0.12,0.25,0.68],pole:[-1,-1,0]}}},{use:'supine',x:0,z:0,yaw:0,j:{uaL:[0,0,150],uaR:[0,0,-150],head:[-10,0,0]}}]},
+ {id:'w-medic',name:'Medic over casualty',cat:'War',members:[{use:'kneel',x:-0.55,z:-0.4,yaw:90,j:{spine:[38,0,0],chest:[10,0,0],head:[24,0,0]},ik:{L:{a:'root',p:[0.08,0.27,0.55],pole:[1,-0.5,-0.3]},R:{a:'root',p:[-0.04,0.29,0.55],pole:[-1,-0.5,-0.3]}}},{use:'supine',x:0,z:0,yaw:0}]},
+ {id:'sit-bare',name:'Sit (no chair)',cat:'Seated & floor',seat:0.5,j:J(SIT,{spine:[-4,0,0]}),ik:{L:{a:'hips',p:[0.13,0.06,0.3],pole:[0.6,-1,-0.4]},R:{a:'hips',p:[-0.13,0.06,0.3],pole:[-0.6,-1,-0.4]}}},
+ {id:'type-bare',name:'Type at desk (no furniture)',cat:'Seated & floor',seat:0.52,j:J(SIT,{spine:[8,0,0],head:[14,0,0]}),ik:{L:{a:'root',p:[0.12,0.78,0.45],pole:[0.6,-1,-0.4]},R:{a:'root',p:[-0.12,0.78,0.45],pole:[-0.6,-1,-0.4]}}},
+ {id:'sofa-bare',name:'Lounge on sofa (no sofa)',cat:'Seated & floor',seat:0.54,j:J(SIT,{spine:[-18,0,0],head:[16,0,0],thL:[-82,0,10],shinL:[70,0,0]}),ik:{L:{a:'hips',p:[0.3,0.12,-0.02],pole:[1,-1,0]},R:{a:'hips',p:[-0.14,0.08,0.28],pole:[-0.6,-1,-0.4]}}},
+ {id:'pa-confident',name:'Confident',cat:'Posture & attitude',j:{chest:[-8,0,0],head:[-6,0,0],thL:[0,0,9],thR:[0,0,-9],clavL:[0,10,0],clavR:[0,-10,0],uaL:[0,0,10],uaR:[0,0,-10],faL:[-10,0,0],faR:[-10,0,0]}},
+ {id:'pa-heroic',name:'Heroic',cat:'Posture & attitude',j:{thL:[0,0,12],thR:[0,0,-12],chest:[-10,0,0],head:[-12,20,0],clavL:[0,10,0],clavR:[0,-10,0]},ik:{L:{a:'hips',p:[0.21,0.04,0],pole:[1,0,-0.5]},R:{a:'hips',p:[-0.21,0.04,0],pole:[-1,0,-0.5]}}},
+ {id:'pa-arrogant',name:'Arrogant',cat:'Posture & attitude',j:{spine:[-8,0,0],head:[-16,10,0],thL:[-4,0,6]},ik:{L:{a:'chest',p:[-0.11,0.16,0.15],pole:[1,-0.4,0.1]},R:{a:'chest',p:[0.11,0.18,0.17],pole:[-1,-0.4,0.1]}}},
+ {id:'pa-attention',name:'At attention',cat:'Posture & attitude',j:{uaL:[0,0,2],uaR:[0,0,-2],faL:[-2,0,0],faR:[-2,0,0],chest:[-4,0,0],ftL:[0,20,0],ftR:[0,-20,0]}},
+ {id:'pa-ease',name:'Parade rest',cat:'Posture & attitude',j:{thL:[0,0,7],thR:[0,0,-7],chest:[-4,0,0]},ik:{L:{a:'hips',p:[0.04,0,-0.18],pole:[1,0,0.3]},R:{a:'hips',p:[-0.04,0,-0.18],pole:[-1,0,0.3]}}},
+ {id:'pa-pockets',name:'Hands in pockets',cat:'Posture & attitude',j:{hips:[0,-6,-5],chest:[0,6,4],head:[0,-10,-4],thL:[-10,0,7],shinL:[16,0,0],thR:[2,0,-2]},ik:{L:{a:'hips',p:[0.18,-0.06,0.06],pole:[1,0.3,-0.4]},R:{a:'hips',p:[-0.18,-0.06,0.06],pole:[-1,0.3,-0.4]}}},
+ {id:'pa-bored',name:'Bored',cat:'Posture & attitude',j:{hips:[0,-6,-5],spine:[0,4,3],chest:[0,6,4],head:[0,-10,12],thL:[-10,0,7],shinL:[16,0,0],thR:[2,0,-2]},ik:{L:{a:'chest',p:[-0.1,0.12,0.15],pole:[1,-0.4,0.1]},R:{a:'chest',p:[0.1,0.14,0.17],pole:[-1,-0.4,0.1]}}},
+ {id:'pa-impatient',name:'Impatient, checking watch',cat:'Posture & attitude',j:{head:[25,0,0],thL:[-6,0,5]},ik:{L:{a:'chest',p:[0.05,0.12,0.3],pole:[1,-1,0]},R:{a:'chest',p:[0.04,0.15,0.22],pole:[-1,-1,0]}}},
+ {id:'pa-slouch',name:'Slouched',cat:'Posture & attitude',j:{spine:[18,0,0],chest:[14,0,0],neck:[-10,0,0],head:[-14,0,0],clavL:[0,-14,-4],clavR:[0,14,4],uaL:[8,0,4],uaR:[8,0,-4],faL:[-6,0,0],faR:[-6,0,0],thL:[-4,0,3],shinL:[8,0,0]}},
+ {id:'pa-stoop',name:'Elderly stoop',cat:'Posture & attitude',j:{spine:[22,0,0],chest:[18,0,0],neck:[-12,0,0],head:[-22,0,0],clavL:[0,-10,-3],clavR:[0,10,3],thL:[-12,0,3],shinL:[22,0,0],thR:[-12,0,-3],shinR:[22,0,0],uaL:[-14,0,8],uaR:[-14,0,-8],faL:[-30,0,0],faR:[-30,0,0]}},
+ {id:'pa-dejected',name:'Dejected',cat:'Posture & attitude',j:{chest:[16,0,0],neck:[10,0,0],head:[32,0,0],clavL:[0,-12,-8],clavR:[0,12,8],uaL:[6,0,3],uaR:[6,0,-3],faL:[-2,0,0],faR:[-2,0,0]}},
+ {id:'pa-tired',name:'Exhausted, hands on knees',cat:'Posture & attitude',j:{spine:[40,0,0],chest:[10,0,0],head:[-30,0,0],thL:[-18,0,8],shinL:[26,0,0],thR:[-18,0,-8],shinR:[26,0,0]},ik:{L:{a:'thL',p:[0,-0.36,0.08],pole:[1,0,-0.3]},R:{a:'thR',p:[0,-0.36,0.08],pole:[-1,0,-0.3]}}},
+ {id:'pa-angry',name:'Angry',cat:'Posture & attitude',j:{thL:[0,0,9],thR:[0,0,-9],spine:[8,0,0],chest:[6,0,0],head:[-10,0,0],clavL:[0,0,8],clavR:[0,0,-8],uaL:[-6,0,20],uaR:[-6,0,-20],faL:[-50,0,0],faR:[-50,0,0]}},
+ {id:'pa-nervous',name:'Nervous',cat:'Posture & attitude',j:{head:[14,12,0],thL:[0,0,-3],thR:[0,0,3],ftL:[0,-12,0],ftR:[0,12,0],clavL:[0,-6,8],clavR:[0,6,-8]},ik:{L:{a:'chest',p:[-0.15,0.14,0.08],pole:[1,-0.5,0.3]},R:{a:'chest',p:[0.15,0.16,0.08],pole:[-1,-0.5,0.3]}}},
+ {id:'pa-shy',name:'Shy',cat:'Posture & attitude',j:{head:[20,-15,6],thL:[0,0,-2],ftL:[0,-14,0],ftR:[0,10,0]},ik:{L:{a:'hips',p:[0.02,-0.06,0.17],pole:[1,-1,0]},R:{a:'hips',p:[-0.02,-0.04,0.18],pole:[-1,-1,0]}}},
+ {id:'pa-scared',name:'Scared, cowering',cat:'Posture & attitude',j:{spine:[20,0,0],chest:[8,0,0],head:[10,-20,0],thL:[-30,0,8],shinL:[40,0,0],thR:[-20,0,-8],shinR:[30,0,0],clavL:[0,0,10],clavR:[0,0,-10]},ik:{L:{a:'chest',p:[0.1,0.42,0.25],pole:[1,-1,0]},R:{a:'chest',p:[-0.1,0.38,0.28],pole:[-1,-1,0]}}},
+ {id:'pa-cry',name:'Crying into hands',cat:'Posture & attitude',j:{head:[28,0,0],chest:[12,0,0],spine:[8,0,0]},ik:{L:{a:'head',p:[0.04,0.1,0.13],pole:[1,-1,0]},R:{a:'head',p:[-0.04,0.1,0.13],pole:[-1,-1,0]}}},
+ {id:'pa-sneak',name:'Sneaking',cat:'Posture & attitude',j:{spine:[30,0,0],chest:[6,0,0],head:[-26,0,0],thL:[-42,0,6],shinL:[52,0,0],thR:[12,0,-6],shinR:[40,0,0],ftR:[40,0,0],uaL:[-40,0,30],faL:[-80,0,0],uaR:[-30,0,-30],faR:[-80,0,0]}},
+ {id:'pa-celebrate',name:'Celebrate',cat:'Posture & attitude',j:{head:[-22,0,0],chest:[-8,0,0],uaL:[0,0,150],uaR:[0,0,-150],faL:[-15,0,0],faR:[-15,0,0],thL:[0,0,8],thR:[0,0,-8]}},
+ {id:'mb-wc',name:'Wheelchair, resting',cat:'Mobility',seat:0.53,j:{thL:[-88,0,4],shinL:[68,0,0],thR:[-88,0,-4],shinR:[68,0,0]},props:[{t:'wheelchair',k:'wc',a:'root',p:[0,0,0]}],ik:{L:{a:'hips',p:[0.11,0.08,0.26],pole:[0.6,-1,-0.4]},R:{a:'hips',p:[-0.11,0.08,0.26],pole:[-0.6,-1,-0.4]}}},
+ {id:'mb-wc-push',name:'Wheelchair, pushing rims',cat:'Mobility',seat:0.53,j:{spine:[16,0,0],head:[-12,0,0],thL:[-88,0,4],shinL:[68,0,0],thR:[-88,0,-4],shinR:[68,0,0]},props:[{t:'wheelchair',k:'wc',a:'root',p:[0,0,0]}],ik:{L:{prop:'wc',pt:'rimL',pole:[1,0,-1]},R:{prop:'wc',pt:'rimR',pole:[-1,0,-1]}}},
+ {id:'mb-power',name:'Power chair, joystick',cat:'Mobility',seat:0.54,j:{spine:[-6,0,0],head:[4,0,0],thL:[-88,0,4],shinL:[78,0,0],thR:[-88,0,-4],shinR:[78,0,0]},props:[{t:'powerchair',k:'pc',a:'root',p:[0,0,0]}],ik:{R:{prop:'pc',pt:'joy',pole:[-1,-1,-0.3]},L:{prop:'pc',pt:'armL',pole:[1,-1,-0.3]}}},
+ {id:'mb-cane',name:'Walk with a cane',cat:'Mobility',j:J(WALKL,{spine:[6,0,0],uaL:[16,0,6],faL:[-12,0,0]}),props:[{t:'cane',k:'c',a:'root',p:[-0.3,0,0.18],r:[0,0,-4]}],ik:{R:{prop:'c',pt:'grip',pole:[-1,-1,-0.2]}}},
+ {id:'mb-cane2',name:'Lean on a cane',cat:'Mobility',j:{spine:[14,0,0],chest:[8,0,0],head:[-12,0,0],thL:[-6,0,4],shinL:[12,0,0],thR:[-6,0,-4],shinR:[12,0,0]},props:[{t:'cane',k:'c',a:'root',p:[0,0,0.32]}],ik:{R:{prop:'c',pt:'grip',pole:[-1,-1,0]},L:{prop:'c',pt:'top',pole:[1,-1,0]}}},
+ {id:'mb-walker',name:'Using a walker',cat:'Mobility',j:{spine:[16,0,0],head:[-10,0,0],thL:[-14,0,4],shinL:[14,0,0],thR:[6,0,-4],shinR:[14,0,0]},props:[{t:'walker',k:'w',a:'root',p:[0,0,0.22]}],ik:{L:{prop:'w',pt:'l',pole:[1,-0.3,-0.6]},R:{prop:'w',pt:'r',pole:[-1,-0.3,-0.6]}}},
+ {id:'mb-crutch',name:'Crutches, one leg up',cat:'Mobility',j:{spine:[10,0,0],thR:[-22,0,-4],shinR:[55,0,0],thL:[-4,0,4],shinL:[6,0,0]},props:[{t:'crutch',k:'cl',a:'root',p:[0.34,0,0.25],r:[0,0,5]},{t:'crutch',k:'cr',a:'root',p:[-0.34,0,0.25],r:[0,0,-5]}],ik:{L:{prop:'cl',pt:'grip',pole:[1,-0.3,-0.6]},R:{prop:'cr',pt:'grip',pole:[-1,-0.3,-0.6]}}},
+ {id:'mb-longcane',name:'Walk with a long cane',cat:'Mobility',j:J(WALKL,{head:[-4,0,0],uaL:[16,0,6],faL:[-12,0,0]}),props:[{t:'longcane',k:'c',a:'root',p:[-0.1,0.01,0.9],r:[-44,0,6]}],ik:{R:{prop:'c',pt:'grip',pole:[-1,-1,0]}}},
+ {id:'mb-guide',name:'Walk with a guide dog',cat:'Mobility',j:J(WALKL,{uaR:[-16,0,-6],faR:[-12,0,0]}),props:[{t:'dog',k:'dog',a:'root',p:[0.45,0,0.4]}],ik:{L:{a:'root',p:[0.4,0.8,0.42],pole:[1,-1,-0.3]}}},
+ {id:'mb-wc-assist',name:'Wheelchair, pushed by companion',cat:'Mobility',members:[{use:'mb-wc',x:0,z:0},{use:'walk',x:0,z:-0.72,j:{spine:[8,0,0]},ik:{L:{a:'root',p:[0.2,0.97,0.34],pole:[1,-1,-0.4]},R:{a:'root',p:[-0.2,0.97,0.34],pole:[-1,-1,-0.4]}}}]},
+ {id:'f-hands',name:'Walking hand in hand',cat:'Family',members:[{use:'walk',body:'Average',x:-0.32,z:0,ik:{L:{a:'root',p:[0.32,0.72,0.05],pole:[1,-1,-0.3]}}},{use:'walk',body:'Child',x:0.3,z:0,mirror:1,ik:{R:{a:'root',p:[-0.3,0.72,0.05],pole:[-1,-1,-0.3]}}}]},
+ {id:'f-hip',name:'Child on hip',cat:'Family',members:[{use:'stand',body:'Curvy',x:0,z:0,j:{hips:[0,0,-6],spine:[0,0,8],head:[0,20,0]},ik:{L:{a:'root',p:[0.22,0.8,0.12],pole:[1,-1,-0.2]}}},{body:'Toddler',x:0.22,z:0.1,yaw:-70,seat:0.85,j:{thL:[-70,0,40],shinL:[80,0,0],thR:[-70,0,-40],shinR:[80,0,0],uaL:[-30,0,10],faL:[-40,0,0]},ik:{R:{a:'root',p:[-0.23,1.42,0.17],pole:[-1,-1,0]}}}]},
+ {id:'f-piggy',name:'Piggyback',cat:'Family',members:[{use:'stand',body:'Average',x:0,z:0,j:{spine:[15,0,0],head:[-10,0,0]},ik:{L:{a:'root',p:[0.22,0.85,-0.12],pole:[1,-0.5,0.4]},R:{a:'root',p:[-0.22,0.85,-0.12],pole:[-1,-0.5,0.4]}}},{body:'Child',x:0,z:-0.24,seat:0.95,j:{spine:[20,0,0],head:[-6,0,0],thL:[-80,0,35],shinL:[70,0,0],thR:[-80,0,-35],shinR:[70,0,0]},ik:{L:{a:'root',p:[0.08,1.33,0.3],pole:[1,-1,0]},R:{a:'root',p:[-0.08,1.33,0.3],pole:[-1,-1,0]}}}]},
+ {id:'f-shoulders',name:'Shoulder ride',cat:'Family',members:[{use:'stand',body:'Athletic',x:0,z:0,ik:{L:{a:'root',p:[0.2,1.28,0.16],pole:[1,-1,0]},R:{a:'root',p:[-0.2,1.28,0.16],pole:[-1,-1,0]}}},{body:'Child',x:0,z:-0.03,seat:1.52,j:{thL:[-85,0,30],shinL:[80,0,0],thR:[-85,0,-30],shinR:[80,0,0]},ik:{L:{a:'root',p:[0.08,1.74,0.08],pole:[1,-0.4,0]},R:{a:'root',p:[-0.08,1.74,0.08],pole:[-1,-0.4,0]}}}]},
+ {id:'f-lift',name:'Lift child overhead',cat:'Family',members:[{use:'stand',body:'Average',x:0,z:0,j:{head:[-30,0,0],chest:[-6,0,0]},ik:{L:{a:'root',p:[0.12,1.86,0.32],pole:[1,-0.4,0]},R:{a:'root',p:[-0.12,1.86,0.32],pole:[-1,-0.4,0]}}},{body:'Child',x:0,z:0.34,yaw:180,lift:0.95,j:{uaL:[0,0,100],uaR:[0,0,-100],faL:[-10,0,0],faR:[-10,0,0],thL:[14,0,8],shinL:[30,0,0],thR:[10,0,-8],shinR:[20,0,0],head:[12,0,0]},ik:{}}]},
+ {id:'f-kneel',name:'Kneel to talk to a child',cat:'Family',members:[{use:'kneel',body:'Average',x:0,z:0,j:{head:[-8,0,0]},ik:{L:{a:'root',p:[0.12,0.95,0.5],pole:[1,-1,0]},R:{a:'root',p:[-0.12,0.95,0.5],pole:[-1,-1,0]}}},{use:'stand',body:'Child',x:0,z:0.58,yaw:180}]},
+ {id:'f-hug',name:'Kneeling hug',cat:'Family',members:[{use:'kneel',body:'Average',x:0,z:-0.15,j:{head:[0,20,0]},ik:{L:{a:'root',p:[0.12,0.9,0.43],pole:[1,0,0.2]},R:{a:'root',p:[-0.12,0.86,0.43],pole:[-1,0,0.2]}}},{use:'stand',body:'Child',x:0,z:0.18,yaw:180,j:{head:[0,20,0]},ik:{L:{a:'root',p:[0.1,1.12,0.43],pole:[1,0,0.2]},R:{a:'root',p:[-0.1,1.12,0.43],pole:[-1,0,0.2]}}}]},
+ {id:'f-cradle',name:'Cradle a baby',cat:'Family',members:[{use:'stand',body:'Average',x:0,z:0,j:{head:[30,0,0],neck:[8,0,0]},ik:{L:{a:'root',p:[0.2,1.08,0.28],pole:[1,-1,-0.3]},R:{a:'root',p:[-0.1,1.04,0.3],pole:[-1,-1,-0.3]}}},{body:'Infant',x:0.02,z:0.28,yaw:-90,ground:false,y:0.8,j:{hips:[-80,0,0],uaL:[-30,0,20],uaR:[-30,0,-20],faL:[-60,0,0],faR:[-60,0,0],thL:[-40,0,10],shinL:[50,0,0],thR:[-40,0,-10],shinR:[50,0,0]}}]},
+ {id:'f-story',name:'Story on the sofa',cat:'Family',members:[{body:'Average',x:-0.35,z:0,seat:0.54,j:J(SIT,{head:[25,15,0]}),props:[{t:'sofa',k:'sofa',a:'root',p:[0.33,0,-0.05]},{t:'book',k:'bk',a:'chest',p:[0.12,0.1,0.32],r:[-60,0,0]}],ik:{L:{prop:'bk',pt:'l',pole:[1,-1,-0.3]},R:{prop:'bk',pt:'r',pole:[-1,-1,-0.3]}}},{body:'Child',x:0.3,z:0,seat:0.54,j:J(SIT,{spine:[0,0,10],head:[20,-20,0]}),ik:{L:{a:'hips',p:[0.1,0.08,0.25],pole:[1,-1,-0.4]},R:{a:'hips',p:[-0.1,0.08,0.25],pole:[-1,-1,-0.4]}}}]},
+ {id:'f-walk4',name:'Family walk',cat:'Family',members:[{use:'walk',body:'Athletic',x:-0.95,z:0,ik:{L:{a:'root',p:[0.3,0.72,0.05],pole:[1,-1,-0.3]}}},{use:'walk',body:'Child',x:-0.35,z:0,mirror:1,ik:{R:{a:'root',p:[-0.3,0.72,0.05],pole:[-1,-1,-0.3]},L:{a:'root',p:[0.3,0.68,0.05],pole:[1,-1,-0.3]}}},{use:'walk',body:'Toddler',x:0.25,z:0,ik:{R:{a:'root',p:[-0.3,0.68,0.05],pole:[-1,-1,-0.3]},L:{a:'root',p:[0.3,0.72,0.05],pole:[1,-1,-0.3]}}},{use:'walk',body:'Curvy',x:0.85,z:0,mirror:1,ik:{R:{a:'root',p:[-0.3,0.72,0.05],pole:[-1,-1,-0.3]}}}]},
+ {id:'c-hand',name:'Handshake',cat:'Couples',members:[{use:'stand',x:0,z:-0.42,yaw:0,ik:{R:{a:'root',p:[0,0.98,0.41],pole:[-0.6,-1,-0.5]}}},{use:'stand',x:0,z:0.42,yaw:180,ik:{R:{a:'root',p:[0,0.98,0.41],pole:[-0.6,-1,-0.5]}}}]},
+ {id:'c-hug',name:'Hug',cat:'Couples',members:[{use:'stand',x:0,z:-0.19,yaw:0,j:{head:[0,28,0],chest:[4,0,0]},ik:{L:{a:'root',p:[0.15,1.25,0.46],pole:[1,0,0.2]},R:{a:'root',p:[-0.12,1.12,0.46],pole:[-1,-0.2,0.2]}}},{use:'stand',x:0,z:0.19,yaw:180,j:{head:[0,28,0],chest:[4,0,0]},ik:{L:{a:'root',p:[0.15,1.25,0.46],pole:[1,0,0.2]},R:{a:'root',p:[-0.12,1.12,0.46],pole:[-1,-0.2,0.2]}}}]},
+ {id:'c-dance',name:'Dance hold',cat:'Couples',members:[{use:'stand',x:0,z:-0.19,yaw:0,ik:{L:{a:'root',p:[0.4,1.35,0.19],pole:[1,-1,0]},R:{a:'root',p:[0.1,1.25,0.47],pole:[-1,-0.3,0]}}},{use:'stand',x:0,z:0.19,yaw:180,ik:{R:{a:'root',p:[-0.4,1.35,0.19],pole:[-1,-1,0]},L:{a:'root',p:[0.18,1.42,0.31],pole:[1,-1,0]}}}]},
+ {id:'c-handoff',name:'Hand over rifle',cat:'Couples',members:[{use:'stand',x:0,z:-0.45,yaw:0,props:[{t:'rifle',k:'w',a:'root',p:[0,1.05,0.45],r:[0,90,0]}],ik:{R:{prop:'w',pt:'grip',pole:[-1,-1,0]},L:{prop:'w',pt:'fore',pole:[1,-1,0]}}},{use:'stand',x:0,z:0.45,yaw:180,ik:{R:{a:'root',p:[-0.45,1.06,0.45],pole:[-0.6,-1,-0.3]}}}]},
+ {id:'c-standoff',name:'Pistol standoff',cat:'Couples',members:[{use:'p-aim',x:0,z:-1.6,yaw:0},{use:'p-aim',x:0,z:1.6,yaw:180}]},
+ {id:'c-b2b',name:'Back to back',cat:'Couples',members:[{use:'r-high',x:0,z:-0.2,yaw:180},{use:'p-high',x:0,z:0.2,yaw:0}]},
+ {id:'c-walk',name:'Walking together',cat:'Couples',members:[{use:'walk',x:-0.35,z:0,yaw:0},{use:'walk',x:0.35,z:0,yaw:0,mirror:1}]},
+ {id:'c-talk',name:'Conversation',cat:'Couples',members:[{use:'shrug',x:-0.6,z:0,yaw:70},{use:'cross',x:0.6,z:0,yaw:-70}]},
+ {id:'g-stack',name:'Squad stack',cat:'Groups',members:[0,1,2,3].map(i=>({use:i?'r-low':'r-aim',x:0.04*i,z:-0.75*i,yaw:0}))},
+ {id:'g-wedge',name:'Fireteam wedge',cat:'Groups',members:[{use:'r-aim',x:0,z:0},{use:'r-low',x:-1.3,z:-1.1},{use:'r-low',x:1.3,z:-1.1},{use:'r-high',x:-2.6,z:-2.2}]},
+ {id:'g-photo',name:'Group photo',cat:'Groups',members:[{use:'onhips',x:-1.4,z:0},{use:'cross',x:-0.7,z:0.15},{use:'stand',x:0,z:0.25},{use:'wave',x:0.7,z:0.15},{use:'contra',x:1.4,z:0}]},
+ {id:'g-circle',name:'Conversation circle',cat:'Groups',members:[90,210,330].map((a,i)=>{const x=0.85*Math.cos(a*D2R),z=0.85*Math.sin(a*D2R);return {use:['shrug','cross','think'][i],x,z,yaw:Math.atan2(-x,-z)/D2R};})},
+ {id:'g-standoff3',name:'Three-way standoff',cat:'Groups',members:[90,210,330].map(a=>{const x=2*Math.cos(a*D2R),z=2*Math.sin(a*D2R);return {use:'p-aim',x,z,yaw:Math.atan2(-x,-z)/D2R};})}
+];
+{
+  const RIDE=(id,name,mkey,extra,ik)=>{const o=MOUNTS[mkey],L=o.legs;return {id,name,cat:'Riding',seat:(o.seatTop||o.back)+0.06,saddle:1,
+    j:J({thL:[L[0],0,L[1]],shinL:[L[2],0,0],thR:[L[0],0,-L[1]],shinR:[L[2],0,0],spine:[4,0,0]},extra||{}),props:[{t:mkey,k:'m',a:'root',p:[0,0,-o.saddleZ]}],
+    ik:ik||{L:{prop:'m',pt:'l',pole:[1,-1,-0.3]},R:{prop:'m',pt:'r',pole:[-1,-1,-0.3]}}};};
+  POSES.push(
+    RIDE('ride-horse','Ride a horse','horse'),
+    RIDE('ride-gallop','Gallop','horse',{spine:[30,0,0],chest:[6,0,0],head:[-30,0,0],shinL:[70,0,0],shinR:[70,0,0]}),
+    RIDE('ride-wave','Ride, one hand raised','horse',{head:[-6,20,0],uaR:[-30,0,-150],faR:[-20,0,0]},{L:{prop:'m',pt:'l',pole:[1,-1,-0.3]}}),
+    RIDE('ride-camel','Ride a camel','camel',{spine:[-4,0,0]}),
+    RIDE('ride-yak','Ride a yak','yak',{spine:[6,0,0]}),
+    RIDE('ride-dragon','Ride a dragon','dragon',{spine:[24,0,0],chest:[4,0,0],head:[-26,0,0]}),
+    RIDE('ride-roc','Ride a giant bird','roc',{spine:[16,0,0],head:[-16,0,0]}),
+    {id:'an-lead',name:'Lead a horse',cat:'Animals',j:J(WALKL,{head:[0,25,0],uaR:[-16,0,-6],faR:[-12,0,0]}),props:[{t:'horse',k:'m',a:'root',p:[0.78,0,-0.55]}],ik:{L:{a:'root',p:[0.5,1.3,0.55],pole:[1,-1,-0.3]}}},
+    {id:'an-pet',name:'Pet a dog, kneeling',cat:'Animals',j:J(KNEEL,{spine:[12,0,0],head:[20,0,0]}),props:[{t:'bigdog',k:'d',a:'root',p:[0.05,0,0.75],r:[0,90,0]}],ik:{R:{a:'root',p:[-0.04,0.78,0.72],pole:[-1,-0.6,0]},L:{a:'hips',p:[0.1,0.1,0.42],pole:[1,-0.4,0]}}},
+    {id:'an-cat',name:'Hold a cat',cat:'Animals',j:{head:[24,0,0]},props:[{t:'cat',k:'c',a:'chest',p:[0,-0.12,0.24],r:[0,90,0]}],ik:{L:{a:'chest',p:[0.1,-0.04,0.24],pole:[1,-1,0]},R:{a:'chest',p:[-0.12,0.08,0.27],pole:[-1,-1,0]}}},
+    {id:'an-bird',name:'Bird on the hand',cat:'Animals',j:{head:[6,10,0]},props:[{t:'smallbird',k:'b',a:'hdL',r:[0,0,0],p:[0,-0.06,0]}],ik:{L:{a:'chest',p:[0.2,0.38,0.42],pole:[1,-1,0]}}},
+    {id:'ds-heavens',name:'Scream to the heavens',cat:'Distress',j:{thL:[4,0,6],shinL:[86,0,0],ftL:[-60,0,0],thR:[4,0,-6],shinR:[86,0,0],ftR:[-60,0,0],spine:[-14,0,0],chest:[-16,0,0],neck:[-15,0,0],head:[-45,0,0],uaL:[-20,0,140],uaR:[-20,0,-140],faL:[-25,0,0],faR:[-25,0,0]}},
+    {id:'ds-freak',name:'Freaking out, hands on head',cat:'Distress',j:{thL:[-20,0,10],shinL:[25,0,0],thR:[-20,0,-10],shinR:[25,0,0],spine:[22,0,0],chest:[6,0,0],head:[6,0,0]},ik:{L:{a:'head',p:[0.1,0.2,0.0],pole:[1,0.4,0.2]},R:{a:'head',p:[-0.1,0.2,0.0],pole:[-1,0.4,0.2]}}},
+    {id:'ds-ears',name:'Covering ears',cat:'Distress',j:{spine:[16,0,0],head:[18,0,0],thL:[-12,0,6],shinL:[16,0,0]},ik:{L:{a:'head',p:[0.1,0.11,0.02],pole:[1,-0.3,0.2]},R:{a:'head',p:[-0.1,0.11,0.02],pole:[-1,-0.3,0.2]}}},
+    {id:'ds-panic',name:'Panic, backing away',cat:'Distress',j:{spine:[-16,0,0],chest:[-10,0,0],head:[-6,0,0],thL:[-32,0,6],shinL:[34,0,0],thR:[12,0,-6],shinR:[8,0,0],clavL:[0,0,10],clavR:[0,0,-10]},ik:{L:{a:'chest',p:[0.14,0.42,0.38],pole:[1,-1,0]},R:{a:'chest',p:[-0.12,0.36,0.42],pole:[-1,-1,0]}}},
+    {id:'ds-collapse',name:'Collapse to knees, head in hands',cat:'Distress',j:{thL:[4,0,6],shinL:[86,0,0],ftL:[-60,0,0],thR:[4,0,-6],shinR:[86,0,0],ftR:[-60,0,0],spine:[34,0,0],chest:[16,0,0],head:[30,0,0]},ik:{L:{a:'head',p:[0.04,0.1,0.13],pole:[1,-1,0]},R:{a:'head',p:[-0.04,0.1,0.13],pole:[-1,-1,0]}}},
+    {id:'ds-pound',name:'Pounding the ground',cat:'Distress',j:{thL:[4,0,6],shinL:[86,0,0],ftL:[-60,0,0],thR:[4,0,-6],shinR:[86,0,0],ftR:[-60,0,0],spine:[45,0,0],chest:[10,0,0],head:[6,0,0]},ik:{R:{a:'root',p:[-0.15,0.05,0.48],pole:[-1,0.3,-0.4]},L:{a:'root',p:[0.15,0.05,0.42],pole:[1,0.3,-0.4]}}},
+    {id:'ds-plead',name:'Pleading, kneeling',cat:'Distress',j:{thL:[4,0,6],shinL:[86,0,0],ftL:[-60,0,0],thR:[4,0,-6],shinR:[86,0,0],ftR:[-60,0,0],spine:[-4,0,0],head:[-22,0,0]},ik:{L:{a:'chest',p:[0.02,0.42,0.34],pole:[1,-1,0]},R:{a:'chest',p:[-0.02,0.43,0.34],pole:[-1,-1,0]}}},
+    {id:'ds-fetal',name:'Curled up on the floor',cat:'Distress',j:{hips:[0,0,90],spine:[30,0,0],chest:[12,0,0],head:[30,0,0],thL:[-105,0,0],shinL:[115,0,0],thR:[-100,0,0],shinR:[118,0,0]},ik:{L:{a:'hips',p:[0.06,0.16,0.36],pole:[1,-0.3,0]},R:{a:'hips',p:[-0.06,0.14,0.38],pole:[-1,-0.3,0]}}},
+    {id:'ds-rock',name:'Hugging self, rocking',cat:'Distress',j:{spine:[30,0,0],chest:[14,0,0],head:[36,0,0],thL:[-125,0,6],shinL:[132,0,0],thR:[-125,0,-6],shinR:[132,0,0]},ik:{L:{a:'chest',p:[-0.15,0.12,0.06],pole:[1,-0.5,0.3]},R:{a:'chest',p:[0.15,0.14,0.06],pole:[-1,-0.5,0.3]}}},
+    {id:'dn-slow',name:'Slow dance',cat:'Dance',members:[{use:'stand',x:0,z:-0.17,yaw:0,j:{head:[4,20,0]},ik:{L:{a:'root',p:[0.16,1.0,0.32],pole:[1,-1,0]},R:{a:'root',p:[-0.16,1.0,0.32],pole:[-1,-1,0]}}},{use:'stand',body:'Curvy',x:0,z:0.17,yaw:180,j:{head:[-6,-20,0]},ik:{L:{a:'root',p:[-0.08,1.45,0.3],pole:[1,-0.5,0]},R:{a:'root',p:[0.08,1.45,0.3],pole:[-1,-0.5,0]}}}]},
+    {id:'dn-twirl',name:'Twirl',cat:'Dance',members:[{use:'stand',x:-0.45,z:0,yaw:60,j:{thL:[-14,0,6],shinL:[14,0,0]},ik:{L:{a:'root',p:[0.275,1.95,0.476],pole:[1,-0.4,0]}}},{use:'stand',body:'Curvy',x:0.2,z:0,yaw:0,j:{thR:[-30,0,0],shinR:[60,0,0],uaL:[0,0,80],faL:[-10,0,0],head:[0,-20,0]},ik:{R:{a:'root',p:[-0.1,1.95,0],pole:[-1,-0.3,0]}}}]},
+    {id:'dn-dip',name:'Dip',cat:'Dance',members:[{use:'stand',x:0,z:-0.15,yaw:0,j:{thL:[-40,0,8],shinL:[40,0,0],thR:[16,0,-8],spine:[16,0,0],head:[14,0,0]},ik:{R:{a:'root',p:[-0.05,1.0,0.65],pole:[-1,-0.5,0]},L:{a:'root',p:[0.55,1.3,0.25],pole:[1,-1,0]}}},{use:'stand',body:'Curvy',x:0,z:0.35,yaw:180,j:{spine:[-30,0,0],chest:[-18,0,0],head:[-30,0,0],thL:[-30,0,4],shinL:[40,0,0],thR:[4,0,-4]},ik:{R:{a:'root',p:[-0.55,1.3,0.2],pole:[-1,-1,0]},L:{a:'root',p:[0.18,1.42,0.42],pole:[1,-1,0]}}}]},
+    {id:'dn-lift',name:'Dance lift',cat:'Dance',members:[{use:'stand',x:0,z:-0.15,yaw:0,j:{thL:[-20,0,8],shinL:[20,0,0],head:[-30,0,0]},ik:{L:{a:'root',p:[0.15,1.55,0.3],pole:[1,-1,0]},R:{a:'root',p:[-0.15,1.55,0.3],pole:[-1,-1,0]}}},{body:'Slender',x:0,z:0.15,yaw:180,lift:0.55,j:{spine:[-14,0,0],head:[-26,0,0],uaL:[-20,0,130],uaR:[-20,0,-130],thL:[14,0,0],shinL:[60,0,0],thR:[0,0,0]}}]},
+    {id:'dn-swing',name:'Swing dance, side by side',cat:'Dance',members:[{use:'stand',x:-0.35,z:0,yaw:0,j:{thL:[-40,0,10],shinL:[30,0,0],head:[0,20,0]},ik:{L:{a:'root',p:[0.35,1.0,0.12],pole:[1,-1,-0.3]}}},{use:'stand',body:'Curvy',x:0.35,z:0,yaw:0,mirror:1,j:{thL:[-40,0,10],shinL:[30,0,0],head:[0,20,0]},ik:{L:{a:'root',p:[0.35,1.0,0.12],pole:[1,-1,-0.3]}}}]},
+    {id:'hp-up',name:'Help up from the ground',cat:'Helping',members:[{use:'sitfloor',x:0,z:0,yaw:0,j:{head:[-20,0,0]},ik:{L:{a:'root',p:[0.12,0.9,0.45],pole:[1,-1,0]}}},{use:'stand',x:0,z:0.9,yaw:180,j:{spine:[22,0,0],thL:[-22,0,6],shinL:[26,0,0],thR:[10,0,-6],head:[14,0,0]},ik:{R:{a:'root',p:[-0.12,0.9,0.45],pole:[-1,-1,0]}}}]},
+    {id:'hp-shoulder',name:'Shoulder support walk',cat:'Helping',members:[{use:'walk',x:0.3,z:0,yaw:0,j:{head:[0,-15,0]},ik:{R:{a:'root',p:[-0.72,1.0,0],pole:[-0.5,-1,-0.4]}}},{use:'walk',x:-0.3,z:0,yaw:0,j:{spine:[0,0,-8],thR:[-20,0,-4],shinR:[45,0,0],head:[10,0,0]},ik:{L:{a:'root',p:[0.78,1.45,0.02],pole:[0.3,-0.4,-1]}}}]},
+    {id:'hp-guide',name:'Steady someone by the arm',cat:'Helping',members:[{use:'mb-cane',body:'Elderly',x:-0.22,z:0,yaw:0},{use:'walk',x:0.35,z:0,yaw:0,j:{head:[0,-20,0]},ik:{R:{a:'root',p:[-0.35,1.1,0.06],pole:[-0.6,-1,-0.4]},L:{a:'root',p:[-0.3,1.0,0.12],pole:[0.6,-1,-0.4]}}}]},
+    {id:'hp-comfort',name:'Comfort, arm around shoulders',cat:'Helping',members:[{use:'sit-bare',x:0.3,z:0,yaw:0,j:{head:[10,-15,0]},props:[{t:'chairrow',k:'row',a:'root',p:[-0.28,0,0]}],ik:{R:{a:'root',p:[-0.78,1.3,-0.02],pole:[-0.3,0.4,-1]}}},{use:'sit-bare',x:-0.3,z:0,yaw:0,j:{head:[34,0,0],spine:[12,0,0]}}]},
+    {id:'hp-cradle',name:'Cradle a fallen person',cat:'Helping',members:[{use:'supine',x:0,z:0,yaw:0,j:{head:[-14,0,0]}},{x:0,z:-1.25,yaw:0,j:{thL:[4,0,8],shinL:[86,0,0],ftL:[-60,0,0],thR:[4,0,-8],shinR:[86,0,0],ftR:[-60,0,0],spine:[30,0,0],head:[30,0,0]},ik:{L:{a:'root',p:[0.1,0.26,0.4],pole:[1,-0.3,-0.4]},R:{a:'root',p:[-0.1,0.26,0.4],pole:[-1,-0.3,-0.4]}}}]},
+    {id:'hp-cpr',name:'CPR',cat:'Helping',members:[{use:'supine',x:0,z:0,yaw:0},{x:-0.45,z:-0.45,yaw:90,j:{thL:[4,0,8],shinL:[86,0,0],ftL:[-60,0,0],thR:[4,0,-8],shinR:[86,0,0],ftR:[-60,0,0],spine:[30,0,0],chest:[6,0,0],head:[30,0,0]},ik:{L:{a:'root',p:[0.05,0.33,0.45],pole:[1,0.2,-0.2]},R:{a:'root',p:[0.03,0.31,0.45],pole:[-1,0.2,-0.2]}}}]},
+    {id:'hp-hand',name:'Hold the hand of someone lying down',cat:'Helping',members:[{use:'supine',x:0,z:0,yaw:0,j:{head:[-6,-30,0]}},{use:'kneel',x:-0.75,z:-0.05,yaw:90,j:{spine:[24,0,0],head:[20,0,0]},ik:{L:{a:'root',p:[0.06,0.14,0.43],pole:[1,-0.4,0]},R:{a:'root',p:[0.02,0.12,0.43],pole:[-1,-0.4,0]}}}]},
+    {id:'hp-check',name:'Check on someone curled up',cat:'Helping',members:[{use:'ds-fetal',x:0,z:0,yaw:0},{use:'kneel',x:0.15,z:0.75,yaw:180,j:{spine:[28,0,0],head:[24,0,0]},ik:{R:{a:'root',p:[-0.15,0.42,0.6],pole:[-1,-0.4,0]}}}]}
+  );
+}
+const POSE_CATS=['Standing','Posture & attitude','Distress','Gestures','Action','Seated & floor','Mobility','Family','Dance','Helping','Riding','Animals','Labor','Driving & piloting','War','Rifle','Pistol','Melee & archery','Sci-fi & heavy','Maintenance','Couples','Groups','My poses'];
+let MY_POSES=[]; try{MY_POSES=JSON.parse(localStorage.getItem('standin.myposes')||'[]')||[];}catch(e){MY_POSES=[];}
+const allPoses=()=>POSES.concat(MY_POSES);
+const poseById=id=>allPoses().find(p=>p.id===id);
+function resolvePose(spec){
+  const base=spec.use?poseById(spec.use):null;
+  const o=base?{...base,j:{...(base.j||{}),...(spec.j||{})}}:{...spec,j:{...(spec.j||{})}};
+  if(spec.props) o.props=spec.props;
+  if(spec.ik) o.ik={...((base&&base.ik)||{}),...spec.ik};
+  if(spec.seat!=null) o.seat=spec.seat;
+  return o;
+}
+
+/* ---------------- state ---------------- */
+const S={figures:[],props:[],selFig:null,selJoint:null,selProp:null,style:'clean',aspect:'16:9',
+  look:{line:1.5,detail:0.45,steps:2,fill:'#d6d6d2',figColors:'per',paper:'#ffffff',ink:'#16181b',dot:7,shadows:true,lightAz:35,lightEl:52,thirds:true,grid:true},
+  rig:{target:new V3(0,1,0),yaw:0.55,pitch:0.04,dist:5,focal:35,roll:0},ortho:false,camCur:null,camOverride:false,shotTag:null,
+  playing:false,time:0,exporting:false,exp:{long:1536,transparent:false},leftTab:'Poses',rightTab:'Body',poseCat:'Rifle',propCat:'Ranged',poseQuery:''};
+const clip={dur:4,fps:24,ease:'inout',move:'static',amt:0.5,shake:0,follow:false,loop:true,start:null,end:null,motions:{},baseCam:null};
+const ASPECTS={'16:9':16/9,'9:16':9/16,'1:1':1,'4:5':4/5,'2.39:1':2.39,'4:3':4/3};
+
+/* ---------------- camera ---------------- */
+function vfov(f,a){const half=a>=1?18/a:18;return 2*Math.atan(half/f);}
+function rigToCam(r){
+  for(let k=0;k<2;k++){
+    const cp=Math.cos(r.pitch); const pos=new V3(Math.sin(r.yaw)*cp,Math.sin(r.pitch),Math.cos(r.yaw)*cp).multiplyScalar(r.dist).add(r.target);
+    if(pos.y<0.06-1e-6&&k===0){const s=(0.06-r.target.y)/r.dist;if(Math.abs(s)<1){r.pitch=Math.asin(s);continue;}}
+    return {pos:pos.toArray(),tgt:r.target.toArray(),focal:r.focal,roll:r.roll};
+  }
+}
+function rigFromCam(c){
+  const off=new V3().fromArray(c.pos).sub(new V3().fromArray(c.tgt)); const d=Math.max(0.05,off.length());
+  S.rig.target.fromArray(c.tgt); S.rig.dist=d; S.rig.pitch=Math.asin(clamp(off.y/d,-1,1)); S.rig.yaw=Math.atan2(off.x,off.z); S.rig.focal=c.focal; S.rig.roll=c.roll;
+}
+function applyCamTo(c,cams,aspect){
+  const tg=new V3().fromArray(c.tgt);
+  for(const cam of cams){
+    cam.position.fromArray(c.pos); cam.up.set(0,1,0); cam.lookAt(tg); cam.rotateZ(c.roll*D2R);
+    const fv=vfov(c.focal,aspect);
+    if(cam.isPerspectiveCamera){cam.fov=fv/D2R;cam.aspect=aspect;}
+    else {const hh=cam.position.distanceTo(tg)*Math.tan(fv/2);cam.top=hh;cam.bottom=-hh;cam.left=-hh*aspect;cam.right=hh*aspect;}
+    cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+  }
+}
+function applyCam(c){S.camCur=c;applyCamTo(c,[pcam,ocam],ASPECTS[S.aspect]);}
+function releaseOverride(){ if(S.camOverride){ rigFromCam(S.camCur); S.camOverride=false; } }
+
+function figBounds(f){ f.base.updateMatrixWorld(true); return minMaxY(f.allMeshes); }
+function figCenter(f){ const h=f.j.hips.getWorldPosition(new V3()); return h; }
+const SHOTS=[['ECU','Extreme close-up',0.22],['CU','Close-up',0.42],['MCU','Medium close-up',0.62],['MS','Medium shot',0.95],['COW','Cowboy',1.3],['FS','Full shot',2.15],['WS','Wide shot',4.2],['EWS','Extreme wide',10]];
+function subjectFig(){return S.selFig||S.figures[0];}
+function setShot(code){
+  const f=subjectFig(); if(!f) return; releaseOverride(); S.shotTag=null;
+  const sh=SHOTS.find(s=>s[0]===code); const [mn,mx]=figBounds(f); const fh=Math.max(0.5,mx-mn);
+  const frameH=sh[2]*fh/1.8; const a=ASPECTS[S.aspect]; const fv=vfov(S.rig.focal,a);
+  const c=figCenter(f); const ty=code==='ECU'?mx-0.14*fh/1.8:Math.max(mn+frameH/2,mx-frameH/2+(code==='FS'?-0.02:0.03));
+  S.rig.target.set(c.x,code==='WS'||code==='EWS'?mn+fh*0.55:ty,c.z);
+  S.rig.dist=(frameH/2)/Math.tan(fv/2)*1.04;
+}
+function setAngle(code){
+  const f=subjectFig(); releaseOverride(); S.rig.roll=0; S.shotTag=null;
+  if(code==='eye') S.rig.pitch=0.02;
+  else if(code==='high') S.rig.pitch=30*D2R;
+  else if(code==='low') S.rig.pitch=-20*D2R;
+  else if(code==='bird') S.rig.pitch=80*D2R;
+  else if(code==='worm'){ if(f){const[ ,mx]=figBounds(f);S.rig.target.y=mx-0.35;} S.rig.dist=Math.min(S.rig.dist,1.8); S.rig.pitch=Math.asin(clamp((0.12-S.rig.target.y)/S.rig.dist,-0.99,0.99)); }
+  else if(code==='dutch') S.rig.roll=18;
+  else if(code==='ots'||code==='pov'){
+    if(!f) return; f.base.updateMatrixWorld(true);
+    if(code==='ots'){
+      const other=S.figures.find(o=>o!==f); const sh=f.j.uaR.getWorldPosition(new V3());
+      const fw=new V3(0,0,1).applyQuaternion(f.base.quaternion); const rt=new V3(-1,0,0).applyQuaternion(f.base.quaternion);
+      const C=sh.clone().addScaledVector(fw,-0.55).addScaledVector(rt,0.14).add(new V3(0,0.14,0));
+      const T=other?other.j.head.getWorldPosition(new V3()).add(new V3(0,0.08,0)):f.j.head.getWorldPosition(new V3()).addScaledVector(fw,2.5);
+      rigFromCam({pos:C.toArray(),tgt:T.toArray(),focal:50,roll:0}); S.shotTag='Over-the-shoulder';
+    } else {
+      const hp=f.j.head.localToWorld(new V3(0,0.12*f.d.H,0.12*f.d.H)); const q=f.j.head.getWorldQuaternion(new Q()); const fw=new V3(0,0,1).applyQuaternion(q);
+      const T=hp.clone().addScaledVector(fw,3);
+      rigFromCam({pos:hp.toArray(),tgt:T.toArray(),focal:28,roll:0}); S.shotTag='POV';
+    }
+  }
+}
+function frameAll(){
+  releaseOverride(); const box=new THREE.Box3(); S.figures.forEach(f=>box.expandByObject(f.base)); S.props.forEach(p=>box.expandByObject(p.group));
+  if(box.isEmpty()) return; const c=box.getCenter(new V3()), s=box.getSize(new V3());
+  const fv=vfov(S.rig.focal,ASPECTS[S.aspect]); const a=ASPECTS[S.aspect];
+  S.rig.target.copy(c); S.rig.dist=Math.max(s.y/(2*Math.tan(fv/2)),Math.max(s.x,s.z)/(2*Math.tan(fv/2)*a))*1.25+Math.max(s.x,s.z)*0.3;
+}
+function shotInfo(){
+  const f=subjectFig(); const c=S.camCur; if(!c) return {shot:'',angle:'',code:''};
+  const pos=new V3().fromArray(c.pos), tg=new V3().fromArray(c.tgt); const dir=tg.clone().sub(pos).normalize();
+  let shot='Wide shot',code='WS';
+  if(f){ const [mn,mx]=figBounds(f); const fh=mx-mn; const ctr=figCenter(f); const dist=Math.max(0.1,ctr.distanceTo(pos)); const visH=2*dist*Math.tan(vfov(c.focal,ASPECTS[S.aspect])/2);
+    const r=visH/Math.max(0.3,fh)*1.8; const s=SHOTS.find(s=>r<=s[2]*1.12)||SHOTS[SHOTS.length-1]; shot=s[1];code=s[0]; }
+  const down=Math.asin(clamp(-dir.y,-1,1))/D2R;
+  let angle=down>60?"Bird's-eye":down>14?'High angle':down>-10?'Eye level':down>-48?'Low angle':"Worm's-eye";
+  if(Math.abs(c.roll)>4) angle+=', Dutch tilt';
+  if(S.shotTag) angle=S.shotTag+', '+angle;
+  return {shot,angle,code};
+}
+
+/* ---------------- scene ops ---------------- */
+function addFigure(body,name){
+  const f=new Figure(figRoot,body); if(name) f.bodyName=name;
+  const used=S.figures.map(x=>x.tint); f.tint=FIG_TINTS.find(t=>!used.includes(t))||FIG_TINTS[S.figures.length%FIG_TINTS.length];
+  S.figures.push(f); f.applyColor();
+  f.applyPose(poseById('stand')); return f;
+}
+function removeFigure(f){
+  S.props.filter(p=>p.attach&&p.attach.fig===f).forEach(detachProp);
+  f.dispose(); S.figures.splice(S.figures.indexOf(f),1); delete clip.motions[f.id];
+  if(S.selFig===f){S.selFig=S.figures[0]||null;S.selJoint=null;}
+}
+function setFigureCount(n){
+  while(S.figures.length<n){const last=S.figures[S.figures.length-1];addFigure(last?{...last.body}:null,last?last.bodyName:'Average');}
+  while(S.figures.length>n) removeFigure(S.figures[S.figures.length-1]);
+}
+function applyPoseEntry(p){
+  if(p.members){
+    setFigureCount(p.members.length);
+    p.members.forEach((m,i)=>{const f=S.figures[i];applyMemberBody(f,m);f.base.position.set(m.x||0,0,m.z||0);f.base.rotation.y=(m.yaw||0)*D2R;const o=resolvePose(m);f.applyPose(o);if(m.mirror)f.mirror();f.poseName=p.name;});
+    if(!S.figures.includes(S.selFig)) S.selFig=S.figures[0];
+  } else {
+    const f=S.selFig||S.figures[0]||addFigure(); S.selFig=f; f.applyPose(resolvePose(p));
+  }
+  S.selProp=null; S.lastPose=p.id;
+}
+function applyMemberBody(f,m){
+  if(m.body){f.body={...BODY_PRESETS[m.body]};f.bodyName=m.body;f.applyBody();}
+  else if(isKid(f.body)){f.body={...BODY_PRESETS.Average};f.bodyName='Average';f.applyBody();}
+  f.autoGround=m.ground!==false; f.yOff=m.y||0;
+}
+function addProp(defId,attach){
+  const def=PROP_BY_ID[defId]; const g=buildProp(def); const inst={id:uid(),def,group:g,owner:null,attach:null}; tagProp(g,inst);
+  propRoot.add(g); S.props.push(inst);
+  if(attach) attachProp(inst,attach.fig,attach.joint);
+  else {
+    const f=S.selFig; if(def.room){ if(f){g.position.copy(f.base.position);g.rotation.y=f.base.rotation.y;} S.selProp=inst; return inst; }
+    if(f){const fw=new V3(0,0,1).applyQuaternion(f.base.quaternion);const rt=new V3(1,0,0).applyQuaternion(f.base.quaternion);g.position.copy(f.base.position).addScaledVector(fw,0.9).addScaledVector(rt,0.6);g.rotation.y=f.base.rotation.y;}
+    const box=new THREE.Box3().setFromObject(g); if(isFinite(box.min.y)) g.position.y-=box.min.y;
+  }
+  S.selProp=inst; return inst;
+}
+function attachProp(inst,fig,joint){
+  const g=inst.group; const tgt=joint==='root'?fig.base:fig.j[joint];
+  if(/^hd/.test(joint)){ tgt.add(g); const r=inst.def.handRot||[90,0,0]; g.rotation.set(r[0]*D2R,r[1]*D2R,r[2]*D2R); g.scale.setScalar(1); placeInHand(g,inst.def,fig.d); }
+  else tgt.attach(g);
+  inst.attach={fig,joint};
+}
+function detachProp(inst){ propRoot.attach(inst.group); inst.attach=null; }
+function deleteProp(inst){
+  inst.group.parent&&inst.group.parent.remove(inst.group);
+  if(inst.owner){ inst.owner.poseProps.splice(inst.owner.poseProps.indexOf(inst),1); }
+  else S.props.splice(S.props.indexOf(inst),1);
+  if(S.selProp===inst) S.selProp=null;
+}
+function captureFigPose(f,name){
+  const j={}; JOINTS.forEach(n=>{const r=f.j[n].rotation;j[n]=[r.x,r.y,r.z].map(v=>Math.round(v/D2R*10)/10);});
+  return {id:'my-'+Date.now()+'-'+uid(),name,cat:'My poses',j,props:f.poseProps.map(p=>({...JSON.parse(JSON.stringify(p.spec)),k:p.key})),ik:JSON.parse(JSON.stringify(f.ik)),seat:f.seat,saddle:f.saddle,lift:f.lift};
+}
+function saveMyPoses(){try{localStorage.setItem('standin.myposes',JSON.stringify(MY_POSES));}catch(e){}}
+
+/* ---------------- clip ---------------- */
+const EASE={linear:u=>u,inout:u=>u*u*(3-2*u),in:u=>u*u,out:u=>1-(1-u)*(1-u)};
+const MOVES={
+  static:['Locked off',(b)=>b],
+  orbitL:['Orbit left',(b,u,a)=>rotAround(b,'pos',u*a*90)],
+  orbitR:['Orbit right',(b,u,a)=>rotAround(b,'pos',-u*a*90)],
+  arc:['Arc up',(b,u,a)=>arcUp(b,u*a*40)],
+  dollyIn:['Dolly in',(b,u,a)=>scaleDist(b,1-0.6*a*u)],
+  dollyOut:['Dolly out',(b,u,a)=>scaleDist(b,1+1.2*a*u)],
+  pushIn:['Slow push-in',(b,u,a)=>{const c=scaleDist(b,1-0.3*a*u);c.focal=b.focal*(1+0.12*a*u);return c;}],
+  truckL:['Truck left',(b,u,a)=>offset(b,'right',-2.4*a*u)],
+  truckR:['Truck right',(b,u,a)=>offset(b,'right',2.4*a*u)],
+  pedUp:['Pedestal up',(b,u,a)=>offset(b,'up',1.2*a*u)],
+  pedDown:['Pedestal down',(b,u,a)=>offset(b,'up',-1.0*a*u)],
+  craneUp:['Crane up',(b,u,a)=>{const c=cp(b);c.pos[1]+=2.2*a*u;return c;}],
+  craneDown:['Crane down',(b,u,a)=>{const c=cp(b);c.pos[1]=Math.max(0.1,c.pos[1]-1.6*a*u);return c;}],
+  panL:['Pan left',(b,u,a)=>rotAround(b,'tgt',u*a*60)],
+  panR:['Pan right',(b,u,a)=>rotAround(b,'tgt',-u*a*60)],
+  tiltUp:['Tilt up',(b,u,a)=>tilt(b,u*a*35)],
+  tiltDown:['Tilt down',(b,u,a)=>tilt(b,-u*a*35)],
+  zoomIn:['Zoom in',(b,u,a)=>{const c=cp(b);c.focal=b.focal*(1+2*a*u);return c;}],
+  zoomOut:['Zoom out',(b,u,a)=>{const c=cp(b);c.focal=b.focal/(1+1.5*a*u);return c;}],
+  vertigo:['Dolly zoom',(b,u,a)=>{const k=1-0.55*a*u;const c=scaleDist(b,k);c.focal=Math.max(8,b.focal*k);return c;}],
+  whip:['Whip pan',(b,u,a)=>rotAround(b,'tgt',-(0.5-0.5*Math.cos(Math.PI*clamp((u-0.35)/0.3,0,1)))*(60+a*80))],
+  keyed:['Start → end camera',null]
+};
+function cp(b){return {pos:b.pos.slice(),tgt:b.tgt.slice(),focal:b.focal,roll:b.roll};}
+function rotAround(b,which,deg){const c=cp(b);const P=new V3().fromArray(c.pos),T=new V3().fromArray(c.tgt);const q=new Q().setFromAxisAngle(new V3(0,1,0),deg*D2R);
+  if(which==='pos'){P.sub(T).applyQuaternion(q).add(T);c.pos=P.toArray();}else{T.sub(P).applyQuaternion(q).add(P);c.tgt=T.toArray();}return c;}
+function arcUp(b,deg){const c=cp(b);const P=new V3().fromArray(c.pos),T=new V3().fromArray(c.tgt);const off=P.sub(T);const right=new V3(0,1,0).cross(off).normalize();
+  off.applyQuaternion(new Q().setFromAxisAngle(right,-deg*D2R));c.pos=off.add(T).toArray();return c;}
+function tilt(b,deg){const c=cp(b);const P=new V3().fromArray(c.pos),T=new V3().fromArray(c.tgt);const fw=T.clone().sub(P);const right=fw.clone().cross(new V3(0,1,0)).normalize();
+  fw.applyQuaternion(new Q().setFromAxisAngle(right,deg*D2R));c.tgt=P.add(fw).toArray();return c;}
+function scaleDist(b,k){const c=cp(b);const P=new V3().fromArray(c.pos),T=new V3().fromArray(c.tgt);c.pos=P.sub(T).multiplyScalar(k).add(T).toArray();return c;}
+function offset(b,axis,amt){const c=cp(b);const P=new V3().fromArray(c.pos),T=new V3().fromArray(c.tgt);let v;
+  if(axis==='up') v=new V3(0,amt,0); else {const fw=T.clone().sub(P);fw.y=0;fw.normalize();v=fw.cross(new V3(0,1,0)).multiplyScalar(amt);}
+  c.pos=P.add(v).toArray();c.tgt=T.add(v).toArray();return c;}
+function lerpCam(a,b,u){return {pos:a.pos.map((v,i)=>lerp(v,b.pos[i],u)),tgt:a.tgt.map((v,i)=>lerp(v,b.tgt[i],u)),focal:lerp(a.focal,b.focal,u),roll:lerp(a.roll,b.roll,u)};}
+function snap(){
+  return {figs:S.figures.map(f=>({id:f.id,q:JOINTS.map(n=>f.j[n].quaternion.toArray()),pos:f.base.position.toArray(),yaw:f.base.rotation.y})),cam:cp(S.camCur)};
+}
+const MOTIONS={none:'None',walk:'Walk forward',run:'Run forward',walkInPlace:'Walk in place',turn:'Turn around',idle:'Idle breathing'};
+function applyMotion(f,kind,t,a){
+  if(!kind||kind==='none') return;
+  const J_=(n,x,y,z)=>{f.j[n].rotation.set((x||0)*D2R,(y||0)*D2R,(z||0)*D2R);};
+  const ikL=!!f.ik.L,ikR=!!f.ik.R;
+  if(kind==='walk'||kind==='run'||kind==='walkInPlace'){
+    const run=kind==='run',cad=run?1.45:0.95,ph=2*Math.PI*cad*t,s=Math.sin(ph),c=Math.cos(ph);
+    const th=run?42:22,kn=run?70:34;
+    J_('thL',-th*s,0,2);J_('thR',th*s,0,-2);
+    J_('shinL',(run?18:6)+kn*Math.max(0,-c));J_('shinR',(run?18:6)+kn*Math.max(0,c));
+    J_('ftL',-(-th*s+(run?18:6)+kn*Math.max(0,-c))*0.6);J_('ftR',-(th*s+(run?18:6)+kn*Math.max(0,c))*0.6);
+    f.j.hips.rotation.y=(run?8:6)*s*D2R;
+    if(run) f.j.spine.rotation.x=12*D2R;
+    f.j.chest.rotation.y=-(run?10:7)*s*D2R;
+    if(!ikL){J_('uaL',(run?40:16)*s,0,7);J_('faL',run?-90:-14-8*Math.max(0,s));}
+    if(!ikR){J_('uaR',-(run?40:16)*s,0,-7);J_('faR',run?-90:-14-8*Math.max(0,-s));}
+    if(kind!=='walkInPlace'){const sp=(run?3.4:1.3)*t;const fw=new V3(Math.sin(a.yaw),0,Math.cos(a.yaw));f.base.position.set(a.pos[0]+fw.x*sp,0,a.pos[2]+fw.z*sp);}
+  } else if(kind==='turn'){ f.base.rotation.y=a.yaw+Math.PI*EASE.inout(clamp(t/clip.dur,0,1)); }
+  else if(kind==='idle'){ f.j.chest.rotation.x+=Math.sin(t*2*Math.PI*0.28)*1.6*D2R; f.j.head.rotation.x+=Math.sin(t*2*Math.PI*0.28+1)*1.2*D2R; }
+}
+function evalClip(t){
+  const A=clip.start,B=clip.end; if(!A) return;
+  const u=EASE[clip.ease](clamp(t/clip.dur,0,1));
+  const qa=new Q(),qb=new Q();
+  for(const f of S.figures){
+    const a=A.figs.find(x=>x.id===f.id); if(!a) continue; const b=B?B.figs.find(x=>x.id===f.id):null;
+    JOINTS.forEach((n,i)=>{qa.fromArray(a.q[i]);if(b){qb.fromArray(b.q[i]);qa.slerp(qb,u);}f.j[n].quaternion.copy(qa);});
+    if(b){f.base.position.set(lerp(a.pos[0],b.pos[0],u),0,lerp(a.pos[2],b.pos[2],u));let dy=b.yaw-a.yaw;while(dy>Math.PI)dy-=2*Math.PI;while(dy<-Math.PI)dy+=2*Math.PI;f.base.rotation.y=a.yaw+dy*u;}
+    else {f.base.position.set(a.pos[0],0,a.pos[2]);f.base.rotation.y=a.yaw;}
+    applyMotion(f,clip.motions[f.id],t,a);
+  }
+  const base=A.cam; let cam=(clip.move==='keyed')?(B?lerpCam(A.cam,B.cam,u):cp(base)):MOVES[clip.move][1](base,u,clip.amt);
+  if(clip.follow&&S.selFig){const a=A.figs.find(x=>x.id===S.selFig.id);if(a){const dx=S.selFig.base.position.x-a.pos[0],dz=S.selFig.base.position.z-a.pos[2];cam=cp(cam);cam.pos[0]+=dx;cam.pos[2]+=dz;cam.tgt[0]+=dx;cam.tgt[2]+=dz;}}
+  if(clip.shake>0){const k=clip.shake,w=2*Math.PI;cam=cp(cam);
+    const n=(f,p)=>Math.sin(t*w*f+p)*0.6+Math.sin(t*w*f*2.3+p*1.7)*0.4;
+    cam.pos[0]+=n(0.7,1)*0.015*k;cam.pos[1]+=n(0.9,2)*0.012*k;cam.tgt[0]+=n(1.1,3)*0.03*k;cam.tgt[1]+=n(0.8,4)*0.025*k;cam.roll+=n(0.5,5)*0.8*k;}
+  applyCam(cam); S.camOverride=true;
+}
+function ensureStart(){ if(!clip.start){clip.start=snap();clip.autoStart=true;} }
+function setPlaying(on){
+  S.playing=on; if(on){ensureStart(); if(S.time>=clip.dur-1e-3) S.time=0;}
+  document.getElementById('playIcon').innerHTML=on?'<path d="M3 1.5h3v11H3zM8 1.5h3v11H8z"/>':'<path d="M3 1.5v11l9-5.5z"/>';
+  document.getElementById('playBtn').setAttribute('aria-label',on?'Pause clip':'Play clip');
+}
+function timecode(t){const fps=clip.fps;const fr=Math.floor(t*fps+1e-6);const ff=fr%fps,ss=Math.floor(fr/fps)%60,mm=Math.floor(fr/fps/60);return ['00',String(mm).padStart(2,'0'),String(ss).padStart(2,'0'),String(ff).padStart(2,'0')].join(':');}
+function updateTimeline(){
+  document.getElementById('tc').textContent=timecode(S.time)+'';
+  document.getElementById('scrub').value=String(Math.round(S.time/clip.dur*1000));
+  const keys=document.getElementById('keys');keys.innerHTML='';
+  if(clip.start){const k=document.createElement('div');k.className='key';k.style.left='0%';k.title='Start';keys.appendChild(k);}
+  if(clip.end){const k=document.createElement('div');k.className='key';k.style.left='100%';k.title='End';keys.appendChild(k);}
+}
+
+/* ---------------- light & shadow ---------------- */
+function updateLight(style){
+  const L=S.look; const box=new THREE.Box3(); S.figures.forEach(f=>box.expandByObject(f.base)); S.props.forEach(p=>box.expandByObject(p.group));
+  const c=box.isEmpty()?new V3(0,1,0):box.getCenter(new V3()); const r=box.isEmpty()?3:Math.max(2,box.getSize(new V3()).length()*0.6);
+  const az=L.lightAz*D2R,el=L.lightEl*D2R; const dir=new V3(Math.sin(az)*Math.cos(el),Math.sin(el),Math.cos(az)*Math.cos(el));
+  sun.position.copy(c).addScaledVector(dir,r*3); sun.target.position.copy(c); sun.target.updateMatrixWorld();
+  const sc=sun.shadow.camera; sc.left=-r;sc.right=r;sc.top=r;sc.bottom=-r;sc.near=0.1;sc.far=r*6;sc.updateProjectionMatrix();
+  sun.castShadow=L.shadows&&(style||S.style)!=='clean';
+}
+
+/* ---------------- viewport sizing ---------------- */
+const stage=document.getElementById('stage'), frame=document.getElementById('frame');
+let VW=800,VH=450,PR=1;
+function resize(){
+  const a=ASPECTS[S.aspect]; const W=stage.clientWidth-36, H=stage.clientHeight-46;
+  let w=W,h=W/a; if(h>H){h=H;w=H*a;}
+  w=Math.max(80,Math.floor(w)); h=Math.max(60,Math.floor(h));
+  frame.style.width=w+'px'; frame.style.height=h+'px';
+  PR=Math.min(window.devicePixelRatio||1,2); VW=w; VH=h;
+  renderer.setPixelRatio(PR); renderer.setSize(w,h,false);
+  ov.width=Math.round(w*PR); ov.height=Math.round(h*PR);
+  if(S.camCur) applyCam(S.camCur);
+}
+new ResizeObserver(resize).observe(stage);
+
+/* ---------------- overlay ---------------- */
+function project(v,cam,w,h){const p=v.clone().project(cam);return [(p.x*0.5+0.5)*w,(-p.y*0.5+0.5)*h,p.z];}
+const OP_COL=[[255,0,0],[255,85,0],[255,170,0],[255,255,0],[170,255,0],[85,255,0],[0,255,0],[0,255,85],[0,255,170],[0,255,255],[0,170,255],[0,85,255],[0,0,255],[85,0,255],[170,0,255],[255,0,255],[255,0,170],[255,0,85]];
+const OP_LIMBS=[[1,2],[1,5],[2,3],[3,4],[5,6],[6,7],[1,8],[8,9],[9,10],[1,11],[11,12],[12,13],[1,0],[0,14],[14,16],[0,15],[15,17]];
+function keypoints(f){
+  const H=f.d.H,hs=f.d.hs; const wp=(j,x,y,z)=>f.j[j].localToWorld(new V3(x||0,y||0,z||0));
+  return [wp('head',0,0.1*H*hs,0.11*H*hs),wp('neck',0,0.02*H,0),wp('uaR'),wp('faR'),wp('hdR'),wp('uaL'),wp('faL'),wp('hdL'),wp('thR'),wp('shinR'),wp('ftR'),wp('thL'),wp('shinL'),wp('ftL'),
+    wp('head',-0.035*H,0.13*H*hs,0.09*H*hs),wp('head',0.035*H,0.13*H*hs,0.09*H*hs),wp('head',-0.085*H*hs,0.11*H*hs,0),wp('head',0.085*H*hs,0.11*H*hs,0)];
+}
+function drawPoseSkeleton(ctx,cam,w,h,figs){
+  const lw=Math.max(2,4*h/512);
+  for(const f of figs){
+    const pts=keypoints(f).map(v=>project(v,cam,w,h));
+    OP_LIMBS.forEach(([a,b],i)=>{const A=pts[a],B=pts[b];if(A[2]>1||B[2]>1)return;const c=OP_COL[i];ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},0.65)`;ctx.lineWidth=lw;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(A[0],A[1]);ctx.lineTo(B[0],B[1]);ctx.stroke();});
+    pts.forEach((p,i)=>{if(p[2]>1)return;const c=OP_COL[i];ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;ctx.beginPath();ctx.arc(p[0],p[1],lw*0.9,0,Math.PI*2);ctx.fill();});
+  }
+}
+function drawOverlay(){
+  const w=ov.width,h=ov.height,ctx=octx; ctx.clearRect(0,0,w,h); const cam=activeCam();
+  if(S.style==='pose') drawPoseSkeleton(ctx,cam,w,h,S.figures);
+  if(S.look.thirds){ctx.strokeStyle='rgba(42,118,181,0.28)';ctx.lineWidth=PR;ctx.beginPath();for(let i=1;i<3;i++){ctx.moveTo(w*i/3,0);ctx.lineTo(w*i/3,h);ctx.moveTo(0,h*i/3);ctx.lineTo(w,h*i/3);}ctx.stroke();}
+  if(S.exporting) return;
+  ctx.font=`${11*PR}px "Schibsted Grotesk", system-ui, sans-serif`;
+  if(S.selFig&&S.selJoint&&!S.playing){
+    const p=project(S.selFig.j[S.selJoint].getWorldPosition(new V3()),cam,w,h);
+    if(p[2]<1){ctx.strokeStyle='#2A76B5';ctx.lineWidth=2*PR;ctx.beginPath();ctx.arc(p[0],p[1],9*PR,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,.85)';const t=JLABEL[S.selJoint];const tw=ctx.measureText(t).width;ctx.fillRect(p[0]+12*PR,p[1]-9*PR,tw+10*PR,17*PR);ctx.fillStyle='#2A76B5';ctx.fillText(t,p[0]+17*PR,p[1]+3.5*PR);}
+  }
+  if(S.selProp&&!S.playing){
+    const b=new THREE.Box3().setFromObject(S.selProp.group); if(!b.isEmpty()){
+      const cs=[];for(let i=0;i<8;i++)cs.push(project(new V3(i&1?b.max.x:b.min.x,i&2?b.max.y:b.min.y,i&4?b.max.z:b.min.z),cam,w,h));
+      const xs=cs.map(c=>c[0]),ys=cs.map(c=>c[1]);const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+      ctx.setLineDash([5*PR,4*PR]);ctx.strokeStyle='#2A76B5';ctx.lineWidth=1.5*PR;ctx.strokeRect(x0-3*PR,y0-3*PR,x1-x0+6*PR,y1-y0+6*PR);ctx.setLineDash([]);
+      ctx.fillStyle='#2A76B5';ctx.fillText(S.selProp.def.name,x0,y0-8*PR);
+    }
+  }
+}
+function updateHud(){
+  const i=shotInfo(); document.getElementById('hudL').textContent=`${i.code} · ${i.angle} · ${Math.round(S.camCur?S.camCur.focal:S.rig.focal)}mm${S.ortho?' · flat':''}`;
+  document.getElementById('hudR').textContent=(clip.start||S.playing)?timecode(S.time):S.aspect;
+}
+
+/* ---------------- interaction ---------------- */
+const ray=new THREE.Raycaster(); let drag=null;
+function ndcFrom(e){const r=canvas.getBoundingClientRect();return new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);}
+function pick(e){
+  ray.setFromCamera(ndcFrom(e),activeCam());
+  const objs=[]; S.figures.forEach(f=>f.allMeshes.forEach(m=>m.visible&&objs.push(m))); propRoot.traverse(o=>o.isMesh&&objs.push(o)); S.figures.forEach(f=>f.poseProps.forEach(p=>p.group.traverse(o=>o.isMesh&&objs.push(o))));
+  S.figures.forEach(f=>f.j&&JOINTS.forEach(n=>f.j[n].children.forEach(c=>{if(c.userData.prop&&!c.userData.prop.owner)c.traverse(o=>o.isMesh&&objs.push(o));})));
+  const hit=ray.intersectObjects(objs,false)[0]; return hit||null;
+}
+function floorHit(e,y){ray.setFromCamera(ndcFrom(e),activeCam());const pl=new THREE.Plane(new V3(0,1,0),-y);const p=new V3();return ray.ray.intersectPlane(pl,p)?p:null;}
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('pointerdown',e=>{
+  if(S.exporting) return; canvas.setPointerCapture(e.pointerId);
+  const hit=(e.button===0)?pick(e):null;
+  if(hit&&hit.object.userData.fig){
+    const f=hit.object.userData.fig, jn=hit.object.userData.joint;
+    const changed=S.selFig!==f; S.selFig=f; S.selJoint=jn; S.selProp=null;
+    if(e.altKey){const p=floorHit(e,0);drag={mode:'moveFig',f,off:p?f.base.position.clone().sub(p):new V3()};}
+    else drag={mode:'joint',f,jn,x:e.clientX,y:e.clientY,twist:e.shiftKey};
+    if(S.rightTab==='Prop'||(!changed&&S.rightTab!=='Body')) S.rightTab='Pose';
+    renderRight(); renderLeftLists();
+  } else if(hit&&hit.object.userData.prop){
+    const inst=hit.object.userData.prop; S.selProp=inst; S.selJoint=null;
+    if(!inst.owner&&!inst.attach){const p=floorHit(e,inst.group.position.y);drag={mode:'moveProp',inst,off:p?inst.group.position.clone().sub(p):new V3()};}
+    else drag={mode:'none'};
+    S.rightTab='Prop'; renderRight(); renderLeftLists();
+  } else {
+    if(e.button===0&&!e.shiftKey&&(S.selJoint||S.selProp)&&!e.altKey){/* keep selection; orbit */}
+    drag={mode:(e.button===2||e.button===1||e.shiftKey)?'pan':'orbit',x:e.clientX,y:e.clientY};
+    releaseOverride(); S.shotTag=null;
+  }
+  canvas.style.cursor='grabbing';
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!drag) return; const dx=e.clientX-(drag.x||0), dy=e.clientY-(drag.y||0); drag.x=e.clientX; drag.y=e.clientY;
+  if(drag.mode==='orbit'){S.rig.yaw-=dx*0.006;S.rig.pitch=clamp(S.rig.pitch+dy*0.005,-1.45,1.5);}
+  else if(drag.mode==='pan'){const cam=activeCam();const r=new V3().setFromMatrixColumn(cam.matrixWorld,0),u=new V3().setFromMatrixColumn(cam.matrixWorld,1);const k=S.rig.dist*0.0016;S.rig.target.addScaledVector(r,-dx*k).addScaledVector(u,dy*k);}
+  else if(drag.mode==='joint'){
+    const f=drag.f,n=drag.jn,j=f.j[n],cam=activeCam(); if(dx===0&&dy===0) return;
+    const side=n.endsWith('L')?'L':n.endsWith('R')?'R':null; if(side&&/^(clav|ua|fa|hd)/.test(n)) f.ik[side]=null;
+    const jq=j.getWorldQuaternion(new Q()); const bone=new V3().fromArray(boneDir(n)).applyQuaternion(jq).normalize();
+    let axis,ang;
+    if(drag.twist||e.shiftKey){axis=bone;ang=dx*0.012;}
+    else {const r=new V3().setFromMatrixColumn(cam.matrixWorld,0),u=new V3().setFromMatrixColumn(cam.matrixWorld,1);const dv=r.multiplyScalar(dx).addScaledVector(u,-dy);axis=bone.clone().cross(dv);if(axis.lengthSq()<1e-9)return;axis.normalize();ang=dv.length()*0.009;}
+    const qw=new Q().setFromAxisAngle(axis,ang).multiply(jq);
+    const pq=j.parent.getWorldQuaternion(new Q()).invert(); j.quaternion.copy(pq.multiply(qw)); limitJoint(n,j);
+    syncJointSliders();
+  } else if(drag.mode==='moveFig'){const p=floorHit(e,0);if(p){drag.f.base.position.set(p.x+drag.off.x,0,p.z+drag.off.z);syncBodySliders();}}
+  else if(drag.mode==='moveProp'){const p=floorHit(e,drag.inst.group.position.y);if(p){drag.inst.group.position.x=p.x+drag.off.x;drag.inst.group.position.z=p.z+drag.off.z;syncPropSliders();}}
+});
+canvas.addEventListener('pointerup',e=>{drag=null;canvas.style.cursor='grab';try{canvas.releasePointerCapture(e.pointerId);}catch(_){}});
+canvas.addEventListener('wheel',e=>{e.preventDefault();releaseOverride();if(e.ctrlKey||e.metaKey){S.rig.focal=clamp(S.rig.focal*Math.exp(-e.deltaY*0.002),12,300);}else S.rig.dist=clamp(S.rig.dist*Math.exp(e.deltaY*0.0012),0.15,80);syncCamSliders();},{passive:false});
+canvas.addEventListener('dblclick',e=>{const hit=pick(e);if(hit){releaseOverride();S.rig.target.copy(hit.point);}});
+window.addEventListener('keydown',e=>{
+  if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement&&document.activeElement.tagName)) return;
+  if(e.key===' '){e.preventDefault();setPlaying(!S.playing);}
+  else if((e.key==='Delete'||e.key==='Backspace')&&S.selProp){deleteProp(S.selProp);renderRight();renderLeftLists();}
+  else if(e.key==='m'&&S.selFig){S.selFig.mirror();syncJointSliders();toast('Mirrored');}
+  else if(e.key==='f'){setShot('FS');}
+  else if(e.key==='Escape'){S.selJoint=null;S.selProp=null;renderRight();}
+});
+
+/* ---------------- UI helpers ---------------- */
+function h(tag,attrs,...kids){const el=document.createElement(tag);if(attrs)for(const k in attrs){const v=attrs[k];if(k==='class')el.className=v;else if(k.startsWith('on'))el.addEventListener(k.slice(2),v);else if(k==='html')el.innerHTML=v;else if(v!==false&&v!=null)el.setAttribute(k,v===true?'':v);}
+  for(const c of kids.flat()){if(c==null||c===false)continue;el.appendChild(typeof c==='string'?document.createTextNode(c):c);}return el;}
+let SID=0;
+function slider(label,min,max,step,val,fmt,onInput,id){
+  id=id||('s'+(++SID)); const inp=h('input',{type:'range',id,min,max,step,value:val}); const out=h('output',{for:id},fmt(val));
+  inp.addEventListener('input',()=>{const v=parseFloat(inp.value);out.textContent=fmt(v);onInput(v);});
+  const row=h('div',{class:'row'},h('label',{for:id},label),inp,out);
+  row.set=v=>{inp.value=v;out.textContent=fmt(v);}; return row;
+}
+function check(label,val,on,id){const i=h('input',{type:'checkbox',id:id||('c'+(++SID))});i.checked=!!val;i.addEventListener('change',()=>on(i.checked));return h('label',{class:'check'},i,label);}
+function chips(items,cur,on,lbl){return h('div',{class:'chips',role:'group','aria-label':lbl||''},items.map(it=>{const [v,t]=Array.isArray(it)?it:[it,it];return h('button',{class:'chip','aria-pressed':String(v===cur),onclick:()=>on(v)},t);}));}
+function sec(title,...kids){return h('div',{class:'sec'},h('h3',null,title),...kids);}
+let toastT=0; function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2200);}
+const pct=v=>Math.round(v*100)+'';
+const cm=v=>Math.round(v*100)+'cm';
+const deg=v=>Math.round(v)+'°';
+
+/* ---------------- header ---------------- */
+const STYLE_LABELS=[['clean','Clean'],['toon','Toon'],['manga','Manga'],['lines','Lines'],['silhouette','Silhouette'],['depth','Depth'],['pose','Pose map']];
+function renderStyleSeg(){const s=document.getElementById('styleSeg');s.innerHTML='';STYLE_LABELS.forEach(([k,t])=>s.appendChild(h('button',{'aria-pressed':String(S.style===k),onclick:()=>{S.style=k;renderStyleSeg();}},t)));}
+const aspectSel=document.getElementById('aspectSel');
+Object.keys(ASPECTS).forEach(k=>aspectSel.appendChild(h('option',{value:k},k)));
+aspectSel.value=S.aspect; aspectSel.addEventListener('change',()=>{S.aspect=aspectSel.value;resize();});
+document.getElementById('quickPng').addEventListener('click',()=>exportStill());
+document.getElementById('addFigTop').addEventListener('click',()=>addFigureUI());
+
+/* ---------------- left panel ---------------- */
+const leftPane=document.getElementById('leftPane');
+function renderLeftTabs(){const t=document.getElementById('leftTabs');t.innerHTML='';['Poses','Props','Scene'].forEach(k=>t.appendChild(h('button',{role:'tab','aria-selected':String(S.leftTab===k),onclick:()=>{S.leftTab=k;renderLeftTabs();renderLeft();}},k)));}
+const THUMBS={};
+function thumbImg(key){return THUMBS[key]?h('img',{class:'th',src:THUMBS[key],alt:'','data-thumb':key}):h('div',{class:'th ph','data-thumb':key});}
+function renderLeft(){
+  leftPane.innerHTML='';
+  if(S.leftTab==='Poses'){
+    const q=h('input',{class:'search',type:'search',placeholder:'Search poses',value:S.poseQuery,'aria-label':'Search poses'});
+    q.addEventListener('input',()=>{S.poseQuery=q.value;renderPoseGrid();});
+    leftPane.append(q,chips(POSE_CATS,S.poseQuery?null:S.poseCat,v=>{S.poseCat=v;S.poseQuery='';renderLeft();},'Pose categories'));
+    const target=h('p',{class:'note',id:'poseTarget'});
+    leftPane.append(target,h('div',{class:'grid2',id:'poseGrid'}));
+    const foot=h('div',{class:'btnrow'},
+      h('button',{class:'btn small',onclick:()=>{const f=S.selFig;if(!f)return;const p=captureFigPose(f,(f.poseName&&!/^My /.test(f.poseName)?f.poseName+' (edit)':'My pose '+(MY_POSES.length+1)));MY_POSES.push(p);saveMyPoses();queueThumb({kind:'pose',item:p});S.poseCat='My poses';renderLeft();toast('Saved to My poses');}},'Save current pose'),
+      h('button',{class:'btn small',onclick:()=>saveFile('stand-in-poses.json',JSON.stringify({type:'stand-in-poses',poses:MY_POSES},null,1))},'Export my poses'),
+      h('button',{class:'btn small',onclick:()=>openFile('poses')},'Import'));
+    leftPane.append(sec('My poses',foot));
+    renderPoseGrid();
+  } else if(S.leftTab==='Props'){
+    leftPane.append(chips(PROP_CATS,S.propCat,v=>{S.propCat=v;renderLeft();},'Prop categories'));
+    leftPane.append(h('p',{class:'note'},'Click to place in the scene. Hand buttons put the prop in the selected figure’s grip.'));
+    const g=h('div',{class:'grid2'});
+    PROP_DEFS.filter(d=>d.cat===S.propCat).forEach(d=>{
+      const card=h('div',{class:'card',role:'button',tabindex:'0',onclick:()=>{addProp(d.id);S.rightTab='Prop';renderRight();renderLeftLists();},onkeydown:e=>{if(e.key==='Enter')card.click();}},thumbImg('prop:'+d.id),h('div',{class:'nm'},d.name));
+      if(d.hand){card.appendChild(h('div',{class:'tg'},
+        h('button',{onclick:e=>{e.stopPropagation();if(!S.selFig)return toast('Select a figure first');addProp(d.id,{fig:S.selFig,joint:'hdR'});S.rightTab='Prop';renderRight();}},'R hand'),
+        h('button',{onclick:e=>{e.stopPropagation();if(!S.selFig)return toast('Select a figure first');addProp(d.id,{fig:S.selFig,joint:'hdL'});S.rightTab='Prop';renderRight();}},'L hand')));}
+      g.appendChild(card);
+    });
+    leftPane.append(g);
+  } else {
+    const figList=h('div',{class:'list',id:'figList'}), propList=h('div',{class:'list',id:'propList'});
+    leftPane.append(sec('Figures',figList,h('div',{class:'btnrow'},
+      h('button',{class:'btn small',onclick:addFigureUI},'Add figure'),
+      h('button',{class:'btn small',onclick:dupFigureUI},'Duplicate'),
+      h('button',{class:'btn small rec',onclick:delFigureUI},'Delete'))));
+    leftPane.append(sec('Props in scene',propList));
+    leftPane.append(sec('Scene file',h('div',{class:'btnrow'},h('button',{class:'btn small',onclick:()=>saveFile('stand-in-scene.json',JSON.stringify(sceneToJSON(),null,1))},'Save scene'),h('button',{class:'btn small',onclick:()=>openFile('scene')},'Open scene')),
+      h('p',{class:'note'},'Scenes and pose packs are plain JSON, so you can share them or keep them with a project.')));
+    renderLeftLists();
+  }
+}
+function renderPoseGrid(){
+  const g=document.getElementById('poseGrid'); if(!g) return; g.innerHTML='';
+  const q=S.poseQuery.trim().toLowerCase();
+  const list=allPoses().filter(p=>q?p.name.toLowerCase().includes(q)||p.cat.toLowerCase().includes(q):p.cat===S.poseCat);
+  const t=document.getElementById('poseTarget');
+  if(t) t.textContent=S.selFig?`Applies to ${S.selFig.name}. Couples and groups set up their own figures.`:'Select a figure, then pick a pose.';
+  if(!list.length) g.appendChild(h('p',{class:'note'},S.poseCat==='My poses'?'Pose a figure, then use Save current pose. Your poses stay in this browser.':'No poses match that search.'));
+  list.forEach(p=>{
+    const card=h('div',{class:'card',role:'button',tabindex:'0','aria-pressed':String(S.lastPose===p.id),onclick:()=>{applyPoseEntry(p);clip.start=null;clip.end=null;S.time=0;updateTimeline();renderPoseGrid();renderRight();renderLeftLists();},onkeydown:e=>{if(e.key==='Enter')card.click();}},
+      thumbImg('pose:'+p.id),h('div',{class:'nm'},p.name+(p.members?` · ${p.members.length}`:'')));
+    if(p.cat==='My poses') card.appendChild(h('div',{class:'tg'},h('button',{onclick:e=>{e.stopPropagation();MY_POSES=MY_POSES.filter(x=>x!==p);saveMyPoses();renderPoseGrid();}},'Delete')));
+    g.appendChild(card);
+  });
+}
+function renderLeftLists(){
+  const fl=document.getElementById('figList'), pl=document.getElementById('propList');
+  if(fl){fl.innerHTML='';S.figures.forEach(f=>fl.appendChild(h('div',{class:'item',role:'button',tabindex:'0','aria-pressed':String(S.selFig===f),onclick:()=>{S.selFig=f;S.selJoint=null;S.selProp=null;S.rightTab='Body';renderLeftLists();renderRight();}},h('b',null,f.name),h('span',{class:'meta'},`${f.bodyName} · ${Math.round(f.height()*100)}cm`))));}
+  if(pl){pl.innerHTML='';const all=S.props.concat(...S.figures.map(f=>f.poseProps));if(!all.length)pl.appendChild(h('p',{class:'note'},'No props yet. Add them from the Props tab, or pick a pose that brings its own.'));
+    all.forEach(p=>pl.appendChild(h('div',{class:'item',role:'button',tabindex:'0','aria-pressed':String(S.selProp===p),onclick:()=>{S.selProp=p;S.selJoint=null;S.rightTab='Prop';renderLeftLists();renderRight();}},p.def.name,h('span',{class:'meta'},p.owner?`pose · ${p.owner.name}`:p.attach?`${p.attach.fig.name} · ${JLABEL[p.attach.joint]||'body'}`:'scene'))));}
+  if(S.leftTab==='Poses') renderPoseGrid();
+}
+
+/* ---------------- right panel ---------------- */
+const rightPane=document.getElementById('rightPane');
+let REFS={};
+function renderRight(){
+  const tabs=document.getElementById('rightTabs'); tabs.innerHTML='';
+  const names=['Body','Pose','Camera','Look','Clip','Export']; if(S.rightTab==='Prop') names.splice(2,0,'Prop');
+  names.forEach(k=>tabs.appendChild(h('button',{role:'tab','aria-selected':String(S.rightTab===k),onclick:()=>{S.rightTab=k;renderRight();}},k)));
+  rightPane.innerHTML=''; REFS={};
+  ({Body:panelBody,Pose:panelPose,Prop:panelProp,Camera:panelCamera,Look:panelLook,Clip:panelClip,Export:panelExport})[S.rightTab]();
+}
+function needFig(){ if(!S.selFig){rightPane.append(h('p',{class:'note'},'No figure selected. Click one in the view, or add one.'),h('div',{class:'btnrow'},h('button',{class:'btn small',onclick:addFigureUI},'Add figure')));return true;} return false; }
+function addFigureUI(){const xs=S.figures.map(f=>f.base.position.x);const f=addFigure();f.base.position.x=xs.length?Math.max(...xs)+0.9:0;S.selFig=f;S.selJoint=null;S.selProp=null;S.rightTab='Body';renderRight();renderLeftLists();toast(f.name+' added');}
+function dupFigureUI(){const s=S.selFig;if(!s)return;const f=addFigure({...s.body,limbs:{...(s.body.limbs||{})}},s.bodyName);f.applyPose(captureFigPose(s,s.poseName));f.poseName=s.poseName;f.base.position.copy(s.base.position).add(new V3(0.9,0,0));f.base.rotation.y=s.base.rotation.y;f.autoGround=s.autoGround;f.yOff=s.yOff;S.selFig=f;renderRight();renderLeftLists();}
+function delFigureUI(){const s=S.selFig;if(!s)return;const n=s.name;removeFigure(s);S.selFig=S.figures[0]||null;S.selJoint=null;renderRight();renderLeftLists();toast(n+' deleted');}
+function figControls(){
+  return sec('Figures',S.figures.length?chips(S.figures.map(x=>[x.id,x.name]),S.selFig&&S.selFig.id,id=>{S.selFig=S.figures.find(x=>x.id===id);S.selJoint=null;renderRight();renderLeftLists();},'Figures'):h('p',{class:'note'},'The scene has no figures.'),
+    h('div',{class:'btnrow'},h('button',{class:'btn small',onclick:addFigureUI},'Add figure'),S.selFig?h('button',{class:'btn small',onclick:dupFigureUI},'Duplicate'):null,S.selFig?h('button',{class:'btn small rec',onclick:delFigureUI},'Delete figure'):null));
+}
+function panelBody(){
+  rightPane.append(figControls());
+  if(needFig()) return; const f=S.selFig;
+  const pick=v=>{f.body={...BODY_PRESETS[v],limbs:isKid(BODY_PRESETS[v])?f.body.limbs:f.body.limbs};f.bodyName=v;f.applyBody();renderRight();renderLeftLists();};
+  rightPane.append(sec(`${f.name} · body type`,...BODY_GROUPS.map(([g,list])=>h('div',{class:'jgroup'},h('span',{class:'lbl'},g),chips(list,f.bodyName,pick,g+' bodies')))));
+  const limbSel=(key,kind,label)=>{const id='limb'+key;const s=h('select',{id},LIMB_OPTS[kind].map(([v,t])=>h('option',{value:v},t)));s.value=(f.body.limbs&&f.body.limbs[key])||'full';
+    s.addEventListener('change',()=>{f.body.limbs={...(f.body.limbs||{}),[key]:s.value};f.applyBody();});return h('div',{class:'row'},h('label',{for:id},label),s,h('span'));};
+  const limbSec=sec('Limb differences',limbSel('armL','arm','Left arm'),limbSel('armR','arm','Right arm'),limbSel('legL','leg','Left leg'),limbSel('legR','leg','Right leg'));
+  const ht=h('p',{class:'note',id:'htNote'});
+  const updH=()=>{const cmv=Math.round(f.height()*100);const inch=f.height()/0.0254;ht.textContent=`Standing height ${cmv} cm · ${Math.floor(inch/12)}′${Math.round(inch%12)}″`;};
+  const rows=BODY_KEYS.filter(([k])=>!(isKid(f.body)&&(k==='bust'||k==='glutes'))).map(([k,l])=>slider(l,0,1,0.01,f.body[k],pct,v=>{f.body[k]=v;f.bodyName='Custom';f.applyBody();updH();}));
+  updH();
+  rightPane.append(sec('Proportions',ht,...rows,h('div',{class:'btnrow'},h('button',{class:'btn small',onclick:()=>{BODY_KEYS.forEach(([k])=>f.body[k]=clamp(0.5+(Math.random()-0.5)*0.9,0,1));f.bodyName='Custom';f.applyBody();renderRight();}},'Randomize'))));
+  rightPane.append(limbSec);
+  const fc=h('input',{type:'color',id:'figColor',value:f.customColor||f.tint});fc.addEventListener('input',()=>{f.customColor=fc.value;f.applyColor();});
+  rightPane.append(sec('Color',h('div',{class:'colorrow'},h('label',{for:'figColor'},'Figure color'),fc),
+    h('div',{class:'chips'},FIG_TINTS.map(t=>h('button',{class:'chip','aria-label':'Use color '+t,style:`background:${t};width:26px;height:22px;padding:0`,onclick:()=>{f.customColor=t;f.applyColor();fc.value=t;}}))),
+    S.look.figColors==='one'?h('p',{class:'note'},'All figures currently share one color. Switch to per-figure colors in the Look tab.'):null));
+  REFS.x=slider('Position X',-6,6,0.01,f.base.position.x,v=>v.toFixed(2)+'m',v=>{f.base.position.x=v;});
+  REFS.z=slider('Position Z',-6,6,0.01,f.base.position.z,v=>v.toFixed(2)+'m',v=>{f.base.position.z=v;});
+  REFS.yaw=slider('Facing',-180,180,1,Math.round(f.base.rotation.y/D2R),deg,v=>{f.base.rotation.y=v*D2R;});
+  const yo=slider('Lift',-50,150,1,Math.round(f.yOff*100),v=>v+'cm',v=>{f.yOff=v/100;});
+  rightPane.append(sec('Placement',REFS.x,REFS.z,REFS.yaw,check('Keep on the floor',f.autoGround,v=>{f.autoGround=v;}),yo,
+    h('p',{class:'note'},'With the floor on, the lowest body point touches the ground. Lift raises it for jumps or standing on a crate.')));
+}
+function syncBodySliders(){const f=S.selFig;if(!f||!REFS.x)return;REFS.x.set(f.base.position.x);REFS.z.set(f.base.position.z);REFS.yaw.set(Math.round(f.base.rotation.y/D2R));}
+const JGROUPS=[['Torso',['hips','spine','chest','neck','head']],['Left arm',['clavL','uaL','faL','hdL']],['Right arm',['clavR','uaR','faR','hdR']],['Left leg',['thL','shinL','ftL']],['Right leg',['thR','shinR','ftR']]];
+const SHORT={hips:'Hips',spine:'Waist',chest:'Chest',neck:'Neck',head:'Head',clavL:'Shoulder',uaL:'Upper',faL:'Forearm',hdL:'Hand',clavR:'Shoulder',uaR:'Upper',faR:'Forearm',hdR:'Hand',thL:'Thigh',shinL:'Shin',ftL:'Foot',thR:'Thigh',shinR:'Shin',ftR:'Foot'};
+function panelPose(){
+  if(needFig()) return; const f=S.selFig;
+  rightPane.append(h('p',{class:'note'},`${f.name} · ${f.poseName}`));
+  const jg=h('div',{class:'sec'},h('h3',null,'Body part'));
+  JGROUPS.forEach(([g,list])=>jg.appendChild(h('div',{class:'jgroup'},h('span',{class:'lbl'},g),chips(list.map(n=>[n,SHORT[n]]),S.selJoint,v=>{S.selJoint=v;renderRight();},g))));
+  rightPane.append(jg);
+  if(S.selJoint){
+    const j=f.j[S.selJoint],n=S.selJoint;
+    const mk=(ax,lbl)=>slider(lbl,-180,180,1,Math.round(j.rotation[ax]/D2R),deg,v=>{const side=n.endsWith('L')?'L':n.endsWith('R')?'R':null;if(side&&/^(clav|ua|fa|hd)/.test(n))f.ik[side]=null;j.rotation[ax]=v*D2R;limitJoint(n,j);});
+    REFS.jx=mk('x','Bend'); REFS.jy=mk('y','Twist'); REFS.jz=mk('z','Side');
+    rightPane.append(sec(JLABEL[n],REFS.jx,REFS.jy,REFS.jz,h('div',{class:'btnrow'},h('button',{class:'btn small',onclick:()=>{j.rotation.set(0,0,0);syncJointSliders();}},'Reset part'))));
+  } else rightPane.append(h('p',{class:'note'},'Pick a body part above or click one in the view. Drag it to swing it toward the cursor.'));
+  const ikRows=[];
+  for(const s of ['L','R']){const sp=f.ik[s];if(!sp)continue;
+    const what=sp.prop?`${(f.poseProps.find(p=>p.key===sp.prop)||{def:{name:'prop'}}).def.name} ${sp.pt}`:`${sp.a==='root'?'a set point':JLABEL[sp.a]||sp.a}`;
+    ikRows.push(h('div',{class:'ikrow'},h('span',null,`${s==='L'?'Left':'Right'} hand locked to ${what}`),h('button',{class:'btn small',onclick:()=>{f.ik[s]=null;renderRight();}},'Release')));}
+  if(ikRows.length) rightPane.append(sec('Hand locks',...ikRows,h('p',{class:'note'},'Locked hands follow their grip when you change the body or move the prop.')));
+  rightPane.append(sec('Pose tools',h('div',{class:'btnrow'},
+    h('button',{class:'btn small',onclick:()=>{f.mirror();syncJointSliders();renderRight();}},'Mirror'),
+    h('button',{class:'btn small',onclick:()=>copySide(f,'L','R')},'Copy left → right'),
+    h('button',{class:'btn small',onclick:()=>copySide(f,'R','L')},'Copy right → left'),
+    h('button',{class:'btn small',onclick:()=>{f.applyPose(poseById('stand'));renderRight();}},'Reset to stand'))));
+}
+function copySide(f,a,b){JOINTS.filter(n=>n.endsWith(a)).forEach(n=>{const m=n.slice(0,-1)+b;const r=f.j[n].rotation;f.j[m].rotation.set(r.x,-r.y,-r.z);});f.ik[b]=null;syncJointSliders();}
+function syncJointSliders(){if(!REFS.jx||!S.selFig||!S.selJoint)return;const r=S.selFig.j[S.selJoint].rotation;REFS.jx.set(Math.round(r.x/D2R));REFS.jy.set(Math.round(r.y/D2R));REFS.jz.set(Math.round(r.z/D2R));}
+function panelProp(){
+  const p=S.selProp; if(!p){rightPane.append(h('p',{class:'note'},'Click a prop in the view or in the Scene tab.'));return;}
+  const g=p.group;
+  const where=p.owner?`Part of ${p.owner.name}’s pose`:p.attach?`Held by ${p.attach.fig.name} (${JLABEL[p.attach.joint]||'body'})`:'Free in the scene';
+  rightPane.append(h('p',{class:'note'},`${p.def.name} · ${where}`));
+  const lim=(p.owner||p.attach)?2:8;
+  const upd=()=>{if(p.owner){const k=p.spec.a==='root'?1:p.owner.d.H;p.spec.p=[g.position.x/k,g.position.y/k,g.position.z/k];p.spec.r=[g.rotation.x/D2R,g.rotation.y/D2R,g.rotation.z/D2R];p.spec.s=g.scale.x;}};
+  REFS.px=slider('Move X',-lim,lim,0.005,g.position.x,cm,v=>{g.position.x=v;upd();});
+  REFS.py=slider('Move Y',-lim,lim,0.005,g.position.y,cm,v=>{g.position.y=v;upd();});
+  REFS.pz=slider('Move Z',-lim,lim,0.005,g.position.z,cm,v=>{g.position.z=v;upd();});
+  const rx=slider('Turn X',-180,180,1,Math.round(g.rotation.x/D2R),deg,v=>{g.rotation.x=v*D2R;upd();});
+  const ry=slider('Turn Y',-180,180,1,Math.round(g.rotation.y/D2R),deg,v=>{g.rotation.y=v*D2R;upd();});
+  const rz=slider('Turn Z',-180,180,1,Math.round(g.rotation.z/D2R),deg,v=>{g.rotation.z=v*D2R;upd();});
+  const sc=slider('Scale',0.25,3,0.01,g.scale.x,v=>Math.round(v*100)+'%',v=>{g.scale.setScalar(v);upd();});
+  rightPane.append(sec('Transform',REFS.px,REFS.py,REFS.pz,rx,ry,rz,sc));
+  if(!p.owner){
+    const sel=h('select',{id:'attachSel','aria-label':'Attach to'});
+    sel.appendChild(h('option',{value:''},'Free in the scene'));
+    S.figures.forEach((f,i)=>[['hdR','right hand'],['hdL','left hand'],['chest','chest'],['hips','hips'],['head','head']].forEach(([j,t])=>sel.appendChild(h('option',{value:i+':'+j},`${f.name} · ${t}`))));
+    sel.value=p.attach?S.figures.indexOf(p.attach.fig)+':'+p.attach.joint:'';
+    sel.addEventListener('change',()=>{if(p.attach)detachProp(p);if(sel.value){const[i,j]=sel.value.split(':');attachProp(p,S.figures[+i],j);}renderRight();renderLeftLists();});
+    rightPane.append(sec('Attach',sel));
+  }
+  rightPane.append(h('div',{class:'btnrow'},
+    !p.owner?h('button',{class:'btn small',onclick:()=>{const n=addProp(p.def.id);n.group.position.copy(p.group.getWorldPosition(new V3())).add(new V3(0.4,0,0));renderRight();renderLeftLists();}},'Duplicate'):null,
+    h('button',{class:'btn small rec',onclick:()=>{deleteProp(p);S.rightTab='Body';renderRight();renderLeftLists();}},'Delete prop')));
+}
+function syncPropSliders(){const p=S.selProp;if(!p||!REFS.px)return;REFS.px.set(p.group.position.x);REFS.pz.set(p.group.position.z);}
+function panelCamera(){
+  const curShot=shotInfo().code;
+  rightPane.append(sec('Shot size',chips(SHOTS.map(s=>[s[0],s[0]]),curShot,v=>{setShot(v);renderRight();},'Shot size'),h('p',{class:'note'},SHOTS.map(s=>`${s[0]} ${s[1].toLowerCase()}`).join(' · '))));
+  rightPane.append(sec('Angle',chips([['eye','Eye level'],['high','High'],['low','Low'],['bird',"Bird's-eye"],['worm',"Worm's-eye"],['dutch','Dutch'],['ots','Over shoulder'],['pov','POV']],null,v=>{setAngle(v);renderRight();},'Camera angle')));
+  REFS.focal=slider('Focal length',12,200,1,Math.round(S.camCur?S.camCur.focal:S.rig.focal),v=>v+'mm',v=>{releaseOverride();S.rig.focal=v;});
+  rightPane.append(sec('Lens',chips([14,24,35,50,85,135,200].map(v=>[v,v+'mm']),Math.round(S.rig.focal),v=>{releaseOverride();S.rig.focal=v;renderRight();},'Lens presets'),REFS.focal,
+    check('Flat projection (orthographic)',S.ortho,v=>{S.ortho=v;})));
+  REFS.cyaw=slider('Orbit',-180,180,1,Math.round(S.rig.yaw/D2R),deg,v=>{releaseOverride();S.rig.yaw=v*D2R;});
+  REFS.cpitch=slider('Height angle',-80,88,1,Math.round(S.rig.pitch/D2R),deg,v=>{releaseOverride();S.rig.pitch=v*D2R;});
+  REFS.cdist=slider('Distance',0.3,30,0.05,S.rig.dist,v=>v.toFixed(2)+'m',v=>{releaseOverride();S.rig.dist=v;});
+  REFS.croll=slider('Roll',-45,45,1,Math.round(S.rig.roll),deg,v=>{releaseOverride();S.rig.roll=v;});
+  rightPane.append(sec('Position',REFS.cyaw,REFS.cpitch,REFS.cdist,REFS.croll,h('div',{class:'btnrow'},h('button',{class:'btn small',onclick:()=>{setShot('FS');renderRight();}},'Frame figure'),h('button',{class:'btn small',onclick:()=>{frameAll();renderRight();}},'Frame everything'))));
+}
+function syncCamSliders(){if(!REFS.cdist)return;REFS.cdist.set(S.rig.dist);REFS.focal.set(Math.round(S.rig.focal));}
+function panelLook(){
+  const L=S.look;
+  rightPane.append(sec('Render style',chips(STYLE_LABELS,S.style,v=>{S.style=v;renderStyleSeg();renderRight();},'Render style'),
+    h('p',{class:'note'},{clean:'Solid light fills with ink lines. No shading or shadows.',toon:'Two or three cel tones with ink lines and cast shadows.',manga:'White fill, screentone dots in shadow, ink lines.',lines:'Ink lines on paper. Best for line-art guidance.',silhouette:'Solid shapes for blocking composition.',depth:'Near is light, far is dark. For depth-guided generation.',pose:'Skeleton in the standard 18-point pose colors.'}[S.style])));
+  rightPane.append(sec('Ink',
+    slider('Line weight',0.5,5,0.1,L.line,v=>v.toFixed(1)+'px',v=>{L.line=v;}),
+    slider('Interior lines',0,1,0.01,L.detail,pct,v=>{L.detail=v;}),
+    slider('Tone dot size',3,16,0.5,L.dot,v=>v.toFixed(1),v=>{L.dot=v;}),
+    h('div',{class:'colorrow'},h('label',{for:'inkC'},'Ink'),(()=>{const i=h('input',{type:'color',id:'inkC',value:L.ink});i.addEventListener('input',()=>L.ink=i.value);return i;})()),
+    h('div',{class:'colorrow'},h('label',{for:'paperC'},'Paper'),(()=>{const i=h('input',{type:'color',id:'paperC',value:L.paper});i.addEventListener('input',()=>{L.paper=i.value;frame.style.background=i.value;});return i;})())));
+  rightPane.append(sec('Tone',chips([[2,'2 tones'],[3,'3 tones']],L.steps,v=>{L.steps=v;setToneSteps(v);renderRight();},'Tone steps'),
+    chips([['per','A light color per figure'],['one','One color for all']],L.figColors,v=>{L.figColors=v;S.figures.forEach(f=>f.applyColor());renderRight();},'Figure colors'),
+    L.figColors==='one'?h('div',{class:'colorrow'},h('label',{for:'fillC'},'Figure fill'),(()=>{const i=h('input',{type:'color',id:'fillC',value:L.fill});i.addEventListener('input',()=>{L.fill=i.value;S.figures.forEach(f=>f.applyColor());});return i;})()):null,
+    check('Cast shadows',L.shadows,v=>{L.shadows=v;}),
+    slider('Light direction',-180,180,1,L.lightAz,deg,v=>{L.lightAz=v;}),
+    slider('Light height',5,89,1,L.lightEl,deg,v=>{L.lightEl=v;})));
+  rightPane.append(sec('Guides (not exported)',check('Rule-of-thirds grid',L.thirds,v=>{L.thirds=v;}),check('Floor grid',L.grid,v=>{L.grid=v;})));
+}
+function panelClip(){
+  const f=S.selFig;
+  rightPane.append(sec('Timing',
+    slider('Duration',1,12,0.5,clip.dur,v=>v.toFixed(1)+'s',v=>{clip.dur=v;updateTimeline();}),
+    h('div',{class:'row'},h('label',{for:'fpsSel'},'Frame rate'),(()=>{const s=h('select',{id:'fpsSel'},[24,25,30].map(v=>h('option',{value:v},v+' fps')));s.value=clip.fps;s.addEventListener('change',()=>{clip.fps=+s.value;updateTimeline();});return s;})(),h('span')),
+    h('div',{class:'row'},h('label',{for:'easeSel'},'Easing'),(()=>{const s=h('select',{id:'easeSel'},[['inout','Ease in-out'],['in','Ease in'],['out','Ease out'],['linear','Linear']].map(([v,t])=>h('option',{value:v},t)));s.value=clip.ease;s.addEventListener('change',()=>clip.ease=s.value);return s;})(),h('span')),
+    check('Loop preview',clip.loop,v=>clip.loop=v)));
+  const mv=h('select',{id:'moveSel','aria-label':'Camera move'},Object.keys(MOVES).map(k=>h('option',{value:k},MOVES[k][0])));mv.value=clip.move;mv.addEventListener('change',()=>{clip.move=mv.value;if(!S.playing){ensureStart();evalClip(S.time);}});
+  rightPane.append(sec('Camera move',mv,
+    slider('Strength',0,1,0.01,clip.amt,pct,v=>{clip.amt=v;if(!S.playing&&clip.start)evalClip(S.time);}),
+    slider('Handheld shake',0,1,0.01,clip.shake,pct,v=>{clip.shake=v;}),
+    check('Follow selected figure',clip.follow,v=>{clip.follow=v;}),
+    h('p',{class:'note'},'Moves start from the camera captured with Set start. Start → end camera blends between the two captured cameras.')));
+  if(f){const ms=h('select',{id:'motionSel','aria-label':'Figure motion'},Object.keys(MOTIONS).map(k=>h('option',{value:k},MOTIONS[k])));ms.value=clip.motions[f.id]||'none';ms.addEventListener('change',()=>{clip.motions[f.id]=ms.value;});
+    rightPane.append(sec(`${f.name} motion`,ms,h('p',{class:'note'},'Walk and run move the figure along its facing. Locked hands keep their grip.')));}
+  const st=clip.start?(clip.autoStart?'Start captured automatically when you pressed play.':'Start captured.'):'No start captured yet.';
+  const en=clip.end?'End captured. Poses, positions and camera blend from start to end.':'No end yet. Without one, poses hold still and only the camera move and motion play.';
+  rightPane.append(sec('Keys',h('p',{class:'note'},st+' '+en),h('div',{class:'btnrow'},
+    h('button',{class:'btn small',onclick:setStartKey},'Set start'),h('button',{class:'btn small',onclick:setEndKey},'Set end'),
+    h('button',{class:'btn small',onclick:()=>{if(clip.start){S.time=0;evalClip(0);updateTimeline();}}},'Go to start'),
+    h('button',{class:'btn small',onclick:()=>{clip.start=clip.end=null;S.time=0;updateTimeline();renderRight();}},'Clear keys')),
+    h('p',{class:'note'},'Workflow: pose and frame the first moment, Set start. Change poses or camera, Set end. Press play.')));
+}
+function setStartKey(){setPlaying(false);releaseOverride();clip.start=snap();clip.autoStart=false;S.time=0;updateTimeline();toast('Start captured');if(S.rightTab==='Clip')renderRight();}
+function setEndKey(){setPlaying(false);releaseOverride();if(!clip.start){toast('Set a start first');return;}clip.end=snap();updateTimeline();toast('End captured');if(S.rightTab==='Clip')renderRight();}
+function panelExport(){
+  const E=S.exp;
+  const sz=h('select',{id:'sizeSel'},[[768,'768 px'],[1024,'1024 px'],[1536,'1536 px'],[2048,'2048 px'],[3072,'3072 px']].map(([v,t])=>h('option',{value:v},t)));sz.value=E.long;sz.addEventListener('change',()=>{E.long=+sz.value;renderRight();});
+  const [w,hh]=exportDims();
+  rightPane.append(sec('Output',h('div',{class:'row'},h('label',{for:'sizeSel'},'Long side'),sz,h('output',null,`${w}×${hh}`)),check('Transparent background',E.transparent,v=>E.transparent=v)));
+  rightPane.append(sec('Still',h('div',{class:'btnrow'},
+    h('button',{class:'btn primary',onclick:()=>exportStill()},'Save still (PNG)'),
+    h('button',{class:'btn',onclick:()=>exportPasses()},'All passes (.zip)')),
+    h('p',{class:'note'},'All passes saves toon, manga, lines, silhouette, depth and pose map from the same camera, plus shot notes and the scene file.')));
+  rightPane.append(sec('Clip',h('div',{class:'btnrow'},
+    h('button',{class:'btn rec',onclick:()=>exportVideo()},'Record video'),
+    h('button',{class:'btn',onclick:()=>exportFrames()},'Frames (.zip)'),
+    h('button',{class:'btn',onclick:()=>exportFirstLast()},'First + last frame')),
+    h('p',{class:'note'},`Records ${clip.dur.toFixed(1)}s at ${clip.fps} fps in the current style. Video plays in real time while it records.`)));
+  const ta=h('textarea',{id:'notes','aria-label':'Shot notes'}); ta.value=shotNotes();
+  rightPane.append(sec('Shot notes',ta,h('div',{class:'btnrow'},
+    h('button',{class:'btn small',onclick:()=>{ta.value=shotNotes();}},'Refresh'),
+    h('button',{class:'btn small',onclick:()=>{const t=ta.value;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast('Copied'),()=>{ta.select();toast('Press Ctrl+C to copy');});}else{ta.select();toast('Press Ctrl+C to copy');}}},'Copy'),
+    h('button',{class:'btn small',onclick:()=>saveFile('shot-notes.txt',ta.value)},'Save .txt'))));
+}
+
+/* ---------------- notes ---------------- */
+function bodyWords(f){
+  const b=f.body,cmv=Math.round(f.height()*100); const w=[];
+  if(isKid(b)){const sc=b.scale||1;return (sc<0.42?'infant':sc<0.6?'toddler':sc<0.8?'child':'teenager')+` (${cmv} cm)`;}
+  w.push(cmv<160?'short':cmv>186?'tall':'average-height');
+  w.push(b.build<0.25?'slender':b.build>0.75?'heavyset':b.build>0.55?'sturdy':'medium build');
+  if(b.muscle>0.75) w.push('very muscular'); else if(b.muscle>0.5) w.push('athletic');
+  if(b.bust>0.6&&b.hips>0.7) w.push('curvy');
+  return w.join(', ')+` (${cmv} cm)`;
+}
+function shotNotes(){
+  const i=shotInfo(); const c=S.camCur||rigToCam(S.rig);
+  const lines=[];
+  lines.push(`SHOT: ${i.shot}, ${i.angle.toLowerCase()}, ${Math.round(c.focal)}mm lens${S.ortho?' (flat projection)':''}, ${S.aspect} frame.`);
+  if(clip.move!=='static'||clip.start){
+    const mv=MOVES[clip.move][0]; const amt=clip.amt<0.34?'subtle':clip.amt<0.67?'moderate':'strong';
+    lines.push(`MOVE: ${clip.move==='static'?'Locked-off camera':mv+' ('+amt+')'}, ${clip.dur.toFixed(1)}s, ${({inout:'ease in and out',in:'ease in',out:'ease out',linear:'constant speed'})[clip.ease]}${clip.shake>0.05?', handheld shake':''}${clip.follow?', following the subject':''}.`);
+  }
+  S.figures.forEach((f,k)=>{
+    const props=f.poseProps.map(p=>p.def.name.toLowerCase()).concat(S.props.filter(p=>p.attach&&p.attach.fig===f).map(p=>p.def.name.toLowerCase()));
+    const mo=clip.motions[f.id]&&clip.motions[f.id]!=='none'?`, ${MOTIONS[clip.motions[f.id]].toLowerCase()}`:'';
+    lines.push(`FIGURE ${k+1}: ${bodyWords(f)}. Pose: ${f.poseName}${props.length?', with '+props.join(', '):''}${mo}.`);
+  });
+  const free=S.props.filter(p=>!p.attach).map(p=>p.def.name.toLowerCase()); if(free.length) lines.push(`SET: ${free.join(', ')}.`);
+  const subj=S.figures.length===1?'one figure':S.figures.length===2?'two figures':S.figures.length+' figures';
+  const lead=S.figures[0]?S.figures[0].poseName.toLowerCase():'';
+  lines.push('');
+  lines.push(`PROMPT: ${i.shot.toLowerCase()} of ${subj}${lead?', '+lead:''}, ${i.angle.toLowerCase()}, ${Math.round(c.focal)}mm${clip.move!=='static'?', '+MOVES[clip.move][0].toLowerCase():''}.`);
+  return lines.join('\n');
+}
+
+/* ---------------- files ---------------- */
+let DL=null, DLtried=false;
+async function getDownloads(){ if(DLtried) return DL; DLtried=true; try{ if(window.claude&&window.claude.use) DL=await window.claude.use('downloads'); }catch(e){DL=null;} return DL; }
+async function saveFile(name,data){
+  const dl=await getDownloads();
+  if(dl){ try{ await dl.save({filename:name,data}); toast('Saved '+name); return true; }
+    catch(e){ const c=e&&e.code; toast(c==='declined'?'Save cancelled':c==='rate_limited'?'A save is already waiting for you':'Could not save: '+((e&&e.message)||c||'unknown error')); return false; } }
+  if(!window.claude){ try{ const blob=data instanceof Blob?data:new Blob([data]); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); return true; }catch(e){} }
+  toast('Saving files is not available in this view'); return false;
+}
+const fileIn=document.getElementById('fileIn'); let fileMode='scene';
+function openFile(mode){fileMode=mode;fileIn.value='';fileIn.click();}
+fileIn.addEventListener('change',()=>{const file=fileIn.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);
+  if(fileMode==='poses'){const ps=(o.poses||[]).filter(p=>p&&p.j);ps.forEach(p=>{p.id='my-'+Date.now()+'-'+uid();p.cat='My poses';MY_POSES.push(p);queueThumb({kind:'pose',item:p});});saveMyPoses();S.poseCat='My poses';renderLeft();toast(`Imported ${ps.length} pose${ps.length===1?'':'s'}`);}
+  else {sceneFromJSON(o);toast('Scene opened');}
+}catch(e){toast('That file is not a Stand-In scene or pose pack');}};r.readAsText(file);});
+function sceneToJSON(){
+  return {type:'stand-in-scene',version:1,
+    figures:S.figures.map(f=>({body:f.body,bodyName:f.bodyName,pose:captureFigPose(f,f.poseName),x:f.base.position.x,z:f.base.position.z,yaw:f.base.rotation.y/D2R,autoGround:f.autoGround,yOff:f.yOff,motion:clip.motions[f.id]||'none',tint:f.tint,color:f.customColor||null})),
+    props:S.props.map(p=>({t:p.def.id,attach:p.attach?{fig:S.figures.indexOf(p.attach.fig),joint:p.attach.joint}:null,pos:p.group.position.toArray(),rot:[p.group.rotation.x,p.group.rotation.y,p.group.rotation.z],scale:p.group.scale.x})),
+    camera:S.camCur,ortho:S.ortho,aspect:S.aspect,style:S.style,look:S.look,clip:{dur:clip.dur,fps:clip.fps,ease:clip.ease,move:clip.move,amt:clip.amt,shake:clip.shake,follow:clip.follow}};
+}
+function sceneFromJSON(o){
+  if(!o||o.type!=='stand-in-scene') throw new Error('bad');
+  [...S.props].forEach(deleteProp); [...S.figures].forEach(removeFigure); clip.motions={};
+  (o.figures||[]).forEach(fd=>{const f=addFigure(fd.body,fd.bodyName);f.applyPose(fd.pose);f.poseName=fd.pose.name;f.base.position.set(fd.x||0,0,fd.z||0);f.base.rotation.y=(fd.yaw||0)*D2R;f.autoGround=fd.autoGround!==false;f.yOff=fd.yOff||0;if(fd.motion)clip.motions[f.id]=fd.motion;if(fd.tint)f.tint=fd.tint;if(fd.color)f.customColor=fd.color;f.applyColor();});
+  (o.props||[]).forEach(pd=>{if(!PROP_BY_ID[pd.t])return;const inst=addProp(pd.t,pd.attach&&S.figures[pd.attach.fig]?{fig:S.figures[pd.attach.fig],joint:pd.attach.joint}:null);inst.group.position.fromArray(pd.pos);inst.group.rotation.set(pd.rot[0],pd.rot[1],pd.rot[2]);inst.group.scale.setScalar(pd.scale||1);});
+  if(o.look){Object.assign(S.look,o.look);setToneSteps(S.look.steps);S.figures.forEach(f=>f.applyColor());frame.style.background=S.look.paper;}
+  if(o.aspect&&ASPECTS[o.aspect]){S.aspect=o.aspect;aspectSel.value=o.aspect;}
+  if(o.style&&MODES[o.style]!=null) S.style=o.style; S.ortho=!!o.ortho;
+  if(o.clip) Object.assign(clip,o.clip); clip.start=clip.end=null; S.time=0;
+  S.selFig=S.figures[0]||null; S.selProp=null; S.selJoint=null;
+  resize(); if(o.camera){rigFromCam(o.camera);S.camOverride=false;}
+  renderStyleSeg(); renderLeft(); renderRight(); updateTimeline();
+}
+
+/* ---------------- exports ---------------- */
+function exportDims(){const a=ASPECTS[S.aspect],L=S.exp.long;let w,h;if(a>=1){w=L;h=Math.round(L/a);}else{h=L;w=Math.round(L*a);}return [w&~1,h&~1];}
+function renderFrameToCanvas(style,cv,transparent){
+  const [w,hh]=exportDims(); const cams=[pcam,ocam]; applyCamTo(S.camCur,cams,w/hh);
+  S.figures.forEach(f=>f.update()); updateLight(style);
+  const T=renderPass(scene,activeCam(),w,hh,'export',style,{transparent:transparent!=null?transparent:S.exp.transparent,grid:false});
+  cv=targetToCanvas(T,cv);
+  if(style==='pose'){const ctx=cv.getContext('2d');drawPoseSkeleton(ctx,activeCam(),w,hh,S.figures);}
+  applyCamTo(S.camCur,cams,ASPECTS[S.aspect]);
+  return cv;
+}
+const canvasBlob=cv=>new Promise(r=>cv.toBlob(r,'image/png'));
+function stamp(){const d=new Date();return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;}
+async function exportStill(){ const cv=renderFrameToCanvas(S.style); const b=await canvasBlob(cv); await saveFile(`stand-in-${S.style}-${stamp()}.png`,b); }
+async function exportPasses(){
+  if(!window.JSZip){toast('Zip export did not load');return;}
+  const zip=new JSZip(); for(const [k] of STYLE_LABELS){const cv=renderFrameToCanvas(k,null,k==='depth'||k==='pose'?false:S.exp.transparent);zip.file(`${k}.png`,await canvasBlob(cv));}
+  zip.file('shot-notes.txt',shotNotes()); zip.file('scene.json',JSON.stringify(sceneToJSON(),null,1));
+  await saveFile(`stand-in-passes-${stamp()}.zip`,await zip.generateAsync({type:'blob'}));
+}
+function showRec(on,text){let b=document.getElementById('recBadge');if(on){if(!b){b=h('div',{class:'recbadge',id:'recBadge'});stage.appendChild(b);}b.textContent=text;}else if(b)b.remove();}
+async function exportFrames(){
+  if(!window.JSZip){toast('Zip export did not load');return;}
+  ensureStart(); setPlaying(false); S.exporting=true; const zip=new JSZip(); const n=Math.max(1,Math.round(clip.dur*clip.fps)); const cv=document.createElement('canvas');
+  try{ for(let i=0;i<=n;i++){ showRec(true,`Rendering frame ${i+1} of ${n+1}`); evalClip(i/clip.fps); renderFrameToCanvas(S.style,cv); zip.file(`frame_${String(i).padStart(4,'0')}.png`,await canvasBlob(cv)); if(i%6===0) await new Promise(r=>setTimeout(r,0)); }
+    zip.file('shot-notes.txt',shotNotes()); showRec(true,'Packing zip'); const blob=await zip.generateAsync({type:'blob'}); showRec(false); S.exporting=false; await saveFile(`stand-in-frames-${stamp()}.zip`,blob);
+  } finally { S.exporting=false; showRec(false); }
+}
+async function exportFirstLast(){
+  if(!window.JSZip){toast('Zip export did not load');return;}
+  ensureStart(); setPlaying(false); const zip=new JSZip();
+  evalClip(0); zip.file('first_frame.png',await canvasBlob(renderFrameToCanvas(S.style)));
+  evalClip(clip.dur); zip.file('last_frame.png',await canvasBlob(renderFrameToCanvas(S.style)));
+  zip.file('shot-notes.txt',shotNotes()); S.time=clip.dur; updateTimeline();
+  await saveFile(`stand-in-keyframes-${stamp()}.zip`,await zip.generateAsync({type:'blob'}));
+}
+async function exportVideo(){
+  if(!window.MediaRecorder){toast('This browser cannot record video. Use Frames (.zip) instead.');return;}
+  ensureStart(); setPlaying(false);
+  const [w,hh]=exportDims(); const cv=document.createElement('canvas'); cv.width=w; cv.height=hh;
+  const types=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm']; const mime=types.find(t=>MediaRecorder.isTypeSupported(t));
+  if(!mime){toast('No supported video format here. Use Frames (.zip) instead.');return;}
+  const stream=cv.captureStream(clip.fps); const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:Math.round(w*hh*clip.fps*0.25)});
+  const chunks=[]; rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
+  const done=new Promise(r=>rec.onstop=r);
+  S.exporting=true; renderFrameToCanvas(S.style,cv); rec.start(200); const t0=performance.now();
+  await new Promise(res=>{const step=()=>{const t=(performance.now()-t0)/1000;showRec(true,`● Recording ${t.toFixed(1)}s / ${clip.dur.toFixed(1)}s`);
+      if(t>=clip.dur){evalClip(clip.dur);renderFrameToCanvas(S.style,cv);setTimeout(res,120);return;} evalClip(t);renderFrameToCanvas(S.style,cv);requestAnimationFrame(step);};requestAnimationFrame(step);});
+  rec.stop(); await done; S.exporting=false; showRec(false);
+  const ext=mime.startsWith('video/mp4')?'mp4':'webm'; await saveFile(`stand-in-clip-${stamp()}.${ext}`,new Blob(chunks,{type:mime.split(';')[0]}));
+}
+
+/* ---------------- thumbnails ---------------- */
+const tScene=new THREE.Scene(); tScene.add(new THREE.AmbientLight(0xffffff,0.36)); const tSun=new THREE.DirectionalLight(0xffffff,0.86); tSun.position.set(3,6,5); tScene.add(tSun);
+const tCam=new THREE.PerspectiveCamera(26,132/168,0.05,100); const tPool=[]; const tProps=new THREE.Group(); tScene.add(tProps);
+const thumbQ=[];
+function queueThumb(job){thumbQ.push(job);}
+function frameThumb(objs){
+  const box=new THREE.Box3(); objs.forEach(o=>box.expandByObject(o)); const c=box.getCenter(new V3()), s=box.getSize(new V3());
+  const fv=tCam.fov*D2R; const dist=Math.max(s.y/(2*Math.tan(fv/2)),Math.max(s.x,s.z)/(2*Math.tan(fv/2)*tCam.aspect))*1.18+Math.max(s.x,s.z)*0.5;
+  const dir=new V3(Math.sin(28*D2R),0.22,Math.cos(28*D2R)).normalize(); tCam.position.copy(c).addScaledVector(dir,dist); tCam.lookAt(c); tCam.updateMatrixWorld();
+}
+function pumpThumb(){
+  const job=thumbQ.shift(); if(!job) return;
+  try{
+    let key; const saveStyle=S.look;
+    if(job.kind==='pose'){
+      const p=job.item; key='pose:'+p.id; const mem=p.members||[{use:null}];
+      while(tPool.length<mem.length){const tf=new Figure(tScene,BODY_PRESETS.Average);tf.setColor(FIG_TINTS[tPool.length%FIG_TINTS.length]);tPool.push(tf);}
+      tPool.forEach(f=>f.base.visible=false);
+      mem.forEach((m,i)=>{const f=tPool[i];f.base.visible=true;applyMemberBody(f,m);f.base.position.set(m.x||0,0,m.z||0);f.base.rotation.y=(m.yaw||0)*D2R;f.lifter.position.y=0;const o=p.members?resolvePose(m):resolvePose(p);f.applyPose(o);if(m.mirror)f.mirror();f.update();f.update();});
+      frameThumb(tPool.filter(f=>f.base.visible).map(f=>f.base));
+    } else {
+      key='prop:'+job.item.id; tPool.forEach(f=>f.base.visible=false); tProps.clear(); const g=buildProp(job.item); tProps.add(g); frameThumb([g]);
+    }
+    const T=renderPass(tScene,tCam,132,168,'thumb','clean',{transparent:false,grid:false,thick:1.1});
+    const cv=targetToCanvas(T); THUMBS[key]=cv.toDataURL('image/png'); tProps.clear();
+    document.querySelectorAll(`[data-thumb="${CSS.escape(key)}"]`).forEach(el=>{const img=h('img',{class:'th',src:THUMBS[key],alt:'','data-thumb':key});el.replaceWith(img);});
+  }catch(e){ console.warn('thumb',e); }
+  setTimeout(pumpThumb,12);
+}
+
+/* ---------------- loop ---------------- */
+let last=performance.now();
+function tick(now){
+  requestAnimationFrame(tick);
+  const dt=Math.min(0.1,(now-last)/1000); last=now;
+  if(S.exporting) return;
+  if(S.playing){ S.time+=dt; if(S.time>clip.dur){ if(clip.loop) S.time=S.time%clip.dur; else {S.time=clip.dur;setPlaying(false);} } evalClip(S.time); updateTimeline(); }
+  else if(!S.camOverride) applyCam(rigToCam(S.rig));
+  S.figures.forEach(f=>f.update());
+  updateLight();
+  renderPass(scene,activeCam(),Math.round(VW*PR),Math.round(VH*PR),'view',S.style,{toScreen:true,grid:S.look.grid});
+  drawOverlay(); updateHud();
+}
+
+/* ---------------- boot ---------------- */
+document.getElementById('playBtn').addEventListener('click',()=>setPlaying(!S.playing));
+document.getElementById('scrub').addEventListener('input',e=>{setPlaying(false);ensureStart();S.time=(+e.target.value/1000)*clip.dur;evalClip(S.time);updateTimeline();});
+document.getElementById('tlStart').addEventListener('click',setStartKey);
+document.getElementById('tlEnd').addEventListener('click',setEndKey);
+
+addFigure(BODY_PRESETS.Athletic,'Athletic'); addFigure(BODY_PRESETS.Curvy,'Curvy');
+applyPoseEntry(POSES.find(p=>p.id==='c-b2b'));
+S.selFig=S.figures[0]; S.lastPose='c-b2b'; S.poseCat='Couples';
+S.rig.target.set(0,1.05,0); S.rig.yaw=0.62; S.rig.pitch=-0.14; S.rig.focal=35;
+resize(); applyCam(rigToCam(S.rig));
+S.figures.forEach(f=>{f.update();f.update();});
+setShot('FS'); S.rig.dist*=1.25; S.rig.pitch=-0.12;
+renderStyleSeg(); renderLeftTabs(); renderLeft(); renderRight(); updateTimeline();
+POSES.forEach(p=>queueThumb({kind:'pose',item:p})); PROP_DEFS.forEach(d=>queueThumb({kind:'prop',item:d})); MY_POSES.forEach(p=>queueThumb({kind:'pose',item:p}));
+requestAnimationFrame(tick); setTimeout(pumpThumb,300);
+})();
+</script>
+
+</body>
+</html>
