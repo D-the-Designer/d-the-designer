@@ -449,6 +449,15 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
           </div>
         </div>
         <div class="grp">
+          <div class="grp-h"><h3>Claude Design</h3><span class="kind">Design brief</span></div>
+          <p class="hint">A ready-to-paste brief for building this direction in Claude Design: exact canvas, grid, layers back to front in pixels, type, colors and checks. Paste it into a Claude chat, ask for a Claude Design, and attach the reference image above.</p>
+          <details class="more"><summary>Preview the brief</summary><pre class="spec" id="h-cd" tabindex="0"></pre></details>
+          <div class="btns">
+            <button class="btn btn-primary" id="h-copy-cd" type="button">Copy brief</button>
+            <button class="btn save" id="h-save-cd" type="button">Save .md</button>
+          </div>
+        </div>
+        <div class="grp">
           <div class="grp-h"><h3>Guide scaffold</h3><span class="kind">Guide scaffold</span></div>
           <p class="hint">An SVG at document size with trim, bleed, margins, columns, rows, baseline and zone outlines in named groups. Open it in your design app to start the grid there.</p>
           <div class="btns">
@@ -896,6 +905,8 @@ const FACES = {
   impact: 'Impact, Haettenschweiler, "Arial Narrow", "Arial Black", sans-serif',
   marker: '"Marker Felt", "Chalkboard SE", "Comic Sans MS", sans-serif',
   eurostile: 'Eurostile, "Eurostile Extended", Microgramma, "Bank Gothic", "Arial Black", sans-serif',
+  eurostileExt: '"Eurostile Extended", "Eurostile Ext", "Eurostile LT Std Ext Two", "Microgramma D Extended", Microgramma, Eurostile, "Bank Gothic", "Arial Black", sans-serif',
+  computer: '"Lazenby Computer", "Moore Computer", Westminster, "Data 70", "MICR", "MICR E13B", "OCR A Std", "OCR-A", OCRA, "Courier New", monospace',
   blackletter: '"Old English Text MT", Luminari, "UnifrakturMaguntia", Georgia, serif',
   trajan: '"Trajan Pro", Trajan, Cinzel, Copperplate, Optima, Georgia, serif',
   papyrus: 'Papyrus, Herculanum, Georgia, serif',
@@ -944,14 +955,15 @@ const TYPE_MAP = {
   hiphop: { head: 'impact', body: 'grot', cls: 'Condensed heavy sans, stacked', body_cls: 'Grotesque sans' },
   metal: { head: 'blackletter', body: 'grot', cls: 'Spiked blackletter logotype', body_cls: 'Grotesque sans' },
   disco: { head: 'cooper', body: 'rounded', cls: 'Soft, heavy display serif', body_cls: 'Rounded sans' },
-  frutigeraero: { head: 'humanist', body: 'humanist', cls: 'Clean humanist sans', body_cls: 'Humanist sans' },
+  frutigeraero: { head: 'humanist', body: 'humanist', cls: 'Humanist sans in the Frutiger and Segoe UI family, sentence case, medium weight', body_cls: 'Humanist sans' },
+  institutional: { head: 'eurostileExt', body: 'grot', cls: 'Extended squared sans capitals (Eurostile Extended), widely tracked; codes and labels in MICR-derived computer faces (Lazenby Computer, Westminster, Data 70)', body_cls: 'Neo-grotesque sans (Helvetica, Univers)' },
   gvc: { head: 'papyrus', body: 'oldstyle', cls: 'Rough-cut calligraphic display', body_cls: 'Old-style serif' },
   corpmemphis: { head: 'geometric', body: 'grot', cls: 'Friendly geometric sans', body_cls: 'Grotesque sans' },
   experimental: { head: 'grot', body: 'mono', cls: 'Heavy grotesque at extreme scale against monospace', body_cls: 'Monospace' }
 };
 /* Paper surface strength (0 = flat) and an accent rule above headlines. Purely visual; geometry is unaffected. */
-const SURFACE = { punk: 0.22, grunge: 0.2, gvc: 0.16, victorian: 0.14, e1900: 0.12, e1910: 0.14, e1940: 0.14, pulp: 0.16, gigposter: 0.16, comix: 0.12, psychedelic: 0.1, illuminated: 0.16, fantasypb: 0.12, darkfantasy: 0.1, jazz: 0.1, e1950: 0.1, e1970: 0.1, midcentury: 0.1, hiphop: 0.08, artnouveau: 0.1, artdeco: 0.08, e1920: 0.08, e1930: 0.08, constructivist: 0.1, bauhaus: 0.06, destijl: 0.05, swiss: 0.04, e1960: 0.04, metal: 0.08, disco: 0.08 };
-const RULE_STYLES = new Set(['swiss', 'e1960', 'bauhaus', 'jazz', 'spaceage', 'constructivist', 'destijl']);
+const SURFACE = { institutional: 0.05, punk: 0.22, grunge: 0.2, gvc: 0.16, victorian: 0.14, e1900: 0.12, e1910: 0.14, e1940: 0.14, pulp: 0.16, gigposter: 0.16, comix: 0.12, psychedelic: 0.1, illuminated: 0.16, fantasypb: 0.12, darkfantasy: 0.1, jazz: 0.1, e1950: 0.1, e1970: 0.1, midcentury: 0.1, hiphop: 0.08, artnouveau: 0.1, artdeco: 0.08, e1920: 0.08, e1930: 0.08, constructivist: 0.1, bauhaus: 0.06, destijl: 0.05, swiss: 0.04, e1960: 0.04, metal: 0.08, disco: 0.08 };
+const RULE_STYLES = new Set(['institutional', 'swiss', 'e1960', 'bauhaus', 'jazz', 'spaceage', 'constructivist', 'destijl']);
 const TBASE = {
   align: 'left', margin: [0.06, 0.1], cols: [1, 24], white: [0.25, 0.5], rot: 0, frame: 'none', shapes: 'none',
   halftone: false, face: 'sans', weight: 700, case: 'sentence', ls: 0, lh: 1.0, justify: false,
@@ -1079,10 +1091,10 @@ const TRADS = {
   disco: { kind: 'style', group: 'music', label: 'Disco / funk', years: 'c. 1974–1982', note: 'Rainbow arcs, starbursts and soft rounded type over a centered image.',
     arch: { centered: 3, typeOnly: 2, fullbleed: 2, split: 1 }, align: 'center', frame: 'rounded', face: 'sans', weight: 900, case: 'title', arc: 0.4, shapes: 'rainbow', shapeN: [1, 2], white: [0.15, 0.35],
     pal: { paper: '#FBEBD4', ink: '#3A1B2E', accent: '#E8572A', image: '#E5CDB0', shapes: ['#E8572A', '#F2A541', '#F6D365', '#C2185B'] } },
-  frutigeraero: { kind: 'style', group: 'digital', label: 'Frutiger Aero', years: 'c. 2004–2013', note: 'Glossy bubbles, sky-to-water gradients, rounded glass panels and clean humanist sans.',
+  frutigeraero: { kind: 'style', group: 'digital', label: 'Frutiger Aero', years: 'c. 2004–2013', note: 'Glossy, skeuomorphic optimism: technology in harmony with nature. Glass panels, bubbles, aurora and bokeh over sky, water and grass, in humanist sans. Not Y2K chrome, not flat.',
     arch: { split: 3, centered: 3, fullbleed: 2, stack: 2, webLanding: 3, uxOnboard: 3, uxDetail: 2 }, align: 'center', face: 'sans', case: 'sentence', weight: 600, frame: 'none',
-    shapes: 'bubbles', shapeN: [2, 4], roundImg: 0.08, bgGrad: ['#F4FBFF', '#BFE6F7'], white: [0.3, 0.55],
-    pal: { paper: '#EAF6FC', ink: '#0E3A5B', accent: '#2BA84A', image: '#BFE3F2', shapes: ['#4FC3F7', '#81D46A', '#2E9BD6'] } },
+    shapes: 'aero', shapeN: [2, 4], roundImg: 0.08, bgGrad: ['#F4FBFF', '#A9DCF3'], glass: true, gloss: true, white: [0.3, 0.55],
+    pal: { paper: '#EAF6FC', ink: '#0E3A5B', accent: '#2BA84A', image: '#BFE3F2', shapes: ['#4FC3F7', '#7ED957', '#2E9BD6', '#FFD93B'] } },
   gvc: { kind: 'style', group: 'digital', label: 'Global Village Coffeehouse', years: 'c. 1993–2001', note: 'Earthy hand-cut shapes, warm global-folk motifs, dotted borders and loose, tilted collage.',
     arch: { collage: 3, centered: 2, stack: 2, split: 2 }, align: 'center', face: 'serif', case: 'title', weight: 700, rot: 0.2, frame: 'dotted',
     shapes: 'gvc', shapeN: [2, 3], roundImg: 0.04, white: [0.15, 0.35],
@@ -1091,6 +1103,10 @@ const TRADS = {
     arch: { split: 3, centered: 2, stack: 2, webLanding: 3, uxOnboard: 3, uxDetail: 2, uxList: 1 }, align: 'left', face: 'grot', case: 'sentence', weight: 700, frame: 'none',
     shapes: 'blobs', shapeN: [2, 3], roundImg: 0.12, white: [0.35, 0.6],
     pal: { paper: '#FFFFFF', ink: '#1F1D3D', accent: '#6C5CE7', image: '#EDE9FB', shapes: ['#FF8A65', '#6C5CE7', '#FFD166', '#4ECDC4'] } },
+  institutional: { kind: 'style', label: 'Institutional Futurism', years: 'c. 1962–1982', note: 'Buttoned-up corporate and aerospace modernism: strict grids, document codes, title blocks, livery stripes, honeycomb hexagons and brutalist concrete mass. Serious, engineered, optimistic about systems.',
+    arch: { swissAsym: 4, editorialCols: 3, split: 2, typeOnly: 2, stack: 1 }, align: 'left', cols: [8, 12], margin: [0.07, 0.11], white: [0.35, 0.6], face: 'eurostileExt', case: 'upper', ls: 0.12, weight: 700, lh: 0.95,
+    frame: 'drawing', shapes: 'insti', shapeN: [2, 3], metaFace: 'computer',
+    pal: { paper: '#EEECE6', ink: '#1B1D1F', accent: '#FC3D21', image: '#C6C8C4', shapes: ['#FC3D21', '#1F4E79', '#E8A33D', '#8E9290'] } },
   experimental: { kind: 'style', label: 'Experimental / deconstructed', years: 'c. 1985–present', note: 'Type as image: overlapping layers, extreme shifts of scale, fragments off the grid and a reversed hierarchy.', alt: true,
     arch: { collage: 3, typeOnly: 3, diagonal: 2, swissAsym: 2 }, align: 'left', face: 'grot', case: 'lower', weight: 900, lh: 0.85, break: 0.6, rot: 0.45, echo: true,
     shapes: 'grid', shapeN: [1, 2], white: [0.1, 0.4],
@@ -1099,7 +1115,7 @@ const TRADS = {
 const ERA_IDS = ['victorian', 'e1900', 'e1910', 'e1920', 'e1930', 'e1940', 'e1950', 'e1960', 'e1970', 'e1980', 'e1990', 'e2000'];
 const STYLE_IDS = ['bauhaus', 'swiss', 'constructivist', 'destijl', 'artnouveau', 'artdeco', 'midcentury', 'psychedelic', 'punk', 'comix', 'memphis', 'newwave', 'grunge', 'brutalist',
   'pulp', 'spaceage', 'cyberpunk', 'hud', 'illuminated', 'fantasypb', 'darkfantasy', 'jazz', 'gigposter', 'rave', 'hiphop', 'metal', 'disco',
-  'frutigeraero', 'gvc', 'corpmemphis', 'experimental'];
+  'frutigeraero', 'gvc', 'corpmemphis', 'experimental', 'institutional'];
 const STYLE_GROUPS = [['', 'Movements and styles'], ['scifi', 'Sci-fi'], ['fantasy', 'Fantasy'], ['music', 'Music'], ['digital', 'Internet and digital aesthetics'], ['alt', 'Alternative and countercultural']];
 const styleGroupOf = k => TRADS[k].group || (TRADS[k].alt ? 'alt' : '');
 const ALT_IDS = STYLE_IDS.filter(k => TRADS[k].alt);
@@ -1816,6 +1832,12 @@ function buildZones(st, layout, T, D) {
   // assign shapes and text deterministically
   const siRef = { n: 0 };
   zones.forEach((z, i) => dressZone(z, T, layout.seed, i, siRef));
+  // Horizon-type accents sit on the bottom edge: grass across the full width, brutalist mass on a base.
+  zones.forEach(z => {
+    if (z.role !== 'shape') return;
+    if (z.shape === 'grass') { const rs = Math.max(1, Math.round(D.R * 0.14)); z.c = [0, D.C]; z.r = [D.R - rs, rs]; z.bleed = 'lrb'; delete z.rot; }
+    if (z.shape === 'brutal') { const rs = Math.max(1, Math.min(D.R, z.r[1] + 1)); z.r = [D.R - rs, rs]; z.bleed = 'b'; delete z.rot; }
+  });
   const out = finishZones(zones);
   out.distStatus = distStatus;
   return out;
@@ -1833,7 +1855,8 @@ function dressZone(z, T, seedBase, i, siRef) {
     if (z.role === 'shape') {
       const kinds = { bauhaus: ['circle', 'square', 'triangle', 'bar'], memphis: ['squiggle', 'dots', 'triangle', 'circle'], destijl: ['plane', 'bars'], mid: ['circle', 'blob', 'circle'], bars: ['bar', 'bar', 'circle'], grid: ['gridlet', 'bar'],
         psych: ['psych', 'psych', 'whiplash', 'wave'], whiplash: ['whiplash'], rays: ['rays'], orbit: ['orbit', 'orbit', 'stars'], hud: ['hud', 'hud', 'gridlet'], glitch: ['glitch'], badge: ['badge'], rainbow: ['rainbow', 'rainbow', 'stars'], stars: ['stars', 'rays', 'circle'],
-        bubbles: ['bubbles', 'bubbles', 'swoosh'], gvc: ['spiral', 'leafy', 'dotline', 'spiral'], blobs: ['blob2', 'blob2', 'circle', 'plant'], none: ['circle'] }[T.shapes] || ['circle', 'bar'];
+        bubbles: ['bubbles', 'bubbles', 'swoosh'], aero: ['bubbles', 'aurora', 'bokeh', 'globe', 'grass', 'bubbles', 'swoosh'],
+        insti: ['hexgrid', 'hexgrid', 'titleblock', 'stripes', 'pictogram', 'refcode', 'brutal'], gvc: ['spiral', 'leafy', 'dotline', 'spiral'], blobs: ['blob2', 'blob2', 'circle', 'plant'], none: ['circle'] }[T.shapes] || ['circle', 'bar'];
       z.shape = pick(zr, kinds); z.color = T.pal.shapes[(siRef ? siRef.n++ : 0) % T.pal.shapes.length];
     }
     if (z.role === 'head') {
@@ -2025,6 +2048,7 @@ function imagePlaceholder(r, z, ctx) {
     const c = (px, py, dx, dy) => `M${n2(px + dx * off)} ${n2(py)}L${n2(px + dx * (off + cm))} ${n2(py)}M${n2(px)} ${n2(py + dy * off)}L${n2(px)} ${n2(py + dy * (off + cm))}`;
     out += `<path d="${c(x, y, 1, 1)}${c(x + w, y, -1, 1)}${c(x, y + h, 1, -1)}${c(x + w, y + h, -1, -1)}" stroke="${line}" stroke-opacity="0.5" stroke-width="${n2(S * 0.7)}"/>`;
   }
+  if (T.gloss && !z.scene) out += `<linearGradient id="ig${z.seed}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient><path clip-path="url(#${id})" d="M${n2(x)} ${n2(y)}H${n2(x + w)}V${n2(y + h * 0.38)}Q${n2(x + w / 2)} ${n2(y + h * 0.5)} ${n2(x)} ${n2(y + h * 0.38)}Z" fill="url(#ig${z.seed})"/>`;
   if (z.scene) {
     out += `<path d="M${n2(x)} ${n2(y + h * 0.58)}L${n2(x + w * 0.3)} ${n2(y + h * 0.5)}L${n2(x + w * 0.55)} ${n2(y + h * 0.56)}L${n2(x + w * 0.8)} ${n2(y + h * 0.47)}L${n2(x + w)} ${n2(y + h * 0.54)}V${n2(y + h)}H${n2(x)}Z" fill="${pal.ink}" fill-opacity="0.06"/>`;
     const ls2 = clamp(Math.min(w, h) * 0.03, S * 4, S * 10);
@@ -2074,6 +2098,7 @@ function renderZone(z, r, ctx) {
     case 'image': out = imagePlaceholder(r, z, ctx); break;
     case 'head': case 'title': {
       out += box(S * 4);
+      if (T.glass && !z.onImage) out += glassPanel(x, y, w, h, z, ctx);
       let top = y, bot = y + h;
       const bs = ctx.bodySize;
       if (z.role === 'title') {
@@ -2089,7 +2114,7 @@ function renderZone(z, r, ctx) {
       if (z.kicker && h > bs * 4) {
         const ks = Math.min(bs * 0.9, h * 0.12);
         if (z.hudTitle) z.kt = 'OBJECTIVE · ' + z.kt;
-        out += svgText(align === 'center' ? x + w / 2 : x, top + ks, z.kt, { face: FACES.sans, size: ks, weight: 700, fill: z.onImage ? pal.paper : pal.accent, ls: 0.12, anchor: align === 'center' ? 'middle' : null });
+        out += svgText(align === 'center' ? x + w / 2 : x, top + ks, z.kt, { face: FACES[T.metaFace || 'sans'], size: ks, weight: 700, fill: z.onImage ? pal.paper : pal.accent, ls: 0.12, anchor: align === 'center' ? 'middle' : null });
         top += ks * 2.1;
       }
       if (z.deck && bot - top > bs * 5) {
@@ -2133,6 +2158,7 @@ function renderZone(z, r, ctx) {
     case 'body': {
       const pad = S * 6;
       out += box(pad);
+      if (T.glass) out += glassPanel(x, y, w, h, z, ctx);
       const tw = 30 * ctx.bodySize;
       const D = ctx.D;
       let cols = Math.max(1, Math.round(w / tw));
@@ -2157,7 +2183,8 @@ function renderZone(z, r, ctx) {
       for (let i = 0; i < lines; i++) {
         const wds = loremWords(R, 3 + Math.floor(R() * 4)).join(' ');
         const str = i === 0 && z.role === 'meta' ? wds.toUpperCase() : wds;
-        out += svgText(align === 'center' ? x + w / 2 : x, y + s * 1.05 + i * s * 1.35, fitStr(str, w, s, FACES.sans, i === 0 && z.role === 'meta' ? 700 : 400), { face: FACES.sans, size: s, weight: i === 0 && z.role === 'meta' ? 700 : 400, fill: ink, op: z.role === 'caption' ? 0.7 : 0.85, italic: z.role === 'caption' && T.face === 'serif', anchor: align === 'center' ? 'middle' : null });
+        const mf = FACES[T.metaFace || 'sans'];
+        out += svgText(align === 'center' ? x + w / 2 : x, y + s * 1.05 + i * s * 1.35, fitStr(str, w, s, mf, i === 0 && z.role === 'meta' ? 700 : 400), { face: mf, size: s, weight: i === 0 && z.role === 'meta' ? 700 : 400, fill: ink, op: z.role === 'caption' ? 0.7 : 0.85, italic: z.role === 'caption' && T.face === 'serif', anchor: align === 'center' ? 'middle' : null });
       }
       break;
     }
@@ -2173,7 +2200,8 @@ function renderZone(z, r, ctx) {
       const bh = z.role === 'button' ? Math.min(h * 0.75, ctx.bodySize * 3.2) : Math.min(h * 0.7, ctx.bodySize * 3);
       const by = z.vcenter || z.role === 'button' ? y + (h - bh) / 2 : y + (h - bh) / 2;
       const rad = (T.frame === 'rounded' || ctx.screen) ? bh / 2 : 0;
-      out += `<rect x="${n2(x)}" y="${n2(by)}" width="${n2(w)}" height="${n2(bh)}" rx="${n2(rad)}" fill="${pal.accent}"/>`;
+      out += `<rect x="${n2(x)}" y="${n2(by)}" width="${n2(w)}" height="${n2(bh)}" rx="${n2(T.gloss ? bh / 2 : rad)}" fill="${pal.accent}"/>`;
+      if (T.gloss) out += `<linearGradient id="gb${z.seed}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.7"/><stop offset="1" stop-color="#ffffff" stop-opacity="0.05"/></linearGradient><rect x="${n2(x + bh * 0.15)}" y="${n2(by + bh * 0.06)}" width="${n2(w - bh * 0.3)}" height="${n2(bh * 0.46)}" rx="${n2(bh * 0.23)}" fill="url(#gb${z.seed})"/>`;
       const s = Math.min(bh * 0.38, ctx.bodySize * 1.1);
       out += svgText(x + w / 2, by + bh / 2 + s * 0.35, fitStr('LOREM IPSUM', w * 0.85, s, FACES.sans, 700), { face: FACES.sans, size: s, weight: 700, fill: pal.paper, anchor: 'middle', ls: 0.08 });
       break;
@@ -2468,6 +2496,11 @@ function drawHud(z, r, ctx, R) {
   }
   return o;
 }
+function glassPanel(x, y, w, h, z, ctx) {
+  const p = ctx.S * 8, r = Math.min(w, h) * 0.08 + p, id = 'gl' + z.seed;
+  return `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.62"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.28"/><stop offset="1" stop-color="#ffffff" stop-opacity="0.18"/></linearGradient>` +
+    `<rect x="${n2(x - p)}" y="${n2(y - p)}" width="${n2(w + p * 2)}" height="${n2(h + p * 2)}" rx="${n2(r)}" fill="url(#${id})" stroke="#ffffff" stroke-opacity="0.85" stroke-width="${n2(ctx.S * 1.2)}"/>`;
+}
 function fitStr(str, w, s, face, weight) {
   const words = str.split(' ');
   while (words.length > 1 && lineWidth(words, s, face, weight, 0) > w) words.pop();
@@ -2605,6 +2638,91 @@ function drawShape(z, r, ctx) {
       for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + (i - 2) * 0.45, lx = cx + Math.cos(a) * m * 0.3, ly = y + h - pot + Math.sin(a) * m * 0.4; o += `<ellipse cx="${n2(lx)}" cy="${n2(ly)}" rx="${n2(m * 0.06)}" ry="${n2(m * 0.2)}" fill="${leaf}" transform="rotate(${n2((i - 2) * 26)} ${n2(lx)} ${n2(ly)})"/>`; }
       return o;
     }
+    case 'aurora': {
+      const cols = ctx.T.pal.shapes; let o = `<clipPath id="au${z.seed}"><rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(m * 0.06)}"/></clipPath><g clip-path="url(#au${z.seed})">`;
+      for (let i = 0; i < 3; i++) {
+        const gid = 'ag' + z.seed + i, c = [cols[1], cols[0], cols[2]][i % 3];
+        o += `<linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity="0"/><stop offset="0.55" stop-color="${c}" stop-opacity="0.55"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient>`;
+        const yy = y + h * (0.2 + i * 0.18);
+        o += `<path d="M${n2(x)} ${n2(yy + h * 0.25)}C${n2(x + w * 0.3)} ${n2(yy - h * 0.15)} ${n2(x + w * 0.6)} ${n2(yy + h * 0.35)} ${n2(x + w)} ${n2(yy)}V${n2(yy + h * 0.45)}C${n2(x + w * 0.6)} ${n2(yy + h * 0.7)} ${n2(x + w * 0.3)} ${n2(yy + h * 0.25)} ${n2(x)} ${n2(yy + h * 0.6)}Z" fill="url(#${gid})"/>`;
+      }
+      return o + '</g>';
+    }
+    case 'bokeh': {
+      const R3 = mulberry32(z.seed || 13); let o = ''; const k = 6 + Math.floor(R3() * 6);
+      for (let i = 0; i < k; i++) { const r1 = m * (0.05 + R3() * 0.16), bx = x + R3() * w, by = y + R3() * h, gid = 'bk' + z.seed + i; o += `<radialGradient id="${gid}"><stop offset="0.55" stop-color="#ffffff" stop-opacity="0.5"/><stop offset="0.85" stop-color="#ffffff" stop-opacity="0.2"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient><circle cx="${n2(bx)}" cy="${n2(by)}" r="${n2(r1)}" fill="url(#${gid})"/>`; }
+      return o;
+    }
+    case 'globe': {
+      const r1 = m / 2 * 0.9, gid = 'gg' + z.seed, c = ctx.T.pal.shapes[0], c2 = ctx.T.pal.shapes[1];
+      let o = `<radialGradient id="${gid}" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#ffffff"/><stop offset="0.45" stop-color="${c}"/><stop offset="1" stop-color="${ctx.T.pal.shapes[2] || c}"/></radialGradient><circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(r1)}" fill="url(#${gid})"/>`;
+      o += `<path d="M${n2(cx - r1 * 0.5)} ${n2(cy - r1 * 0.2)}C${n2(cx - r1 * 0.2)} ${n2(cy - r1 * 0.55)} ${n2(cx + r1 * 0.25)} ${n2(cy - r1 * 0.3)} ${n2(cx + r1 * 0.1)} ${n2(cy + r1 * 0.05)}C${n2(cx - r1 * 0.05)} ${n2(cy + r1 * 0.4)} ${n2(cx - r1 * 0.45)} ${n2(cy + r1 * 0.2)} ${n2(cx - r1 * 0.5)} ${n2(cy - r1 * 0.2)}Z" fill="${c2}" fill-opacity="0.85"/>`;
+      for (const k of [-0.5, 0, 0.5]) o += `<ellipse cx="${n2(cx)}" cy="${n2(cy + k * r1 * 0.9)}" rx="${n2(r1 * Math.sqrt(1 - k * k * 0.81))}" ry="${n2(r1 * 0.12)}" fill="none" stroke="#ffffff" stroke-opacity="0.45" stroke-width="${n2(S)}"/>`;
+      o += `<ellipse cx="${n2(cx - r1 * 0.3)}" cy="${n2(cy - r1 * 0.5)}" rx="${n2(r1 * 0.45)}" ry="${n2(r1 * 0.22)}" fill="#ffffff" fill-opacity="0.6" transform="rotate(-25 ${n2(cx - r1 * 0.3)} ${n2(cy - r1 * 0.5)})"/>`;
+      return o;
+    }
+    case 'grass': {
+      const gid = 'gr' + z.seed, c = ctx.T.pal.shapes[1] || col; const R3 = mulberry32(z.seed || 17);
+      let o = `<linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c}"/><stop offset="1" stop-color="#2E7D32"/></linearGradient><path d="M${n2(x)} ${n2(y + h)}V${n2(y + h * 0.55)}`;
+      const k = 40; for (let i = 0; i <= k; i++) { const xx = x + w * i / k; o += `L${n2(xx)} ${n2(y + h * (0.1 + 0.45 * R3()))}L${n2(xx + w / k / 2)} ${n2(y + h * 0.6)}`; }
+      return o + `V${n2(y + h)}Z" fill="url(#${gid})"/>`;
+    }
+    case 'hexgrid': {
+      const cols = ctx.T.pal.shapes, R3 = mulberry32(z.seed || 19);
+      const r1 = Math.max(S * 6, m / 6), hw = r1 * Math.sqrt(3);
+      let o = `<clipPath id="hx${z.seed}"><rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}"/></clipPath><g clip-path="url(#hx${z.seed})">`;
+      for (let row = 0, yy = y; yy < y + h + r1; row++, yy += r1 * 1.5) for (let xx = x + (row % 2 ? hw / 2 : 0); xx < x + w + hw; xx += hw) {
+        let d = ''; for (let k = 0; k < 6; k++) { const a = Math.PI / 6 + k * Math.PI / 3; d += (k ? 'L' : 'M') + n2(xx + Math.cos(a) * r1 * 0.94) + ' ' + n2(yy + Math.sin(a) * r1 * 0.94); }
+        const roll = R3();
+        o += `<path d="${d}Z" fill="${roll < 0.12 ? cols[0] : roll < 0.2 ? cols[1] : 'none'}" stroke="${ctx.pal.ink}" stroke-opacity="0.55" stroke-width="${n2(S * 0.9)}"/>`;
+      }
+      return o + '</g>';
+    }
+    case 'titleblock': {
+      const ink = ctx.pal.ink, f = FACES.computer, fs = Math.max(S * 4, Math.min(h / 7, w / 22));
+      const cw = w, ch = Math.min(h, fs * 6.4), ty = y + h - ch;
+      let o = `<rect x="${n2(x)}" y="${n2(ty)}" width="${n2(cw)}" height="${n2(ch)}" fill="${ctx.pal.paper}" stroke="${ink}" stroke-width="${n2(S * 1.4)}"/>`;
+      o += `<path d="M${n2(x)} ${n2(ty + ch / 2)}H${n2(x + cw)}M${n2(x + cw * 0.55)} ${n2(ty)}V${n2(ty + ch)}M${n2(x + cw * 0.8)} ${n2(ty + ch / 2)}V${n2(ty + ch)}" stroke="${ink}" stroke-width="${n2(S * 0.9)}"/>`;
+      const lab = (tx, t1, t2, yy) => svgText(tx, yy, t1, { face: f, size: fs * 0.62, fill: ink, op: 0.7 }) + svgText(tx, yy + fs * 1.15, t2, { face: f, size: fs, weight: 700, fill: ink });
+      o += lab(x + fs * 0.4, 'TITLE', 'LOREM IPSUM SYSTEM', ty + fs * 1.0) + lab(x + cw * 0.55 + fs * 0.4, 'DWG NO.', '1430-2B', ty + fs * 1.0);
+      o += lab(x + fs * 0.4, 'APPROVED', 'D. DOLOR', ty + ch / 2 + fs * 1.0) + lab(x + cw * 0.55 + fs * 0.4, 'SCALE', '1:24', ty + ch / 2 + fs * 1.0) + lab(x + cw * 0.8 + fs * 0.4, 'REV', 'C', ty + ch / 2 + fs * 1.0);
+      return o;
+    }
+    case 'stripes': {
+      const cols = ctx.T.pal.shapes, bh = Math.max(S * 3, h / 7);
+      let o = ''; for (let i = 0; i < 3; i++) o += `<rect x="${n2(x)}" y="${n2(cy - bh * 1.6 + i * bh * 1.1)}" width="${n2(w)}" height="${n2(bh * 0.8)}" fill="${cols[i % cols.length]}"/>`;
+      return o;
+    }
+    case 'pictogram': {
+      const sz = Math.min(w, h) * 0.9, px = cx - sz / 2, py = cy - sz / 2, c = col, R3 = mulberry32(z.seed || 23), g = Math.floor(R3() * 4);
+      let o = `<rect x="${n2(px)}" y="${n2(py)}" width="${n2(sz)}" height="${n2(sz)}" rx="${n2(sz * 0.14)}" fill="${c}"/>`;
+      const W2 = '#ffffff', sw2 = sz * 0.07;
+      if (g === 0) o += `<circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(sz * 0.26)}" fill="none" stroke="${W2}" stroke-width="${n2(sw2)}"/><path d="M${n2(cx)} ${n2(cy - sz * 0.38)}V${n2(cy + sz * 0.38)}" stroke="${W2}" stroke-width="${n2(sw2)}"/>`;
+      if (g === 1) o += `<path d="M${n2(cx)} ${n2(cy - sz * 0.3)}L${n2(cx + sz * 0.3)} ${n2(cy + sz * 0.25)}H${n2(cx - sz * 0.3)}Z" fill="none" stroke="${W2}" stroke-width="${n2(sw2)}" stroke-linejoin="round"/><circle cx="${n2(cx)}" cy="${n2(cy + sz * 0.1)}" r="${n2(sw2 * 0.7)}" fill="${W2}"/>`;
+      if (g === 2) o += `<path d="M${n2(cx - sz * 0.3)} ${n2(cy)}H${n2(cx + sz * 0.2)}M${n2(cx + sz * 0.05)} ${n2(cy - sz * 0.17)}L${n2(cx + sz * 0.28)} ${n2(cy)}L${n2(cx + sz * 0.05)} ${n2(cy + sz * 0.17)}" fill="none" stroke="${W2}" stroke-width="${n2(sw2)}" stroke-linecap="square"/>`;
+      if (g === 3) o += `<rect x="${n2(cx - sz * 0.26)}" y="${n2(cy - sz * 0.26)}" width="${n2(sz * 0.52)}" height="${n2(sz * 0.52)}" fill="none" stroke="${W2}" stroke-width="${n2(sw2)}"/><path d="M${n2(cx - sz * 0.26)} ${n2(cy)}H${n2(cx + sz * 0.26)}M${n2(cx)} ${n2(cy - sz * 0.26)}V${n2(cy + sz * 0.26)}" stroke="${W2}" stroke-width="${n2(sw2 * 0.6)}"/>`;
+      return o;
+    }
+    case 'refcode': {
+      const f = FACES.computer, fs = Math.max(S * 4, Math.min(h / 4, w / 16)), ink = ctx.pal.ink;
+      const rm = fs * 0.9, rx = x + rm, ry = y + rm;
+      let o = `<circle cx="${n2(rx)}" cy="${n2(ry)}" r="${n2(rm * 0.6)}" fill="none" stroke="${ink}" stroke-width="${n2(S)}"/><path d="M${n2(rx - rm)} ${n2(ry)}H${n2(rx + rm)}M${n2(rx)} ${n2(ry - rm)}V${n2(ry + rm)}" stroke="${ink}" stroke-width="${n2(S)}"/>`;
+      o += svgText(x + rm * 2.4, y + fs * 1.2, 'DOC 1430-2 · REV C', { face: f, size: fs, weight: 700, fill: ink });
+      o += svgText(x + rm * 2.4, y + fs * 2.5, 'ISSUED 1974-06 · SHEET 1 OF 1', { face: f, size: fs * 0.75, fill: ink, op: 0.75 });
+      return o;
+    }
+    case 'brutal': {
+      const R3 = mulberry32(z.seed || 29); let o = ''; const grey = ['#B9BBB7', '#A4A7A3', '#C9CBC7', '#8E9290'];
+      let yy = y + h, bw = w * 0.9, bx = x + w * 0.05; const k = 3 + Math.floor(R3() * 2);
+      for (let i = 0; i < k; i++) {
+        const bh = h / (k + 0.5) * (0.8 + R3() * 0.4); yy -= bh;
+        const off = (R3() - 0.5) * w * 0.25; const ww = bw * (1 - i * 0.12) * (i === k - 1 ? 1.25 : 1);
+        const xx = Math.max(x, Math.min(x + w - ww, bx + (bw - ww) / 2 + off));
+        o += `<rect x="${n2(xx)}" y="${n2(yy)}" width="${n2(ww)}" height="${n2(bh)}" fill="${grey[i % 4]}"/>`;
+        for (let j = 1; j < 9; j++) o += `<rect x="${n2(xx + ww * j / 9 - ww * 0.012)}" y="${n2(yy + bh * 0.3)}" width="${n2(ww * 0.024)}" height="${n2(bh * 0.5)}" fill="${ctx.pal.ink}" fill-opacity="0.55"/>`;
+      }
+      return o;
+    }
     case 'gridlet': { let o = ''; const st = m / 4; for (let i = 0; i <= 4; i++) o += `<path d="M${n2(x + i * st)} ${n2(y)}V${n2(y + 4 * st)}M${n2(x)} ${n2(y + i * st)}H${n2(x + 4 * st)}" stroke="${col}" stroke-width="${n2(S * 0.8)}"/>`; return o; }
   }
   return '';
@@ -2629,6 +2747,16 @@ function drawFrame(T, D, pal, S) {
       o += `<path d="M${n2(x + g2)} ${n2(y + h - g2)}V${n2(y + g2 + ar)}A${n2((w - g2 * 2) / 2)} ${n2(ar)} 0 0 1 ${n2(x + w - g2)} ${n2(y + g2 + ar)}V${n2(y + h - g2)}Z" fill="none" stroke="${pal.accent}" stroke-width="${n2(sw * 0.9)}"/>`;
       const c = (px, py, dx) => `M${n2(px)} ${n2(py)}c${n2(dx * g2 * 2)} ${n2(-g2 * 3)} ${n2(dx * g2 * 5)} ${n2(g2 * 1)} ${n2(dx * g2 * 3)} ${n2(-g2 * 3.5)}c${n2(-dx * g2 * 1.2)} ${n2(-g2 * 1.4)} ${n2(-dx * g2 * 2.4)} ${n2(g2 * 0.2)} ${n2(-dx * g2 * 1.2)} ${n2(g2 * 1.2)}`;
       o += `<path d="${c(x + g2 * 0.5, y + h - g2 * 0.5, 1)}${c(x + w - g2 * 0.5, y + h - g2 * 0.5, -1)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(sw * 1.2)}" stroke-linecap="round"/>`;
+      return o;
+    }
+    case 'drawing': {
+      const f = FACES.computer, fs = Math.max(S * 4, Math.min(w, h) / 90);
+      let o = `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(sw * 1.2)}"/>`;
+      const nx = 6, ny = Math.max(4, Math.round(6 * h / w));
+      for (let i = 1; i < nx; i++) o += `<path d="M${n2(x + w * i / nx)} ${n2(y)}v${n2(fs * 0.8)}M${n2(x + w * i / nx)} ${n2(y + h)}v${n2(-fs * 0.8)}" stroke="${pal.ink}" stroke-width="${n2(sw * 0.6)}"/>`;
+      for (let i = 1; i < ny; i++) o += `<path d="M${n2(x)} ${n2(y + h * i / ny)}h${n2(fs * 0.8)}M${n2(x + w)} ${n2(y + h * i / ny)}h${n2(-fs * 0.8)}" stroke="${pal.ink}" stroke-width="${n2(sw * 0.6)}"/>`;
+      for (let i = 0; i < nx; i++) o += svgText(x + w * (i + 0.5) / nx, y - fs * 0.35, String(nx - i), { face: f, size: fs, fill: pal.ink, op: 0.7, anchor: 'middle' });
+      for (let i = 0; i < ny; i++) o += svgText(x - fs * 0.9, y + h * (i + 0.5) / ny + fs * 0.35, 'ABCDEFGHJK'[i] || '', { face: f, size: fs, fill: pal.ink, op: 0.7, anchor: 'middle' });
       return o;
     }
     case 'dotted': {
@@ -3079,6 +3207,7 @@ function zoneSpecs(zones, D, u, A2) {
       o.textFlow = z.wrap ? { wrapsAround: t.map(k => zones[k].stack), rule: t.length ? 'Lines shorten or skip to clear these zones plus one gutter, staying on the baseline grid.' : 'Wrap is on; nothing overlaps this zone.' } : { wrapsAround: [], rule: 'Text runs straight through; nothing wraps.' };
     }
     if (z.uid) o.uid = z.uid;
+    if (z.role === 'shape' && z.shape) o.motif = MOTIF[z.shape] || z.shape;
     const ws = A2.warnings.filter(w => w.zones.includes(z.stack));
     if (ws.length) o.checks = ws.map(w => ({ severity: w.severity, type: w.type, message: w.message }));
     if (z.role === 'image' || z.role === 'card' || z.role === 'panel') {
@@ -3153,6 +3282,7 @@ function specObject(st, layout) {
       'Image frames are filled (cover). Crop amounts assume the suggested source ratio.'
     ],
     whitespace: { amount: st.white, distribution: st.dist, distributionResult: GZ.distStatus },
+    palette: { paper: T.pal.paper, ink: T.pal.ink, accent: T.pal.accent, imagePlaceholder: T.pal.image, supporting: (T.pal.shapes || []).filter(c => c !== T.pal.accent), note: 'Direction colors from the style; refine in your design tool.' },
     typography: {
       headline: { classification: T.typeCls || 'Per style', case: T.case, tracking: T.ls ? `${Math.round(T.ls * 1000)}/1000 em` : 'normal', leading: T.lh || 1, weight: T.weight, previewStack: FACES[T.face] },
       body: { classification: T.bodyCls || 'Text face', size: roundU(D.baseline / 1.35 / UNIT_PT[u], u), leading: f(st.baseline), alignment: T.justify ? 'justified' : T.align === 'center' ? 'centered' : 'flush left, ragged right', previewStack: FACES[T.bodyFace || 'sans'] },
@@ -3240,6 +3370,71 @@ function specReadable(spec) {
   for (const p of spec.production) L.push(' - ' + p);
   return L.join('\n');
 }
+/* Claude Design handoff: a self-contained brief in pixels, built from the same spec. */
+const MOTIF = { hexgrid: 'honeycomb hexagon field', titleblock: 'engineering title block', stripes: 'livery stripes', pictogram: 'pictogram tile', refcode: 'document code and registration mark', brutal: 'brutalist concrete massing', bubbles: 'glossy bubbles', aurora: 'aurora bands', bokeh: 'bokeh lights', globe: 'glossy globe', grass: 'grass horizon', swoosh: 'ribbon swooshes', psych: 'concentric wavy rings', wave: 'ribbon waves', whiplash: 'whiplash curves', rays: 'sunburst', orbit: 'orbits', hud: 'reticle', glitch: 'glitch bars', badge: 'sticker badge', rainbow: 'rainbow arcs', stars: 'sparkle stars', spiral: 'sun spiral', leafy: 'leafy vine', dotline: 'dotted wave', blob2: 'flat blob', plant: 'potted plant', circle: 'circle', square: 'square', triangle: 'triangle', bar: 'bar', blob: 'organic blob', plane: 'color plane', bars: 'black bars', squiggle: 'squiggle', dots: 'dot pattern', gridlet: 'grid fragment' };
+function claudeDesignBrief(st, layout) {
+  const sp = specObject(st, layout);
+  const u = st.unit, D = sp.document;
+  const toPx = v => Math.round(toPt(v, u) / 0.75);
+  const pxNote = u === 'px' ? '' : ` (${D.width} × ${D.height} ${u}; converted at 96 px per inch)`;
+  const W = toPx(D.width), H = toPx(D.height);
+  const G = sp.grid, L = [];
+  L.push(`# Gridder layout direction for Claude Design`);
+  L.push('');
+  L.push(`Build this as a Claude Design artboard. Keep the geometry exactly as given; it is the art direction. Replace placeholders only with content I provide.`);
+  L.push('');
+  L.push(`## Canvas`);
+  L.push(`- ${D.typeLabel}${D.subtypeLabel ? ' / ' + D.subtypeLabel : ''}, ${W} × ${H} px${pxNote}.`);
+  if (D.frames) L.push(`- Carousel: ${D.frames.count} frames, each ${toPx(D.frames.frameWidth)} px wide. Build one artboard per frame, cutting the strip at the frame lines.`);
+  if (D.bleed) L.push(`- Bleed ${toPx(D.bleed)} px beyond the trim on every side.`);
+  L.push('');
+  L.push(`## Grid`);
+  L.push(`- Margins: top ${toPx(G.margins.top)}, right ${toPx(G.margins.right)}, bottom ${toPx(G.margins.bottom)}, left ${toPx(G.margins.left)} px.`);
+  L.push(`- ${G.columns.count} columns, ${toPx(G.columns.width)} px wide with ${toPx(G.columns.gutter)} px gutters.`);
+  L.push(`- ${G.rows.count} rows, ${toPx(G.rows.height)} px tall with ${toPx(G.rows.gap)} px gaps.`);
+  L.push(`- Baseline grid every ${toPx(G.baseline.increment)} px, starting at the top margin.`);
+  L.push('');
+  L.push(`## Style`);
+  L.push(`- ${sp.tradition.label}${sp.tradition.period ? ' (' + sp.tradition.period + ')' : ''}, as visual inspiration. ${sp.direction}`);
+  L.push(`- Headline type: ${sp.typography.headline.classification}; ${sp.typography.headline.case} case${sp.typography.headline.tracking !== 'normal' ? ', tracking ' + sp.typography.headline.tracking : ''}.`);
+  L.push(`- Body type: ${sp.typography.body.classification}, ${toPx(sp.typography.body.size)} px on a ${toPx(G.baseline.increment)} px baseline, ${sp.typography.body.alignment}.`);
+  L.push(`- Colors: paper ${sp.palette.paper}, ink ${sp.palette.ink}, accent ${sp.palette.accent}${sp.palette.supporting.length ? ', supporting ' + sp.palette.supporting.join(', ') : ''}.`);
+  L.push('');
+  L.push(`## Layers, back to front`);
+  L.push(`Positions are from the top-left of the trim, in px. Higher numbers sit in front.`);
+  for (const z of sp.zones) {
+    const b = z.bounds;
+    let line = `${z.stack}. **${z.label}${z.motif ? ': ' + z.motif : ''}**${z.contains && z.contains.length > 1 ? ' (' + z.contains.join(' + ') + ')' : ''}: x ${toPx(b.x)}, y ${toPx(b.y)}, ${toPx(b.width)} × ${toPx(b.height)}`;
+    if (z.rotation) line += `, rotated ${z.rotation.degrees}° ${z.rotation.direction} about its center`;
+    if (z.bleeds) line += `, bleeds off the ${z.bleeds.join(', ')} edge${z.bleeds.length > 1 ? 's' : ''}`;
+    if (z.image) line += `. Image frame ${z.image.frameRatio}, fill and crop, keep key content in the central 76%${z.image.mask ? ', ' + z.image.mask + ' mask' : ''}`;
+    if (z.textFlow && z.textFlow.wrapsAround.length) line += `. Text wraps around layer ${z.textFlow.wrapsAround.join(', ')}`;
+    if (z.overImage) line += '. Set over the image';
+    L.push(line + '.');
+  }
+  if (sp.platform) {
+    L.push('');
+    L.push(`## Platform interface (keep text clear)`);
+    for (const z of sp.platform.interfaceZones) L.push(`- ${z.label}: x ${toPx(z.x)}, y ${toPx(z.y)}, ${toPx(z.width)} × ${toPx(z.height)} px.`);
+    for (const c of sp.platform.overlays) L.push(`- ${c.label}: circle at ${toPx(c.centerX)}, ${toPx(c.centerY)}, radius ${toPx(c.radius)} px.`);
+    for (const c of sp.platform.crops) L.push(c.shape === 'circle' ? `- ${c.label}: circle at ${toPx(c.centerX)}, ${toPx(c.centerY)}, radius ${toPx(c.radius)} px.` : `- ${c.label}: x ${toPx(c.x)}, y ${toPx(c.y)}, ${toPx(c.width)} × ${toPx(c.height)} px.`);
+    L.push(`- Approximate positions, checked October 2026.`);
+  }
+  const warn = sp.checks.filter(c => c.severity === 'warning'), intent = sp.checks.filter(c => c.severity === 'intentional');
+  if (warn.length || intent.length) {
+    L.push('');
+    L.push(`## Checks`);
+    for (const c of warn) L.push(`- Fix or confirm: layer ${c.zones.join(' and ')}: ${c.message}.`);
+    for (const c of intent) L.push(`- Intended: layer ${c.zones.join(' and ')}: ${c.message}.`);
+  }
+  L.push('');
+  L.push(`## Rules`);
+  L.push(`- Don't add, remove or move zones, and don't change the grid, unless I ask.`);
+  L.push(`- Use real typefaces of the classifications above; Gridder's preview fonts are stand-ins.`);
+  L.push(`- Image zones stay as labelled placeholder frames until I supply images.`);
+  L.push(`- The attached Gridder reference image shows the intended composition.`);
+  return L.join('\n');
+}
 function guideScaffoldSVG(st, layout) {
   const D = derive(st), u = st.unit;
   const k = 1 / UNIT_PT[u];
@@ -3282,7 +3477,7 @@ function guideScaffoldSVG(st, layout) {
   return s;
 }
 
-if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeLayout, addZone, zoneGeom, ADD_DEFAULTS, STYLE_GROUPS, styleGroupOf, DOCS, DOC_ORDER, TRADS, ERA_IDS, STYLE_IDS, ALT_IDS, rollGeometry, derive, generateZones, renderSVG, specObject, specReadable, guideScaffoldSVG, resolveTradition, buildTradition, chooseArch, archWeights, mulberry32, toPt, fromPt, fmtU, roundU, UNIT_PT, UNIT_PREC, shapeFamily, RATIOS, ARCH_SHORT, ARCH_INFO, setMeasure: f => { measureWord = f; } };
+if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MAP, SURFACE, freezeLayout, addZone, zoneGeom, ADD_DEFAULTS, STYLE_GROUPS, styleGroupOf, DOCS, DOC_ORDER, TRADS, ERA_IDS, STYLE_IDS, ALT_IDS, rollGeometry, derive, generateZones, renderSVG, specObject, specReadable, guideScaffoldSVG, resolveTradition, buildTradition, chooseArch, archWeights, mulberry32, toPt, fromPt, fmtU, roundU, UNIT_PT, UNIT_PREC, shapeFamily, RATIOS, ARCH_SHORT, ARCH_INFO, setMeasure: f => { measureWord = f; } };
 </script>
 <script>
 /* ============ Gridder UI ============ */
@@ -3476,6 +3671,7 @@ if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeL
     specTxt = specReadable(spec);
     specJson = JSON.stringify(spec, null, 2);
     $('h-dir').textContent = spec.direction;
+    $('h-cd').textContent = claudeDesignBrief(st, layout);
     $('h-spec').textContent = view.specFmt === 'read' ? specTxt : specJson;
     $('h-save-spec').textContent = view.specFmt === 'read' ? 'Save .txt' : 'Save .json';
     syncQuick(spec.whitespace.distributionResult);
@@ -3793,6 +3989,8 @@ if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeL
     $('h-copy-dir').onclick = () => copyText(spec.direction, 'Direction', $('h-dir'));
     $('h-copy-spec').onclick = () => copyText(view.specFmt === 'read' ? specTxt : specJson, view.specFmt === 'read' ? 'Specification' : 'JSON', $('h-spec'));
     $('h-copy-svg').onclick = () => copyText(guideScaffoldSVG(st, layout), 'Guide SVG', null);
+    $('h-copy-cd').onclick = () => copyText(claudeDesignBrief(st, layout), 'Claude Design brief', $('h-cd'));
+    $('h-save-cd').onclick = () => save(fileBase() + '-claude-design-brief.md', claudeDesignBrief(st, layout));
     $('h-save-spec').onclick = () => view.specFmt === 'read' ? save(fileBase() + '-spec.txt', specTxt) : save(fileBase() + '-spec.json', specJson);
     $('h-save-svg').onclick = () => save(fileBase() + '-guides.svg', guideScaffoldSVG(st, layout));
     $('h-save-png').onclick = async () => { if (!pngBlob) await makePng(); if (pngBlob) save(fileBase() + (view.annot ? '-annotated' : '') + '.png', pngBlob); };
