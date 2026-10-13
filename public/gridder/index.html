@@ -1,0 +1,2776 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Gridder by D the Designer: an art director's tool for exploring layout directions across document types, eras and styles, then handing off a measured grid specification, reference image and guide scaffold.">
+<meta property="og:title" content="Gridder by D the Designer">
+<meta property="og:description" content="Explore layouts across eras and document types. Turn a visual direction into a clear, measured handoff.">
+<meta property="og:image" content="https://d-the-designer.com/og.png">
+<style>:root{color-scheme:light}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Gridder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a light-table workbench — the layout sheet lies on a cutting mat; controls sit on a side rail like a spec sheet. */
+:root {
+  --bg: #E7EAE6;
+  --surface: #F7F8F5;
+  --surface-2: #EEF1ED;
+  --ink: #15201C;
+  --muted: #586761;
+  --line: #CBD3CD;
+  --accent: #F2C230;        /* cutter-blade yellow */
+  --accent-ink: #1B1A10;
+  --mat: #2D5A4D;           /* self-healing cutting mat */
+  --mat-line: rgba(255,255,255,.07);
+  --mat-line-strong: rgba(255,255,255,.14);
+  --mat-ink: #DCE9E3;
+  --mat-muted: #A8C2B8;
+  --danger: #B3261E;
+  --g-margin: #E5007E; --g-column: #8A5CF6; --g-baseline: #4FB6E8; --g-bleed: #E5312B; --g-safe: #F08C00;
+  --display: "Archivo", "Arial Narrow", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111714; --surface: #18201C; --surface-2: #1F2823; --ink: #E3EAE6; --muted: #92A39B; --line: #2C3832;
+    --accent: #F2C230; --accent-ink: #17160D; --mat: #1C3A31; --mat-line: rgba(255,255,255,.05); --mat-line-strong: rgba(255,255,255,.1);
+    --mat-ink: #D3E3DC; --mat-muted: #8FAAA0; --danger: #F2B8B5; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111714; --surface: #18201C; --surface-2: #1F2823; --ink: #E3EAE6; --muted: #92A39B; --line: #2C3832;
+  --accent: #F2C230; --accent-ink: #17160D; --mat: #1C3A31; --mat-line: rgba(255,255,255,.05); --mat-line-strong: rgba(255,255,255,.1);
+  --mat-ink: #D3E3DC; --mat-muted: #8FAAA0; --danger: #F2B8B5; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.45; }
+.app { max-width: 1680px; margin: 0 auto; padding-inline: 16px; padding-block: 0 24px; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* header */
+.top { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 12px 20px; align-items: end; padding-block: 14px 12px; }
+.brand { display: flex; align-items: center; gap: 10px; align-self: center; }
+.mark { display: grid; grid-template-columns: repeat(3, 7px); gap: 2px; }
+.mark i { width: 7px; height: 7px; background: var(--ink); display: block; }
+.mark i:nth-child(5) { background: var(--accent); }
+.wordmark { font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 22px; letter-spacing: .02em; line-height: 1; }
+.tag { font-size: 12px; color: var(--muted); max-width: 22ch; line-height: 1.25; }
+.filters { min-width: 0; }
+.filters > summary { display: none; }
+.filter-grid { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: end; }
+.field { display: grid; gap: 3px; min-width: 0; }
+.field > span, .lbl { font-family: var(--display); font-stretch: 85%; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+select, input[type=number], input[type=text] { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; min-height: 34px; max-width: 100%; }
+select { padding-right: 24px; }
+.chips { display: flex; flex-wrap: wrap; gap: 2px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 2px; }
+.chip { border: 0; background: transparent; padding: 5px 8px; border-radius: 3px; font-size: 12px; cursor: pointer; color: var(--muted); min-height: 28px; }
+.chip[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); font-weight: 600; }
+.switch { display: inline-flex; align-items: center; gap: 8px; min-height: 34px; cursor: pointer; font-size: 13px; }
+.switch input { appearance: none; width: 34px; height: 20px; border-radius: 10px; background: var(--line); position: relative; cursor: pointer; margin: 0; flex: none; }
+.switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface); transition: transform .15s; }
+.switch input:checked { background: var(--ink); }
+.switch input:checked::after { transform: translateX(14px); }
+.actions { display: flex; gap: 8px; align-items: center; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 7px 12px; min-height: 34px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.btn:hover { border-color: var(--muted); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn-next { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-family: var(--display); font-stretch: 110%; font-weight: 800; font-size: 15px; padding: 9px 16px; min-height: 42px; letter-spacing: .01em; }
+.btn-next:hover { border-color: var(--accent-ink); }
+kbd { font-family: var(--mono); font-size: 11px; padding: 1px 5px; border-radius: 3px; border: 1px solid currentColor; opacity: .55; }
+
+/* work area */
+.work { display: grid; grid-template-columns: minmax(0,1fr) 400px; gap: 16px; align-items: start; }
+.stage { background-color: var(--mat);
+  background-image:
+    linear-gradient(var(--mat-line-strong) 1px, transparent 1px), linear-gradient(90deg, var(--mat-line-strong) 1px, transparent 1px),
+    linear-gradient(var(--mat-line) 1px, transparent 1px), linear-gradient(90deg, var(--mat-line) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  border-radius: var(--r); padding: 20px; display: grid; grid-template-rows: minmax(0,1fr) auto; gap: 14px;
+  height: clamp(460px, calc(100vh - 140px), 1180px); position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); color: var(--mat-ink); min-width: 0; }
+.sheet-wrap { min-height: 0; min-width: 0; display: flex; align-items: center; justify-content: center; cursor: grab; }
+.sheet-wrap:active { cursor: grabbing; }
+.sheet-wrap svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 6px 18px rgba(0,0,0,.35)); }
+.readout { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; justify-content: space-between; font-size: 13px; }
+.readout .what { min-width: 0; max-width: 70ch; }
+.readout .what b { font-family: var(--display); font-stretch: 110%; font-weight: 800; font-size: 15px; color: #fff; }
+.readout .what .dim { color: var(--mat-muted); }
+.views { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
+.views label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; font-size: 12px; color: var(--mat-ink); }
+.views input { accent-color: var(--accent); }
+.sw { width: 10px; height: 10px; display: inline-block; border-radius: 2px; }
+
+/* panel */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); min-width: 0; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line); }
+.tab { border: 0; background: transparent; padding: 12px; cursor: pointer; font-family: var(--display); font-stretch: 100%; font-weight: 700; font-size: 14px; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+.pane { padding: 6px 16px 18px; }
+.grp { border-bottom: 1px solid var(--line); padding-block: 12px; display: grid; gap: 10px; }
+.grp:last-child { border-bottom: 0; }
+.grp-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.grp-h h3 { margin: 0; font-family: var(--display); font-stretch: 100%; font-size: 13px; font-weight: 800; letter-spacing: .02em; }
+.lock { border: 1px solid var(--line); background: transparent; border-radius: 4px; padding: 3px 8px; font-size: 12px; cursor: pointer; display: inline-flex; gap: 5px; align-items: center; color: var(--muted); min-height: 28px; }
+.lock svg { width: 12px; height: 12px; }
+.lock[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 8px; }
+.num { display: grid; gap: 3px; min-width: 0; }
+.num span { font-size: 11px; color: var(--muted); }
+.num input, .num select { width: 100%; font-family: var(--mono); font-size: 13px; }
+.derived { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.derived b { color: var(--ink); font-weight: 500; }
+.warn { color: var(--danger); font-size: 12px; }
+input[type=range] { width: 100%; accent-color: var(--ink); }
+
+/* handoff */
+.kind { font-family: var(--display); font-stretch: 85%; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; border: 1px solid currentColor; color: var(--muted); }
+.ref-img { width: 100%; max-width: 100%; background: repeating-conic-gradient(var(--surface-2) 0 25%, var(--surface) 0 50%) 0 0/16px 16px; border: 1px solid var(--line); border-radius: 4px; display: block; cursor: grab; }
+.hint { font-size: 12px; color: var(--muted); margin: 0; }
+.direction { margin: 0; font-size: 13px; line-height: 1.5; max-width: 65ch; }
+.btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.save { display: none !important; }
+.can-save .save { display: inline-flex !important; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; padding: 2px; gap: 2px; background: var(--surface-2); }
+.seg button { border: 0; background: transparent; padding: 3px 10px; border-radius: 3px; font-size: 12px; cursor: pointer; color: var(--muted); min-height: 26px; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); font-weight: 600; }
+pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 1.5; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 10px; max-height: 340px; overflow: auto; white-space: pre; cursor: grab; }
+.foot { font-size: 12px; color: var(--muted); padding-block: 16px 0; max-width: 90ch; }
+
+.credit { margin: 6px 0 0; font-family: var(--display); font-stretch: 110%; font-weight: 800; font-size: 12px; letter-spacing: .08em; }
+.credit a { color: var(--ink); text-decoration-color: var(--accent); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 8px 14px; border-radius: 4px; font-size: 13px; z-index: 30; max-width: calc(100% - 32px); }
+.dock { display: none; }
+
+@media (max-width: 1100px) { .work { grid-template-columns: minmax(0,1fr) 340px; } .tag { display: none; } }
+@media (max-width: 900px) {
+  .top { grid-template-columns: minmax(0,1fr) auto; }
+  .top .actions { display: none; }
+  .filters { grid-column: 1 / -1; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+  .filters > summary { display: flex; justify-content: space-between; gap: 8px; padding: 10px 12px; cursor: pointer; list-style: none; font-size: 13px; }
+  .filters > summary::-webkit-details-marker { display: none; }
+  .filters > summary .sum { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .filter-grid { padding: 0 12px 12px; }
+  .filter-grid .field { flex: 1 1 140px; }
+  .work { grid-template-columns: minmax(0,1fr); }
+  .stage { position: static; height: auto; padding: 14px; }
+  .sheet-wrap { height: 58vh; }
+  .app { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); }
+  .dock { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 10px); background: var(--surface); border-top: 1px solid var(--line); z-index: 20; }
+  .dock .btn-next { justify-content: center; min-height: 48px; font-size: 16px; }
+  .dock .btn { min-height: 48px; }
+  .toast { bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div>
+        <div class="wordmark">GRIDDER</div>
+      </div>
+      <div class="tag">Layout direction, measured for handoff</div>
+    </div>
+    <details class="filters" id="filters">
+      <summary><span><b>Filters</b></span><span class="sum" id="filter-sum"></span></summary>
+      <div class="filter-grid">
+        <label class="field"><span>Document</span><select id="f-doc"></select></label>
+        <label class="field"><span>Format</span><select id="f-sub"></select></label>
+        <div class="field"><span id="shape-lbl">Shape</span><div class="chips" id="f-shape" role="group" aria-labelledby="shape-lbl"></div></div>
+        <label class="field"><span>Size</span><select id="f-size"></select></label>
+        <label class="field"><span>Era</span><select id="f-era"></select></label>
+        <label class="field"><span>Style</span><select id="f-style"></select></label>
+        <label class="switch" title="Pick from alternative, DIY and countercultural approaches"><input type="checkbox" id="f-alt"> Alternative</label>
+      </div>
+    </details>
+    <div class="actions">
+      <button class="btn" id="btn-back" type="button" title="Previous direction (B)" disabled>Back</button>
+      <button class="btn btn-next" id="btn-next" type="button">Next direction <kbd>N</kbd></button>
+    </div>
+  </header>
+
+  <main class="work">
+    <section class="stage" aria-label="Layout preview">
+      <div class="sheet-wrap" id="sheet" draggable="true" title="Drag to hand off the layout specification"></div>
+      <div class="readout">
+        <div class="what" id="readout"></div>
+        <div class="views">
+          <label><input type="checkbox" id="v-guides" checked> Grid</label>
+          <label><input type="checkbox" id="v-base"> Baseline</label>
+          <label><input type="checkbox" id="v-labels"> Zone numbers</label>
+          <span title="Margins"><i class="sw" style="background:var(--g-margin)"></i></span>
+          <span title="Columns and rows"><i class="sw" style="background:var(--g-column)"></i></span>
+          <span title="Baseline"><i class="sw" style="background:var(--g-baseline)"></i></span>
+          <span title="Bleed"><i class="sw" style="background:var(--g-bleed)"></i></span>
+          <span title="Safe area"><i class="sw" style="background:var(--g-safe)"></i></span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel" id="panel">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-geo" aria-selected="true" aria-controls="pane-geo" type="button">Geometry</button>
+        <button class="tab" role="tab" id="tab-hand" aria-selected="false" aria-controls="pane-hand" type="button">Handoff</button>
+      </div>
+
+      <div class="pane" id="pane-geo" role="tabpanel" aria-labelledby="tab-geo">
+        <div class="grp">
+          <div class="grp-h"><h3>Page size</h3><button class="lock" data-lock="size" aria-pressed="false" type="button"></button></div>
+          <div class="row">
+            <label class="num"><span>Width</span><input type="number" id="g-w" step="any" min="0"></label>
+            <label class="num"><span>Height</span><input type="number" id="g-h" step="any" min="0"></label>
+            <label class="num"><span>Units</span><select id="g-unit"><option value="in">in</option><option value="mm">mm</option><option value="pt">pt</option><option value="px">px</option></select></label>
+          </div>
+          <div class="row">
+            <label class="num"><span>Bleed</span><input type="number" id="g-bleed" step="any" min="0"></label>
+            <label class="num"><span>Safe area</span><input type="number" id="g-safe" step="any" min="0"></label>
+            <div class="num"><span>Orientation</span><button class="btn" id="g-rot" type="button" style="justify-content:center">Swap ⇄</button></div>
+          </div>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3>Margins</h3><button class="lock" data-lock="margins" aria-pressed="false" type="button"></button></div>
+          <div class="row">
+            <label class="num"><span>Top</span><input type="number" id="g-mt" step="any" min="0"></label>
+            <label class="num"><span>Right</span><input type="number" id="g-mr" step="any" min="0"></label>
+            <label class="num"><span>Bottom</span><input type="number" id="g-mb" step="any" min="0"></label>
+            <label class="num"><span>Left</span><input type="number" id="g-ml" step="any" min="0"></label>
+          </div>
+          <div class="derived" id="d-live"></div>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3>Columns</h3><button class="lock" data-lock="cols" aria-pressed="false" type="button"></button></div>
+          <div class="row">
+            <label class="num"><span>Count</span><input type="number" id="g-cols" step="1" min="1" max="48"></label>
+            <label class="num"><span>Gutter</span><input type="number" id="g-gut" step="any" min="0"></label>
+          </div>
+          <div class="derived" id="d-col"></div>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3>Rows / modules</h3><button class="lock" data-lock="rows" aria-pressed="false" type="button"></button></div>
+          <div class="row">
+            <label class="num"><span>Count</span><input type="number" id="g-rows" step="1" min="1" max="48"></label>
+            <label class="num"><span>Row gap</span><input type="number" id="g-rgap" step="any" min="0"></label>
+          </div>
+          <div class="derived" id="d-row"></div>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3>Baseline grid</h3><button class="lock" data-lock="baseline" aria-pressed="false" type="button"></button></div>
+          <div class="row">
+            <label class="num"><span>Increment</span><input type="number" id="g-base" step="any" min="0"></label>
+            <div class="derived" id="d-base" style="align-self:end"></div>
+          </div>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3>White space</h3><button class="lock" data-lock="white" aria-pressed="false" type="button"></button></div>
+          <label class="num"><span>Amount <b id="d-white"></b></span><input type="range" id="g-white" min="0" max="100" step="5"></label>
+          <label class="num"><span>Distribution</span><select id="g-dist"><option value="none">As composed</option><option value="balanced">Balanced top and bottom</option><option value="top">Space at top</option><option value="bottom">Space at bottom</option></select></label>
+        </div>
+        <p class="warn" id="geo-warn" hidden>The margins and gutters leave no room for the columns or rows. Reduce them, or use fewer columns or rows.</p>
+      </div>
+
+      <div class="pane" id="pane-hand" role="tabpanel" aria-labelledby="tab-hand" hidden>
+        <div class="grp">
+          <div class="grp-h"><h3>Layout reference</h3><span class="kind">Visual reference</span></div>
+          <label class="switch"><input type="checkbox" id="h-annot"> Include grid, zone numbers and measurements</label>
+          <img class="ref-img" id="h-img" alt="Layout reference image of the current direction" draggable="true">
+          <p class="hint">Drag the image into another app, or press and hold to save it on a phone.</p>
+          <div class="btns">
+            <button class="btn save" id="h-save-png" type="button">Save PNG</button>
+            <button class="btn" id="h-copy-img" type="button">Copy image</button>
+          </div>
+          <span class="lbl">Direction</span>
+          <p class="direction" id="h-dir"></p>
+          <div class="btns"><button class="btn" id="h-copy-dir" type="button">Copy direction</button></div>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3>Layout specification</h3><span class="kind">Specification</span></div>
+          <div class="seg" role="group" aria-label="Specification format">
+            <button type="button" id="s-read" aria-pressed="true">Readable</button>
+            <button type="button" id="s-json" aria-pressed="false">JSON</button>
+          </div>
+          <pre class="spec" id="h-spec" tabindex="0" draggable="true"></pre>
+          <div class="btns">
+            <button class="btn" id="h-copy-spec" type="button">Copy</button>
+            <button class="btn save" id="h-save-spec" type="button">Save file</button>
+          </div>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3>Guide scaffold</h3><span class="kind">Guide scaffold</span></div>
+          <p class="hint">An SVG at document size with trim, bleed, margins, columns, rows, baseline and zone outlines in named groups. Open it in your design app to start the grid there.</p>
+          <div class="btns">
+            <button class="btn save" id="h-save-svg" type="button">Save SVG</button>
+            <button class="btn" id="h-copy-svg" type="button">Copy SVG</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+  <p class="foot">Gridder keeps nothing: there is no account and no saved library. Take a direction out when you like it. Era and style labels describe visual inspiration, not documented historical references. Platform sizes are common presets; confirm current specs before production.</p>
+  <p class="credit">Made by <a href="https://d-the-designer.com" target="_blank" rel="noopener">D THE DESIGNER</a></p>
+</div>
+
+<div class="dock">
+  <button class="btn" id="d-back" type="button" disabled>Back</button>
+  <button class="btn btn-next" id="d-next" type="button">Next direction</button>
+  <button class="btn" id="d-hand" type="button">Take it</button>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script>
+/* ============================================================
+   Gridder core: data, geometry, layout generation, SVG render,
+   specification output. Pure functions; `measureWord` is injected.
+   ============================================================ */
+
+/* ---------- units ---------- */
+const UNIT_PT = { pt: 1, in: 72, mm: 72 / 25.4, px: 0.75 };
+const UNIT_PREC = { in: 3, mm: 1, pt: 1, px: 0 };
+const toPt = (v, u) => v * UNIT_PT[u];
+const roundU = (v, u) => { const f = Math.pow(10, UNIT_PREC[u]); return Math.round(v * f) / f; };
+const fromPt = (v, u) => roundU(v / UNIT_PT[u], u);
+const fmtU = (v, u) => {
+  let s = roundU(v, u).toFixed(UNIT_PREC[u]);
+  if (UNIT_PREC[u] > 0) s = s.replace(/\.?0+$/, '');
+  return s === '-0' ? '0' : s;
+};
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---------- rng ---------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function pickW(rng, weights) {
+  const keys = Object.keys(weights).filter(k => weights[k] > 0);
+  const tot = keys.reduce((s, k) => s + weights[k], 0);
+  let r = rng() * tot;
+  for (const k of keys) { r -= weights[k]; if (r <= 0) return k; }
+  return keys[keys.length - 1];
+}
+const pick = (rng, arr) => arr[Math.floor(rng() * arr.length)];
+
+/* ---------- document types ---------- */
+const DOCS = {
+  ad: {
+    label: 'Advertisement',
+    subs: [['print', 'Print'], ['display', 'Display banner'], ['social', 'Social'], ['ooh', 'Out of home']],
+    presets: [
+      { s: 'print', n: 'Magazine full page', w: 8.375, h: 10.875, u: 'in', b: 0.125, sa: 0.25 },
+      { s: 'print', n: 'Half page horizontal', w: 7, h: 4.875, u: 'in', b: 0, sa: 0.125 },
+      { s: 'print', n: 'Letter flyer', w: 8.5, h: 11, u: 'in', b: 0.125, sa: 0.25 },
+      { s: 'display', n: 'Medium rectangle', w: 300, h: 250, u: 'px' },
+      { s: 'display', n: 'Leaderboard', w: 728, h: 90, u: 'px' },
+      { s: 'display', n: 'Half page', w: 300, h: 600, u: 'px' },
+      { s: 'display', n: 'Billboard', w: 970, h: 250, u: 'px' },
+      { s: 'display', n: 'Wide skyscraper', w: 160, h: 600, u: 'px' },
+      { s: 'display', n: 'Large mobile banner', w: 320, h: 100, u: 'px' },
+      { s: 'social', n: 'Square post', w: 1080, h: 1080, u: 'px' },
+      { s: 'social', n: 'Portrait post 4:5', w: 1080, h: 1350, u: 'px' },
+      { s: 'social', n: 'Story 9:16', w: 1080, h: 1920, u: 'px' },
+      { s: 'social', n: 'Link card', w: 1200, h: 628, u: 'px' },
+      { s: 'ooh', n: 'Transit shelter 4 × 6 ft', w: 48, h: 72, u: 'in', sa: 2 },
+      { s: 'ooh', n: 'Bulletin 14 × 48 ft', w: 576, h: 168, u: 'in', sa: 6 },
+      { s: 'ooh', n: 'Digital kiosk', w: 1080, h: 1920, u: 'px' }
+    ],
+    cols: [4, 12], rows: [6, 12],
+    arch: {
+      print: { stack: 3, swissAsym: 3, centered: 2, fullbleed: 3, split: 2, diagonal: 2, typeOnly: 2, collage: 1 },
+      display: { banner: 5, split: 1, typeOnly: 1 },
+      social: { fullbleed: 3, split: 2, typeOnly: 3, stack: 2, collage: 1, centered: 1, swissAsym: 1, diagonal: 1 },
+      ooh: { fullbleed: 4, typeOnly: 3, split: 2, banner: 2 }
+    }
+  },
+  poster: {
+    label: 'Poster',
+    subs: [['event', 'Event'], ['film', 'Film / one-sheet'], ['info', 'Information']],
+    presets: [
+      { n: 'Tabloid', w: 11, h: 17, u: 'in', b: 0.125, sa: 0.25 },
+      { n: '18 × 24 in', w: 18, h: 24, u: 'in', b: 0.125, sa: 0.375 },
+      { n: '24 × 36 in', w: 24, h: 36, u: 'in', b: 0.125, sa: 0.5 },
+      { n: 'One-sheet 27 × 40 in', w: 27, h: 40, u: 'in', b: 0.125, sa: 0.5 },
+      { n: 'A3', w: 297, h: 420, u: 'mm', b: 3, sa: 8 },
+      { n: 'A2', w: 420, h: 594, u: 'mm', b: 3, sa: 10 },
+      { n: 'A1', w: 594, h: 841, u: 'mm', b: 3, sa: 12 }
+    ],
+    cols: [4, 12], rows: [8, 12],
+    arch: { '*': { stack: 2, swissAsym: 3, centered: 2, fullbleed: 2, split: 1, diagonal: 2, typeOnly: 3, collage: 2 } }
+  },
+  card: {
+    label: 'Note card / invitation',
+    subs: [['invite', 'Invitation'], ['note', 'Note card'], ['postcard', 'Postcard']],
+    presets: [
+      { s: 'invite', n: 'A7 invitation 5 × 7 in', w: 5, h: 7, u: 'in', b: 0.125, sa: 0.25 },
+      { n: 'A2 card 4.25 × 5.5 in', w: 4.25, h: 5.5, u: 'in', b: 0.125, sa: 0.25 },
+      { n: 'Square 5.5 in', w: 5.5, h: 5.5, u: 'in', b: 0.125, sa: 0.25 },
+      { s: 'postcard', n: 'Postcard 6 × 4 in', w: 6, h: 4, u: 'in', b: 0.125, sa: 0.25 },
+      { n: 'A6', w: 105, h: 148, u: 'mm', b: 3, sa: 5 }
+    ],
+    cols: [3, 6], rows: [6, 9],
+    arch: { '*': { centered: 4, stack: 2, typeOnly: 2, split: 2, swissAsym: 1, fullbleed: 1, collage: 1 } }
+  },
+  magazine: {
+    label: 'Magazine',
+    subs: [['cover', 'Cover'], ['opener', 'Opener'], ['spread', 'Feature spread'], ['contents', 'Contents page']],
+    presets: [
+      { n: 'Standard page', w: 8.375, h: 10.875, u: 'in', b: 0.125, sa: 0.25 },
+      { s: 'spread', n: 'Standard spread', w: 16.75, h: 10.875, u: 'in', b: 0.125, sa: 0.25 },
+      { n: 'Digest page', w: 5.375, h: 7.5, u: 'in', b: 0.125, sa: 0.25 },
+      { n: 'A4 page', w: 210, h: 297, u: 'mm', b: 3, sa: 6 },
+      { s: 'spread', n: 'A4 spread', w: 420, h: 297, u: 'mm', b: 3, sa: 6 }
+    ],
+    cols: [6, 12], rows: [8, 12],
+    arch: {
+      cover: { mastheadCover: 5, fullbleed: 2, typeOnly: 1, centered: 1, collage: 1 },
+      opener: { fullbleed: 3, split: 3, swissAsym: 2, typeOnly: 2, diagonal: 1 },
+      spread: { split: 3, editorialCols: 4, swissAsym: 2, collage: 1 },
+      contents: { contents: 5 }
+    }
+  },
+  book: {
+    label: 'Book cover',
+    subs: [['front', 'Front cover']],
+    presets: [
+      { n: 'Trade 6 × 9 in', w: 6, h: 9, u: 'in', b: 0.125, sa: 0.25 },
+      { n: 'Digest 5.5 × 8.5 in', w: 5.5, h: 8.5, u: 'in', b: 0.125, sa: 0.25 },
+      { n: 'Mass market 4.25 × 6.87 in', w: 4.25, h: 6.87, u: 'in', b: 0.125, sa: 0.25 },
+      { n: 'Large format 8 × 10 in', w: 8, h: 10, u: 'in', b: 0.125, sa: 0.25 }
+    ],
+    cols: [4, 6], rows: [8, 12],
+    arch: { '*': { stack: 3, centered: 3, fullbleed: 3, typeOnly: 3, swissAsym: 2, diagonal: 1, split: 1, collage: 1 } }
+  },
+  comic: {
+    label: 'Comic page',
+    subs: [['page', 'Page'], ['strip', 'Strip']],
+    presets: [
+      { s: 'page', n: 'US comic', w: 6.625, h: 10.1875, u: 'in', b: 0.125, sa: 0.25 },
+      { s: 'page', n: 'Manga tankōbon', w: 128, h: 182, u: 'mm', b: 3, sa: 5 },
+      { s: 'page', n: 'European album', w: 240, h: 320, u: 'mm', b: 3, sa: 6 },
+      { s: 'page', n: 'Vertical webcomic', w: 800, h: 1280, u: 'px' },
+      { s: 'strip', n: 'Daily strip', w: 10, h: 3.25, u: 'in', sa: 0.125 },
+      { s: 'strip', n: 'Web strip', w: 1600, h: 500, u: 'px' }
+    ],
+    cols: [4, 6], rows: [3, 5],
+    arch: { '*': { panels: 1 } }
+  },
+  editorial: {
+    label: 'Editorial page',
+    subs: [['report', 'Report / essay'], ['news', 'Newspaper front']],
+    presets: [
+      { n: 'Letter', w: 8.5, h: 11, u: 'in', sa: 0.25 },
+      { n: 'A4', w: 210, h: 297, u: 'mm', sa: 6 },
+      { s: 'news', n: 'Tabloid newspaper', w: 11, h: 17, u: 'in', sa: 0.25 },
+      { s: 'news', n: 'Broadsheet (approx.)', w: 12, h: 22.75, u: 'in', sa: 0.25 }
+    ],
+    cols: [6, 12], rows: [8, 12],
+    arch: { '*': { editorialCols: 5, swissAsym: 2, split: 1, centered: 1 } }
+  },
+  website: {
+    label: 'Website',
+    subs: [['landing', 'Landing page'], ['article', 'Article'], ['portfolio', 'Portfolio']],
+    presets: [
+      { n: 'Desktop', w: 1440, h: 900, u: 'px' },
+      { n: 'Laptop', w: 1280, h: 800, u: 'px' },
+      { n: 'Tablet portrait', w: 834, h: 1194, u: 'px' },
+      { n: 'Mobile', w: 390, h: 844, u: 'px' }
+    ],
+    cols: [4, 12], rows: [8, 12],
+    arch: { landing: { webLanding: 5 }, article: { webArticle: 5 }, portfolio: { webGrid: 5 } }
+  },
+  ux: {
+    label: 'UX screen',
+    subs: [['list', 'List / feed'], ['detail', 'Detail'], ['onboarding', 'Onboarding'], ['dashboard', 'Dashboard']],
+    presets: [
+      { n: 'Phone', w: 393, h: 852, u: 'px' },
+      { n: 'Small phone', w: 375, h: 667, u: 'px' },
+      { n: 'Tablet', w: 1024, h: 1366, u: 'px' },
+      { n: 'Desktop app', w: 1280, h: 800, u: 'px' }
+    ],
+    cols: [4, 12], rows: [8, 11],
+    arch: { list: { uxList: 5 }, detail: { uxDetail: 5 }, onboarding: { uxOnboard: 5 }, dashboard: { uxDash: 5 } }
+  },
+  album: {
+    label: 'Album cover',
+    subs: [['front', 'Front cover']],
+    presets: [
+      { n: 'LP jacket', w: 12.375, h: 12.375, u: 'in', b: 0.125, sa: 0.25 },
+      { n: 'CD booklet', w: 4.75, h: 4.75, u: 'in', b: 0.125, sa: 0.125 },
+      { n: 'Digital release', w: 3000, h: 3000, u: 'px' },
+      { n: 'Cassette J-card front', w: 2.5625, h: 4, u: 'in', b: 0.0625, sa: 0.125 }
+    ],
+    cols: [4, 12], rows: [6, 12],
+    arch: { '*': { typeOnly: 3, fullbleed: 3, centered: 2, swissAsym: 2, collage: 2, diagonal: 1, stack: 1 } }
+  },
+  zine: {
+    label: 'Zine',
+    subs: [['page', 'Page'], ['cover', 'Cover'], ['spread', 'Spread']],
+    presets: [
+      { n: 'Mini (8-page fold)', w: 4.25, h: 5.5, u: 'in', sa: 0.125 },
+      { n: 'Half-letter', w: 5.5, h: 8.5, u: 'in', sa: 0.25 },
+      { n: 'A6', w: 105, h: 148, u: 'mm', sa: 5 },
+      { s: 'spread', n: 'Half-letter spread', w: 11, h: 8.5, u: 'in', sa: 0.25 }
+    ],
+    cols: [2, 6], rows: [6, 10],
+    arch: {
+      page: { collage: 4, stack: 2, typeOnly: 2, editorialCols: 1, panels: 1, swissAsym: 1 },
+      cover: { collage: 3, typeOnly: 3, fullbleed: 2, mastheadCover: 2, centered: 1 },
+      spread: { collage: 4, editorialCols: 2, split: 2, panels: 1 }
+    }
+  }
+};
+const DOC_ORDER = ['ad', 'poster', 'card', 'magazine', 'book', 'comic', 'editorial', 'website', 'ux', 'album', 'zine'];
+const MORE_PRESETS = {
+  ad: [
+    { s: 'print', n: 'Half page vertical', w: 3.375, h: 10, u: 'in', sa: 0.125 },
+    { s: 'print', n: 'Quarter page', w: 3.375, h: 4.875, u: 'in', sa: 0.125 },
+    { s: 'print', n: 'Tabloid newspaper full page', w: 10, h: 12.5, u: 'in', sa: 0.25 },
+    { s: 'print', n: 'A4 flyer', w: 210, h: 297, u: 'mm', b: 3, sa: 6 },
+    { s: 'print', n: 'Rack card', w: 4, h: 9, u: 'in', b: 0.125, sa: 0.125 },
+    { s: 'display', n: 'Skyscraper', w: 120, h: 600, u: 'px' },
+    { s: 'display', n: 'Large leaderboard', w: 970, h: 90, u: 'px' },
+    { s: 'display', n: 'Mobile leaderboard', w: 320, h: 50, u: 'px' },
+    { s: 'display', n: 'Square', w: 250, h: 250, u: 'px' },
+    { s: 'display', n: 'Portrait', w: 300, h: 1050, u: 'px' },
+    { s: 'social', n: 'Landscape post 1.91:1', w: 1080, h: 566, u: 'px' },
+    { s: 'social', n: 'Profile header 3:1', w: 1500, h: 500, u: 'px' },
+    { s: 'social', n: 'Video thumbnail 16:9', w: 1280, h: 720, u: 'px' },
+    { s: 'social', n: 'Pin 2:3', w: 1000, h: 1500, u: 'px' },
+    { s: 'ooh', n: 'Sidewalk A-frame', w: 24, h: 36, u: 'in', sa: 1 },
+    { s: 'ooh', n: 'Bus king panel', w: 144, h: 30, u: 'in', sa: 2 },
+    { s: 'ooh', n: 'Digital billboard', w: 1400, h: 400, u: 'px' },
+    { s: 'ooh', n: 'Subway car card', w: 22, h: 21, u: 'in', sa: 0.5 }
+  ],
+  poster: [
+    { n: '11 × 14 in', w: 11, h: 14, u: 'in', b: 0.125, sa: 0.25 },
+    { n: '12 × 18 in', w: 12, h: 18, u: 'in', b: 0.125, sa: 0.25 },
+    { n: '16 × 20 in', w: 16, h: 20, u: 'in', b: 0.125, sa: 0.375 },
+    { n: '20 × 30 in', w: 20, h: 30, u: 'in', b: 0.125, sa: 0.5 },
+    { n: '30 × 40 in', w: 30, h: 40, u: 'in', b: 0.125, sa: 0.5 },
+    { n: 'Window card 14 × 22 in', w: 14, h: 22, u: 'in', b: 0.125, sa: 0.375 },
+    { n: 'A4', w: 210, h: 297, u: 'mm', b: 3, sa: 6 },
+    { n: 'A0', w: 841, h: 1189, u: 'mm', b: 3, sa: 15 },
+    { s: 'film', n: 'Quad 40 × 30 in', w: 40, h: 30, u: 'in', b: 0.125, sa: 0.5 },
+    { s: 'info', n: 'Landscape 24 × 18 in', w: 24, h: 18, u: 'in', b: 0.125, sa: 0.375 }
+  ],
+  card: [
+    { s: 'invite', n: 'A6 invitation 4.5 × 6.25 in', w: 4.5, h: 6.25, u: 'in', b: 0.125, sa: 0.25 },
+    { s: 'invite', n: 'Tea-length 4 × 9 in', w: 4, h: 9, u: 'in', b: 0.125, sa: 0.25 },
+    { n: 'Square 5 in', w: 5, h: 5, u: 'in', b: 0.125, sa: 0.25 },
+    { n: 'A5', w: 148, h: 210, u: 'mm', b: 3, sa: 5 },
+    { n: 'DL', w: 99, h: 210, u: 'mm', b: 3, sa: 5 },
+    { s: 'postcard', n: 'Postcard 7 × 5 in', w: 7, h: 5, u: 'in', b: 0.125, sa: 0.25 },
+    { s: 'postcard', n: 'Jumbo postcard 8.5 × 5.5 in', w: 8.5, h: 5.5, u: 'in', b: 0.125, sa: 0.25 },
+    { s: 'note', n: 'Business card 3.5 × 2 in', w: 3.5, h: 2, u: 'in', b: 0.125, sa: 0.125 },
+    { s: 'note', n: 'Business card 85 × 55 mm', w: 85, h: 55, u: 'mm', b: 3, sa: 3 }
+  ],
+  magazine: [
+    { n: 'Large format page', w: 9, h: 10.875, u: 'in', b: 0.125, sa: 0.25 },
+    { n: 'Tabloid magazine page', w: 10, h: 13, u: 'in', b: 0.125, sa: 0.25 },
+    { n: 'Pocket page', w: 4.75, h: 7, u: 'in', b: 0.125, sa: 0.25 },
+    { s: 'spread', n: 'Digest spread', w: 10.75, h: 7.5, u: 'in', b: 0.125, sa: 0.25 },
+    { s: 'spread', n: 'Large format spread', w: 18, h: 10.875, u: 'in', b: 0.125, sa: 0.25 },
+    { n: 'Square page', w: 9, h: 9, u: 'in', b: 0.125, sa: 0.25 }
+  ],
+  book: [
+    { n: 'Novella 5 × 8 in', w: 5, h: 8, u: 'in', b: 0.125, sa: 0.25 },
+    { n: 'Royal 6.14 × 9.21 in', w: 6.14, h: 9.21, u: 'in', b: 0.125, sa: 0.25 },
+    { n: 'Textbook 7 × 10 in', w: 7, h: 10, u: 'in', b: 0.125, sa: 0.25 },
+    { n: 'Letter 8.5 × 11 in', w: 8.5, h: 11, u: 'in', b: 0.125, sa: 0.25 },
+    { n: 'Square 8 × 8 in', w: 8, h: 8, u: 'in', b: 0.125, sa: 0.25 },
+    { n: 'Picture book landscape 10 × 8 in', w: 10, h: 8, u: 'in', b: 0.125, sa: 0.25 },
+    { n: 'A5', w: 148, h: 210, u: 'mm', b: 3, sa: 6 },
+    { n: 'B-format paperback', w: 129, h: 198, u: 'mm', b: 3, sa: 6 },
+    { n: 'Ebook cover', w: 1600, h: 2560, u: 'px' }
+  ],
+  comic: [
+    { s: 'page', n: 'Graphic novel digest', w: 5.5, h: 8.5, u: 'in', b: 0.125, sa: 0.25 },
+    { s: 'page', n: 'Magazine-size', w: 8.5, h: 11, u: 'in', b: 0.125, sa: 0.25 },
+    { s: 'page', n: 'Manga magazine B5', w: 182, h: 257, u: 'mm', b: 3, sa: 6 },
+    { s: 'page', n: 'Social carousel 4:5', w: 1080, h: 1350, u: 'px' },
+    { s: 'strip', n: 'Sunday half page', w: 10, h: 6.5, u: 'in', sa: 0.125 },
+    { s: 'strip', n: 'Four-panel vertical (yonkoma)', w: 3, h: 10, u: 'in', sa: 0.125 }
+  ],
+  editorial: [
+    { n: 'Legal', w: 8.5, h: 14, u: 'in', sa: 0.25 },
+    { n: 'A5 booklet', w: 148, h: 210, u: 'mm', sa: 5 },
+    { n: 'Annual report 9 × 12 in', w: 9, h: 12, u: 'in', b: 0.125, sa: 0.25 },
+    { s: 'news', n: 'Berliner', w: 315, h: 470, u: 'mm', sa: 6 },
+    { s: 'news', n: 'Compact / tabloid A3', w: 297, h: 420, u: 'mm', sa: 6 }
+  ],
+  website: [
+    { n: 'Large desktop', w: 1920, h: 1080, u: 'px' },
+    { n: 'Small laptop', w: 1366, h: 768, u: 'px' },
+    { n: 'Tablet landscape', w: 1194, h: 834, u: 'px' },
+    { n: 'Compact mobile', w: 360, h: 800, u: 'px' },
+    { n: 'Email newsletter', w: 600, h: 1400, u: 'px' }
+  ],
+  ux: [
+    { n: 'Large phone', w: 430, h: 932, u: 'px' },
+    { n: 'Android phone', w: 412, h: 915, u: 'px' },
+    { n: 'Tablet landscape', w: 1366, h: 1024, u: 'px' },
+    { n: 'Small tablet', w: 744, h: 1133, u: 'px' },
+    { n: 'Large desktop app', w: 1440, h: 900, u: 'px' }
+  ],
+  album: [
+    { n: '7-inch single sleeve', w: 7.25, h: 7.25, u: 'in', b: 0.125, sa: 0.25 },
+    { n: '10-inch sleeve', w: 10.25, h: 10.25, u: 'in', b: 0.125, sa: 0.25 },
+    { n: 'Streaming square', w: 1400, h: 1400, u: 'px' },
+    { n: 'Vertical video canvas 9:16', w: 1080, h: 1920, u: 'px' },
+    { n: 'Artist banner', w: 2660, h: 1140, u: 'px' },
+    { n: 'CD tray inlay', w: 5.9, h: 4.625, u: 'in', b: 0.125, sa: 0.125 }
+  ],
+  zine: [
+    { n: 'Full letter', w: 8.5, h: 11, u: 'in', sa: 0.25 },
+    { n: 'A5', w: 148, h: 210, u: 'mm', sa: 5 },
+    { n: 'Micro A7 (one-sheet fold)', w: 74, h: 105, u: 'mm', sa: 3 },
+    { n: 'Square 6 × 6 in', w: 6, h: 6, u: 'in', sa: 0.25 },
+    { s: 'spread', n: 'Mini spread', w: 8.5, h: 5.5, u: 'in', sa: 0.125 },
+    { s: 'spread', n: 'A5 spread', w: 296, h: 210, u: 'mm', sa: 5 }
+  ]
+};
+for (const k in MORE_PRESETS) DOCS[k].presets.push(...MORE_PRESETS[k]);
+
+const RATIOS = [['1:1', 1, 1], ['4:5', 4, 5], ['3:4', 3, 4], ['2:3', 2, 3], ['1:√2 (ISO A)', 1, Math.SQRT2], ['9:16', 9, 16], ['1:3', 1, 3], ['5:4', 5, 4], ['3:2', 3, 2], ['16:9', 16, 9], ['2:1', 2, 1], ['3:1', 3, 1]];
+function shapeFamily(w, h) {
+  const r = w / h;
+  if (r >= 0.92 && r <= 1.08) return 'square';
+  if (r < 0.6) return 'tall';
+  if (r < 0.92) return 'portrait';
+  if (r <= 1.85) return 'landscape';
+  return 'wide';
+}
+
+/* ---------- visual traditions ---------- */
+const FACES = {
+  serif: 'Georgia, "Times New Roman", Times, serif',
+  sans: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+  grot: 'Arial, "Helvetica Neue", Helvetica, sans-serif',
+  mono: '"Courier New", Courier, monospace',
+  slab: 'Rockwell, "Roboto Slab", "Courier New", serif',
+  cond: '"Arial Narrow", "Helvetica Neue", Arial, sans-serif',
+  wide: '"Arial Black", "Helvetica Neue", Arial, sans-serif'
+};
+const TBASE = {
+  align: 'left', margin: [0.06, 0.1], cols: [1, 24], white: [0.25, 0.5], rot: 0, frame: 'none', shapes: 'none',
+  halftone: false, face: 'sans', weight: 700, case: 'sentence', ls: 0, lh: 1.0, justify: false,
+  mpat: { even: 3, classic: 2, bottom: 1, side: 1 },
+  pal: { paper: '#F6F5F1', ink: '#1A1A1A', accent: '#C8352B', image: '#D8D7D1', shapes: ['#C8352B'] },
+  arch: {}
+};
+const TRADS = {
+  victorian: { kind: 'era', label: 'Victorian', years: '1837–1901', note: 'Symmetrical, densely framed, many sizes of type stacked on one axis.',
+    arch: { centered: 5, stack: 2, typeOnly: 2, editorialCols: 2, contents: 1 }, align: 'center', frame: 'ornate', face: 'serif', case: 'upper', ls: 0.04, white: [0.08, 0.25], margin: [0.07, 0.1], mpat: { even: 2, classic: 3 }, cols: [1, 6],
+    pal: { paper: '#EFE6D1', ink: '#2A1F16', accent: '#8B2E22', image: '#D9CBB0', shapes: ['#8B2E22'] } },
+  e1900: { kind: 'era', label: '1900s', years: '1900–1909', note: 'Ornamental borders and centered type, with organic framing.',
+    arch: { centered: 4, stack: 3, typeOnly: 1, editorialCols: 1 }, align: 'center', frame: 'rounded', face: 'serif', case: 'title', white: [0.15, 0.35],
+    pal: { paper: '#F1EAD8', ink: '#2E2A1F', accent: '#5F7A3A', image: '#DCD3BC', shapes: ['#5F7A3A'] } },
+  e1910: { kind: 'era', label: '1910s', years: '1910–1919', note: 'Direct, poster-like messaging: one image and one big line.',
+    arch: { stack: 4, typeOnly: 3, centered: 2, fullbleed: 1 }, align: 'center', frame: 'rule', face: 'serif', case: 'upper', weight: 800, white: [0.12, 0.3],
+    pal: { paper: '#EDE4CF', ink: '#1F1D1A', accent: '#A3271F', image: '#D6CBB2', shapes: ['#A3271F'] } },
+  e1920: { kind: 'era', label: '1920s', years: '1920–1929', note: 'Geometric order: stepped frames, diagonals and spaced capitals.',
+    arch: { centered: 3, diagonal: 2, typeOnly: 2, swissAsym: 1, stack: 1 }, align: 'center', frame: 'stepped', face: 'sans', case: 'upper', ls: 0.12, white: [0.25, 0.45],
+    pal: { paper: '#F0E7D6', ink: '#121212', accent: '#B8862B', image: '#DAD0BD', shapes: ['#B8862B', '#121212'] } },
+  e1930: { kind: 'era', label: '1930s', years: '1930–1939', note: 'Streamlined bands and horizontal speed lines.',
+    arch: { split: 3, stack: 3, centered: 2, typeOnly: 1 }, align: 'left', frame: 'rule', face: 'sans', case: 'upper', ls: 0.06, white: [0.2, 0.4],
+    pal: { paper: '#EAE3D3', ink: '#1C2430', accent: '#2F6F8F', image: '#D3D0C6', shapes: ['#2F6F8F'] } },
+  e1940: { kind: 'era', label: '1940s', years: '1940–1949', note: 'Bold slab type, heavy headlines and practical stacking.',
+    arch: { stack: 3, typeOnly: 3, diagonal: 2, centered: 1 }, align: 'left', face: 'slab', case: 'upper', weight: 800, white: [0.12, 0.3],
+    pal: { paper: '#ECE3CC', ink: '#222222', accent: '#A63A2A', image: '#D5CBB3', shapes: ['#A63A2A'] } },
+  e1950: { kind: 'era', label: '1950s', years: '1950–1959', note: 'Playful asymmetry, cut-out shapes and loose collage.',
+    arch: { swissAsym: 2, collage: 2, split: 2, stack: 2 }, align: 'left', shapes: 'mid', face: 'sans', case: 'lower', white: [0.3, 0.5],
+    pal: { paper: '#F2ECDC', ink: '#262626', accent: '#D9822B', image: '#DAD5C7', shapes: ['#D9822B', '#3C7C8C', '#262626'] } },
+  e1960: { kind: 'era', label: '1960s', years: '1960–1969', note: 'Rational grids and flush-left type, with big photography.',
+    arch: { swissAsym: 3, typeOnly: 2, fullbleed: 2, centered: 1 }, align: 'left', face: 'sans', case: 'sentence', white: [0.3, 0.55],
+    pal: { paper: '#F4F2EC', ink: '#111111', accent: '#E03C31', image: '#D9D8D2', shapes: ['#E03C31'] } },
+  e1970: { kind: 'era', label: '1970s', years: '1970–1979', note: 'Soft-cornered frames, heavy display type and warm blocks.',
+    arch: { split: 3, stack: 2, fullbleed: 2, typeOnly: 2 }, align: 'left', frame: 'rounded', face: 'sans', weight: 800, case: 'title', lh: 0.92, white: [0.15, 0.35],
+    pal: { paper: '#F1E6CF', ink: '#3B2A1A', accent: '#D2691E', image: '#DECDB3', shapes: ['#D2691E', '#C9A227'] } },
+  e1980: { kind: 'era', label: '1980s', years: '1980–1989', note: 'Layered planes, diagonals and pattern accents.',
+    arch: { collage: 2, diagonal: 2, split: 2, swissAsym: 1 }, align: 'left', shapes: 'memphis', rot: 0.25, face: 'grot', case: 'upper', white: [0.2, 0.4],
+    pal: { paper: '#F5F3EE', ink: '#141414', accent: '#E6007E', image: '#D8D6D2', shapes: ['#E6007E', '#00A3E0', '#FFC72C'] } },
+  e1990: { kind: 'era', label: '1990s', years: '1990–1999', note: 'Overlapping layers and broken grids; early web blocks.',
+    arch: { collage: 3, swissAsym: 2, fullbleed: 2, typeOnly: 1 }, align: 'left', rot: 0.3, face: 'grot', case: 'lower', white: [0.15, 0.35],
+    pal: { paper: '#EEEEEA', ink: '#161616', accent: '#3A6B35', image: '#D2D2CC', shapes: ['#3A6B35'] } },
+  e2000: { kind: 'era', label: '2000s', years: '2000–2009', note: 'Clean modules, soft corners and generous white space.',
+    arch: { split: 3, stack: 2, swissAsym: 2, fullbleed: 2 }, align: 'left', frame: 'none', face: 'grot', case: 'sentence', white: [0.35, 0.6],
+    pal: { paper: '#FFFFFF', ink: '#222222', accent: '#3B82C4', image: '#DDE3EA', shapes: ['#3B82C4'] } },
+
+  bauhaus: { kind: 'style', label: 'Bauhaus', years: 'c. 1919–1933', note: 'Primary geometry, asymmetric balance, type set on bars and diagonals.',
+    arch: { swissAsym: 3, diagonal: 3, typeOnly: 2 }, align: 'left', shapes: 'bauhaus', rot: 0.15, face: 'grot', case: 'lower', weight: 800, white: [0.25, 0.45],
+    pal: { paper: '#EFEBE1', ink: '#111111', accent: '#D62B1F', image: '#D7D3C8', shapes: ['#D62B1F', '#1F4E9C', '#F2B705'] } },
+  swiss: { kind: 'style', label: 'Swiss / International', years: 'c. 1950s–1970s', note: 'Strict modular grid, flush-left ragged-right type, asymmetry and calm white space.',
+    arch: { swissAsym: 5, typeOnly: 2, editorialCols: 2, split: 1 }, align: 'left', cols: [6, 12], margin: [0.06, 0.1], white: [0.35, 0.6], face: 'sans', case: 'lower', weight: 700, lh: 0.95,
+    pal: { paper: '#F7F6F2', ink: '#111111', accent: '#E30613', image: '#D9D9D6', shapes: ['#E30613'] } },
+  constructivist: { kind: 'style', label: 'Constructivist', years: 'c. 1917–1930s', note: 'Steep diagonals, heavy bars and photomontage pushing off the edge.',
+    arch: { diagonal: 5, collage: 1, swissAsym: 1 }, align: 'left', shapes: 'bars', rot: 0.4, face: 'grot', case: 'upper', weight: 900, white: [0.1, 0.3],
+    pal: { paper: '#EDE3CC', ink: '#151515', accent: '#C1272D', image: '#D2C8B2', shapes: ['#C1272D', '#151515'] } },
+  destijl: { kind: 'style', label: 'De Stijl', years: 'c. 1917–1931', note: 'Orthogonal fields divided by black bars; primaries as planes.',
+    arch: { swissAsym: 2, split: 2, typeOnly: 1 }, align: 'left', shapes: 'destijl', face: 'grot', case: 'upper', weight: 800, white: [0.2, 0.4],
+    pal: { paper: '#F4F2EA', ink: '#111111', accent: '#D52B1E', image: '#D9D7CF', shapes: ['#D52B1E', '#1E4FA3', '#F4C20D'] } },
+  artnouveau: { kind: 'style', label: 'Art Nouveau', years: 'c. 1890–1910', note: 'Centered panels in rounded frames, decorative borders around a figure.',
+    arch: { centered: 4, stack: 2, typeOnly: 1 }, align: 'center', frame: 'nouveau', shapes: 'whiplash', shapeN: [1, 2], archImg: 0.6, face: 'serif', case: 'title', white: [0.12, 0.3],
+    pal: { paper: '#EFE7D2', ink: '#2F2A1C', accent: '#6B7F3A', image: '#DCD2BA', shapes: ['#6B7F3A', '#B8913A'] } },
+  artdeco: { kind: 'style', label: 'Art Deco', years: 'c. 1920s–1930s', note: 'Symmetry, stepped borders and tall spaced capitals.',
+    arch: { centered: 4, typeOnly: 2, stack: 1, diagonal: 1 }, align: 'center', frame: 'stepped', face: 'cond', case: 'upper', ls: 0.14, white: [0.25, 0.45],
+    pal: { paper: '#ECE4D0', ink: '#141414', accent: '#B8913A', image: '#D8CFBA', shapes: ['#B8913A'] } },
+  midcentury: { kind: 'style', label: 'Mid-century modern', years: 'c. 1945–1965', note: 'Loose asymmetry, organic shapes, lowercase type and room to breathe.',
+    arch: { swissAsym: 2, collage: 2, split: 2, stack: 1 }, align: 'left', shapes: 'mid', face: 'grot', case: 'lower', white: [0.3, 0.55],
+    pal: { paper: '#F1EBDD', ink: '#2A2A2A', accent: '#D98324', image: '#D9D4C6', shapes: ['#D98324', '#3C7C8C', '#2A2A2A'] } },
+  psychedelic: { kind: 'style', label: 'Psychedelic', years: 'c. 1965–1972', note: 'Swelling type set on arcs, concentric rings and Nouveau whiplash curves, with blocks drifting off the grid.', alt: true,
+    arch: { centered: 4, typeOnly: 3, collage: 2, fullbleed: 1 }, align: 'center', frame: 'nouveau', shapes: 'psych', shapeN: [2, 4], break: 0.5, rot: 0.35, arc: 0.75, archImg: 0.5,
+    face: 'slab', case: 'title', weight: 900, lh: 0.88, white: [0.05, 0.2],
+    pal: { paper: '#F6E7C8', ink: '#3A1E4A', accent: '#E8562A', image: '#E2CFB0', shapes: ['#E8562A', '#3A1E4A', '#2E8B7A', '#F2B705'] } },
+  punk: { kind: 'style', label: 'Punk zine', years: 'c. 1976–1985', note: 'Cut-and-paste photocopy collage: tilted blocks, ransom headlines, typewritten strips.', alt: true,
+    arch: { collage: 5, typeOnly: 2, stack: 1 }, align: 'left', rot: 0.85, halftone: true, face: 'mono', case: 'upper', weight: 700, white: [0.03, 0.2], margin: [0.03, 0.06], mpat: { even: 2, tight: 3 },
+    pal: { paper: '#F2F1EC', ink: '#0D0D0D', accent: '#E3122C', image: '#C9C9C4', shapes: ['#E3122C'] } },
+  comix: { kind: 'style', label: 'Underground comix', years: 'c. 1968–1975', note: 'Heavy-bordered panels, crowded balloons and hand-lettered energy.', alt: true,
+    arch: { panels: 4, collage: 2, stack: 2, centered: 1 }, align: 'center', frame: 'rule', face: 'grot', case: 'upper', weight: 900, white: [0.05, 0.2], heavy: true,
+    pal: { paper: '#F3EAD7', ink: '#1A1A1A', accent: '#E2A400', image: '#DCD1BB', shapes: ['#E2A400'] } },
+  memphis: { kind: 'style', label: 'Memphis', years: 'c. 1981–1988', note: 'Scattered pattern pieces, squiggles and colliding planes.', alt: true,
+    arch: { collage: 3, diagonal: 2, split: 1, typeOnly: 1 }, align: 'left', shapes: 'memphis', rot: 0.25, face: 'grot', case: 'upper', weight: 900, white: [0.2, 0.4],
+    pal: { paper: '#FFFDF7', ink: '#111111', accent: '#FF4F9A', image: '#E3E1DA', shapes: ['#FF4F9A', '#00B2CA', '#FFD23F'] } },
+  newwave: { kind: 'style', label: 'New Wave / Emigre', years: 'c. 1978–1995', note: 'Layered type, grid fragments and deliberate disruption.', alt: true,
+    arch: { collage: 3, swissAsym: 2, diagonal: 2, typeOnly: 2 }, align: 'left', shapes: 'grid', rot: 0.3, face: 'grot', case: 'lower', white: [0.15, 0.4],
+    pal: { paper: '#F4F4F2', ink: '#111111', accent: '#3A57E8', image: '#D9D9D5', shapes: ['#3A57E8', '#111111'] } },
+  grunge: { kind: 'style', label: 'Grunge / Ray Gun era', years: 'c. 1990–1997', note: 'Overprinted, cropped, layered: type fights image for the page.', alt: true,
+    arch: { collage: 4, typeOnly: 3, fullbleed: 2 }, align: 'left', rot: 0.55, halftone: true, face: 'cond', case: 'lower', weight: 700, white: [0.05, 0.25],
+    pal: { paper: '#ECEBE6', ink: '#161616', accent: '#6E7F2D', image: '#C8C7C0', shapes: ['#6E7F2D'] } },
+  brutalist: { kind: 'style', label: 'Brutalist web', years: 'c. 2014–present', note: 'Raw boxes, hard rules, system type and visible structure.', alt: true,
+    arch: { editorialCols: 3, swissAsym: 2, typeOnly: 2, split: 1 }, align: 'left', frame: 'rule', face: 'mono', case: 'upper', weight: 700, white: [0.1, 0.3],
+    pal: { paper: '#FFFFFF', ink: '#000000', accent: '#0000EE', image: '#E4E4E4', shapes: ['#0000EE'] } },
+  pulp: { kind: 'style', group: 'scifi', label: 'Pulp sci-fi', years: 'c. 1926–1955', note: 'A painted scene under a big slab title, with a starburst and a price corner.',
+    arch: { mastheadCover: 3, fullbleed: 4, stack: 2, diagonal: 1 }, align: 'center', face: 'slab', case: 'upper', weight: 900, shapes: 'rays', shapeN: [1, 1], white: [0.05, 0.2],
+    pal: { paper: '#F0E2C2', ink: '#1E1A2E', accent: '#D93A26', image: '#CDB98F', shapes: ['#F2B705', '#D93A26'] } },
+  spaceage: { kind: 'style', group: 'scifi', label: 'Space Age modern', years: 'c. 1957–1972', note: 'Wide geometric capitals, orbits and precise grids with plenty of white space.',
+    arch: { swissAsym: 3, typeOnly: 2, centered: 2, split: 1 }, align: 'left', face: 'wide', case: 'upper', ls: 0.12, weight: 800, shapes: 'orbit', white: [0.4, 0.65],
+    pal: { paper: '#F3F1EA', ink: '#1B2233', accent: '#E8692B', image: '#D7D6D0', shapes: ['#E8692B', '#2B5DA8'] } },
+  cyberpunk: { kind: 'style', group: 'scifi', label: 'Cyberpunk', years: 'c. 1982 onward', note: 'Neon on black, glitch bars, tilted panels and dense technical labels.',
+    arch: { collage: 3, diagonal: 3, fullbleed: 2, swissAsym: 1 }, align: 'left', face: 'cond', case: 'upper', weight: 800, rot: 0.3, shapes: 'glitch', shapeN: [1, 3], white: [0.1, 0.3],
+    pal: { paper: '#120E1A', ink: '#F2E9FF', accent: '#FF2E88', image: '#2A2238', shapes: ['#FF2E88', '#2EE6FF', '#F7E733'] } },
+  hud: { kind: 'style', group: 'scifi', label: 'Sci-fi interface (HUD)', years: 'screen and film UI', note: 'Corner brackets, reticles and data readouts framing a central field.',
+    arch: { hud: 12, uxDash: 1 }, ownArch: 'hud', align: 'center', face: 'mono', case: 'upper', ls: 0.08, weight: 700, frame: 'none', shapes: 'none', white: [0.3, 0.5], mpat: { even: 1 }, margin: [0.035, 0.055],
+    pal: { paper: '#0E1417', ink: '#CFE8E4', accent: '#39E0C8', image: '#22313A', shapes: ['#39E0C8', '#F2A33A'] } },
+  illuminated: { kind: 'style', group: 'fantasy', label: 'Illuminated manuscript', years: 'medieval-inspired', note: 'Ornamented borders, drop caps and a centered text block.',
+    arch: { centered: 4, editorialCols: 2, stack: 1 }, align: 'center', frame: 'illuminated', face: 'serif', case: 'title', dropcap: true, white: [0.1, 0.25], mpat: { classic: 4, even: 1 },
+    pal: { paper: '#EFE3C6', ink: '#2B1D12', accent: '#9C2A1F', image: '#D8C7A0', shapes: ['#2D5A8C', '#B8913A'] } },
+  fantasypb: { kind: 'style', group: 'fantasy', label: 'Fantasy paperback', years: 'c. 1965–1990', note: 'A painted full-bleed scene, the title arched or centered above, the author at the foot.',
+    arch: { fullbleed: 4, centered: 2, stack: 2, mastheadCover: 1 }, align: 'center', face: 'serif', case: 'upper', ls: 0.08, archImg: 0.5, arc: 0.4, white: [0.05, 0.25],
+    pal: { paper: '#E9DDC2', ink: '#2A2118', accent: '#7E5A2B', image: '#BFAE8C', shapes: ['#7E5A2B'] } },
+  darkfantasy: { kind: 'style', group: 'fantasy', label: 'Dark fantasy', years: 'contemporary', note: 'Symmetry, heavy ornament and a dark field around an arched, framed image.',
+    arch: { centered: 4, fullbleed: 3, typeOnly: 1 }, align: 'center', frame: 'ornate', face: 'serif', case: 'upper', ls: 0.1, archImg: 0.8, white: [0.15, 0.35],
+    pal: { paper: '#16130F', ink: '#E6D9BE', accent: '#B08D3C', image: '#34302A', shapes: ['#B08D3C'] } },
+  jazz: { kind: 'style', group: 'music', label: 'Jazz record cover', years: 'c. 1955–1968', note: 'Huge cropped type, duotone photography and hard rectangles on a strict grid.',
+    arch: { swissAsym: 4, typeOnly: 3, split: 2 }, align: 'left', face: 'grot', case: 'lower', weight: 900, lh: 0.9, duotone: true, shapes: 'bars', shapeN: [1, 2], white: [0.1, 0.3],
+    pal: { paper: '#F1EEE6', ink: '#121212', accent: '#1F6FB2', image: '#CFCBC1', shapes: ['#1F6FB2', '#E8A33D'] } },
+  gigposter: { kind: 'style', group: 'music', label: 'Rock gig poster', years: 'c. 1965–present', note: 'Hand-printed feel: an arched band name, halftone image, date and venue stacked below.', alt: true,
+    arch: { centered: 4, stack: 2, typeOnly: 2 }, align: 'center', halftone: true, arc: 0.7, frame: 'rule', heavy: true, face: 'slab', weight: 900, case: 'upper', shapes: 'rays', shapeN: [1, 1], white: [0.05, 0.2],
+    pal: { paper: '#EFE6D2', ink: '#241A12', accent: '#D2432B', image: '#CFC2A6', shapes: ['#D2432B', '#E8B04A'] } },
+  rave: { kind: 'style', group: 'music', label: 'Rave flyer', years: 'c. 1988–1999', note: 'Dense, centered and loud: warped type, starbursts and logos crowded along the base.', alt: true,
+    arch: { centered: 3, collage: 3, diagonal: 2, typeOnly: 2 }, align: 'center', arc: 0.5, break: 0.3, face: 'wide', case: 'upper', weight: 900, shapes: 'stars', shapeN: [2, 3], white: [0.03, 0.2],
+    pal: { paper: '#F7F3FF', ink: '#1A0F3A', accent: '#FF2BD6', image: '#D9D3E8', shapes: ['#FF2BD6', '#00C2E0', '#9BD400'] } },
+  hiphop: { kind: 'style', group: 'music', label: 'Hip-hop / mixtape', years: 'c. 1986–2010', note: 'Full-bleed photo, stacked condensed type and a sticker badge in the corner.',
+    arch: { fullbleed: 4, typeOnly: 2, collage: 2, stack: 1 }, align: 'left', face: 'cond', case: 'upper', weight: 900, lh: 0.88, shapes: 'badge', shapeN: [1, 1], white: [0.05, 0.25],
+    pal: { paper: '#EDEBE6', ink: '#111111', accent: '#E4B400', image: '#C9C6BE', shapes: ['#E4B400', '#D62828'] } },
+  metal: { kind: 'style', group: 'music', label: 'Metal', years: 'c. 1980–present', note: 'A symmetrical logo crest over a dark, centered image, and little else.', alt: true,
+    arch: { centered: 4, fullbleed: 3, mastheadCover: 1 }, align: 'center', face: 'serif', weight: 900, case: 'upper', ls: 0.05, white: [0.15, 0.35],
+    pal: { paper: '#0D0D0D', ink: '#E8E4DC', accent: '#9B1B1B', image: '#2A2826', shapes: ['#9B1B1B'] } },
+  disco: { kind: 'style', group: 'music', label: 'Disco / funk', years: 'c. 1974–1982', note: 'Rainbow arcs, starbursts and soft rounded type over a centered image.',
+    arch: { centered: 3, typeOnly: 2, fullbleed: 2, split: 1 }, align: 'center', frame: 'rounded', face: 'sans', weight: 900, case: 'title', arc: 0.4, shapes: 'rainbow', shapeN: [1, 2], white: [0.15, 0.35],
+    pal: { paper: '#FBEBD4', ink: '#3A1B2E', accent: '#E8572A', image: '#E5CDB0', shapes: ['#E8572A', '#F2A541', '#F6D365', '#C2185B'] } },
+  frutigeraero: { kind: 'style', group: 'digital', label: 'Frutiger Aero', years: 'c. 2004–2013', note: 'Glossy bubbles, sky-to-water gradients, rounded glass panels and clean humanist sans.',
+    arch: { split: 3, centered: 3, fullbleed: 2, stack: 2, webLanding: 3, uxOnboard: 3, uxDetail: 2 }, align: 'center', face: 'sans', case: 'sentence', weight: 600, frame: 'none',
+    shapes: 'bubbles', shapeN: [2, 4], roundImg: 0.08, bgGrad: ['#F4FBFF', '#BFE6F7'], white: [0.3, 0.55],
+    pal: { paper: '#EAF6FC', ink: '#0E3A5B', accent: '#2BA84A', image: '#BFE3F2', shapes: ['#4FC3F7', '#81D46A', '#2E9BD6'] } },
+  gvc: { kind: 'style', group: 'digital', label: 'Global Village Coffeehouse', years: 'c. 1993–2001', note: 'Earthy hand-cut shapes, warm global-folk motifs, dotted borders and loose, tilted collage.',
+    arch: { collage: 3, centered: 2, stack: 2, split: 2 }, align: 'center', face: 'serif', case: 'title', weight: 700, rot: 0.2, frame: 'dotted',
+    shapes: 'gvc', shapeN: [2, 3], roundImg: 0.04, white: [0.15, 0.35],
+    pal: { paper: '#F1E2C4', ink: '#3B2A1E', accent: '#B5502A', image: '#CDB48D', shapes: ['#B5502A', '#5E7C3A', '#D9A441', '#2F6E73'] } },
+  corpmemphis: { kind: 'style', group: 'digital', label: 'Corporate Memphis', years: 'c. 2016–2022', note: 'Flat pastel blobs and planes, rounded sans and friendly centered or split heroes.',
+    arch: { split: 3, centered: 2, stack: 2, webLanding: 3, uxOnboard: 3, uxDetail: 2, uxList: 1 }, align: 'left', face: 'grot', case: 'sentence', weight: 700, frame: 'none',
+    shapes: 'blobs', shapeN: [2, 3], roundImg: 0.12, white: [0.35, 0.6],
+    pal: { paper: '#FFFFFF', ink: '#1F1D3D', accent: '#6C5CE7', image: '#EDE9FB', shapes: ['#FF8A65', '#6C5CE7', '#FFD166', '#4ECDC4'] } },
+  experimental: { kind: 'style', label: 'Experimental / deconstructed', years: 'c. 1985–present', note: 'Type as image: overlapping layers, extreme shifts of scale, fragments off the grid and a reversed hierarchy.', alt: true,
+    arch: { collage: 3, typeOnly: 3, diagonal: 2, swissAsym: 2 }, align: 'left', face: 'grot', case: 'lower', weight: 900, lh: 0.85, break: 0.6, rot: 0.45, echo: true,
+    shapes: 'grid', shapeN: [1, 2], white: [0.1, 0.4],
+    pal: { paper: '#F2F2EE', ink: '#0F0F0F', accent: '#FF3B1F', image: '#CFCFCA', shapes: ['#FF3B1F', '#0F0F0F'] } }
+};
+const ERA_IDS = ['victorian', 'e1900', 'e1910', 'e1920', 'e1930', 'e1940', 'e1950', 'e1960', 'e1970', 'e1980', 'e1990', 'e2000'];
+const STYLE_IDS = ['bauhaus', 'swiss', 'constructivist', 'destijl', 'artnouveau', 'artdeco', 'midcentury', 'psychedelic', 'punk', 'comix', 'memphis', 'newwave', 'grunge', 'brutalist',
+  'pulp', 'spaceage', 'cyberpunk', 'hud', 'illuminated', 'fantasypb', 'darkfantasy', 'jazz', 'gigposter', 'rave', 'hiphop', 'metal', 'disco',
+  'frutigeraero', 'gvc', 'corpmemphis', 'experimental'];
+const STYLE_GROUPS = [['', 'Movements and styles'], ['scifi', 'Sci-fi'], ['fantasy', 'Fantasy'], ['music', 'Music'], ['digital', 'Internet and digital aesthetics'], ['alt', 'Alternative and countercultural']];
+const styleGroupOf = k => TRADS[k].group || (TRADS[k].alt ? 'alt' : '');
+const ALT_IDS = STYLE_IDS.filter(k => TRADS[k].alt);
+
+function buildTradition(eraId, styleId, alt) {
+  const era = eraId ? TRADS[eraId] : null, style = styleId ? TRADS[styleId] : null;
+  const T = Object.assign({}, TBASE, era || {}, style || {});
+  T.pal = Object.assign({}, TBASE.pal, (style || era || {}).pal || {});
+  const arch = {};
+  const ea = era ? era.arch : {}, sa = style ? style.arch : {};
+  for (const k of new Set([...Object.keys(ea), ...Object.keys(sa)])) {
+    arch[k] = style ? (sa[k] || 0) + (ea[k] || 0) * 0.35 : (ea[k] || 0);
+  }
+  T.arch = arch;
+  if (alt) { T.rot = Math.max(T.rot, 0.35); T.white = [Math.max(0, T.white[0] - 0.1), Math.max(0.15, T.white[1] - 0.1)]; }
+  T.label = [era && era.label, style && style.label].filter(Boolean).join(' · ') || 'Any';
+  T.years = (style || era || {}).years || '';
+  T.note = (style || era || {}).note || '';
+  T.eraId = eraId; T.styleId = styleId; T.alt = !!alt;
+  return T;
+}
+function resolveTradition(st, rng) {
+  let era = st.era !== 'any' ? st.era : null, style = st.style !== 'any' ? st.style : null;
+  if (!era && !style) {
+    if (st.alt) style = pick(rng, ALT_IDS);
+    else { const t = pick(rng, ERA_IDS.concat(STYLE_IDS)); if (TRADS[t].kind === 'era') era = t; else style = t; }
+  } else if (st.alt && !style) {
+    style = pick(rng, ALT_IDS);
+  }
+  return { era, style, alt: !!st.alt };
+}
+
+/* ---------- geometry ---------- */
+function isSpread(st) { return (st.doc === 'magazine' || st.doc === 'zine') && st.w / st.h > 1.25; }
+function uxEdges(st) {
+  if (st.doc !== 'ux') return { top: 0, bottom: 0 };
+  const wpx = toPt(st.w, st.unit) / 0.75;
+  const tab = st.sub === 'list' || st.sub === 'dashboard';
+  if (wpx < 600) return { top: 54, bottom: tab ? 83 : 0, kind: 'phone' };
+  if (wpx < 1100 && st.h > st.w) return { top: 24, bottom: tab ? 66 : 0, kind: 'tablet' };
+  return { top: 38, bottom: 0, kind: 'desktop' };
+}
+
+function rollGeometry(st, T, rng) {
+  const d = DOCS[st.doc], L = st.locks, u = st.unit;
+  const W = toPt(st.w, u), H = toPt(st.h, u), short = Math.min(W, H);
+  const screen = u === 'px';
+  const lerp = (a, b) => a + (b - a) * rng();
+  const snap = (pt, step = 4, min = 4) => Math.max(min, Math.round(pt / 0.75 / step) * step) * 0.75;
+  const wpx = W / 0.75;
+
+  if (!L.margins) {
+    let m;
+    if (st.doc === 'ux') {
+      const e = uxEdges(st);
+      const side = e.kind === 'phone' ? pick(rng, [16, 20, 24]) : pick(rng, [24, 32]);
+      m = { t: (e.top + (e.kind === 'phone' ? 8 : 16)) * 0.75, b: ((e.bottom || 16) + 8) * 0.75, l: side * 0.75, r: side * 0.75 };
+    } else if (st.doc === 'website') {
+      const side = wpx >= 1200 ? pick(rng, [64, 80, 96, 120]) : wpx >= 700 ? pick(rng, [32, 40, 48]) : pick(rng, [16, 20, 24]);
+      m = { t: 16 * 0.75, b: 16 * 0.75, l: side * 0.75, r: side * 0.75 };
+    } else {
+      const base = lerp(T.margin[0], T.margin[1]) * short;
+      const pat = pickW(rng, T.mpat || TBASE.mpat);
+      m = { t: base, r: base, b: base, l: base };
+      if (pat === 'classic') m = { t: base * 0.85, b: base * 1.45, l: base * 0.95, r: base * 0.95 };
+      if (pat === 'bottom') m.b = base * 1.8;
+      if (pat === 'side') m.l = base * 1.7;
+      if (pat === 'tight') m = { t: base * 0.6, r: base * 0.6, b: base * 0.6, l: base * 0.6 };
+      if (st.doc === 'comic') m = { t: base * 0.8, r: base * 0.8, b: base * 1.1, l: base * 0.8 };
+      if (screen) for (const k in m) m[k] = snap(m[k], 4, 8);
+    }
+    st.m = { t: fromPt(m.t, u), r: fromPt(m.r, u), b: fromPt(m.b, u), l: fromPt(m.l, u) };
+  }
+  if (!L.cols) {
+    let [a, b] = d.cols;
+    if (st.doc === 'website' || st.doc === 'ux') { if (wpx < 600) a = b = 4; else if (wpx < 1100) a = b = 8; else a = b = 12; }
+    if (isSpread(st)) { a = Math.min(24, a * 2); b = Math.min(24, b * 2); }
+    const tc = T.cols || [1, 24];
+    let lo = Math.max(a, tc[0]), hi = Math.min(b, tc[1]);
+    if (lo > hi) { lo = a; hi = b; }
+    const nice = [1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 16, 18, 24].filter(n => n >= lo && n <= hi);
+    st.cols = nice.length ? pick(rng, nice) : lo;
+    let g;
+    if (st.doc === 'website') g = pick(rng, wpx >= 1100 ? [24, 32] : [16, 24]) * 0.75;
+    else if (st.doc === 'ux') g = pick(rng, [8, 12, 16]) * 0.75;
+    else { g = short * lerp(0.012, 0.026); if (screen) g = snap(g, 4, 4); }
+    st.gutter = fromPt(g, u);
+  }
+  if (!L.rows) {
+    let [a, b] = d.rows;
+    if (st.doc === 'comic' && st.sub === 'strip') a = b = 1;
+    st.rows = Math.round(lerp(a, b + 0.99) - 0.49);
+    st.rows = clamp(st.rows, a, b);
+    st.rowGap = st.doc === 'comic' || L.cols ? st.gutter : fromPt(toPt(st.gutter, u), u);
+  }
+  if (st.doc === 'comic' && st.sub === 'strip' && st.w < st.h) { if (!L.rows) st.rows = 4; if (!L.cols) st.cols = 1; }
+  {
+    const mm = { t: toPt(st.m.t, u), r: toPt(st.m.r, u), b: toPt(st.m.b, u), l: toPt(st.m.l, u) };
+    const lw = W - mm.l - mm.r, lh = H - mm.t - mm.b, g0 = toPt(st.gutter, u), rg0 = toPt(st.rowGap, u);
+    const minCell = 6;
+    if (!L.cols) while (st.cols > 1 && (lw - (st.cols - 1) * g0) / st.cols < Math.max(minCell, g0 * 1.5)) st.cols--;
+    if (!L.rows) while (st.rows > 1 && (lh - (st.rows - 1) * rg0) / st.rows < Math.max(minCell, rg0 * 1.5)) st.rows--;
+  }
+  if (!L.baseline) {
+    let bl;
+    if (st.doc === 'website') bl = pick(rng, [24, 28, 32]) * 0.75;
+    else if (st.doc === 'ux') bl = pick(rng, [20, 24]) * 0.75;
+    else if (screen) bl = Math.round(clamp(wpx * 0.03, 11, 40) * 1.4) * 0.75;
+    else bl = Math.round(clamp(short * 0.017, 7, 60) * 1.35 * 2) / 2;
+    st.baseline = fromPt(bl, u);
+  }
+  if (!L.white) {
+    st.white = Math.round(lerp(T.white[0], T.white[1]) * 100) / 100;
+    st.dist = pickW(rng, { none: 3, balanced: 1, top: 1, bottom: 1 });
+  }
+}
+
+function derive(st) {
+  const u = st.unit;
+  const W = toPt(st.w, u), H = toPt(st.h, u);
+  const m = { t: toPt(st.m.t, u), r: toPt(st.m.r, u), b: toPt(st.m.b, u), l: toPt(st.m.l, u) };
+  const liveW = W - m.l - m.r, liveH = H - m.t - m.b;
+  const C = Math.max(1, st.cols | 0), R = Math.max(1, st.rows | 0);
+  const g = toPt(st.gutter, u), rg = toPt(st.rowGap, u);
+  const colW = (liveW - (C - 1) * g) / C;
+  const rowH = (liveH - (R - 1) * rg) / R;
+  const bleed = toPt(st.bleed || 0, u), safe = toPt(st.safe || 0, u);
+  const baseline = toPt(st.baseline, u);
+  const ok = liveW > 0 && liveH > 0 && colW > 0 && rowH > 0;
+  return { u, W, H, m, liveW, liveH, C, R, g, rg, colW, rowH, bleed, safe, baseline, ok };
+}
+
+/* ---------- layout archetypes ---------- */
+const ARCH_INFO = {
+  stack: 'Image-led stack: hero image above, headline and copy below',
+  swissAsym: 'Asymmetric modular grid: offset headline, image block and a narrow text column',
+  centered: 'Symmetrical composition on a single centered axis',
+  fullbleed: 'Full-bleed image with the headline set over it',
+  split: 'Split field: image and text share the format in two halves',
+  editorialCols: 'Multi-column editorial page: headline, image and running text',
+  diagonal: 'Dynamic diagonal: a rotated headline band cuts across the grid',
+  collage: 'Cut-and-paste collage of overlapping, tilted blocks',
+  panels: 'Panel grid for sequential art, with captions and balloons',
+  typeOnly: 'Typographic composition where the headline carries the page',
+  banner: 'Linear banner: logo, message and call to action in one reading line',
+  contents: 'Contents page: numbered list with page references',
+  mastheadCover: 'Cover with masthead, dominant image and cover lines',
+  webLanding: 'Landing page: navigation, hero, card row, footer',
+  webGrid: 'Portfolio grid of image tiles with captions',
+  webArticle: 'Article page: reading column with a sidebar',
+  uxList: 'List screen with search field and tab bar',
+  uxDetail: 'Detail screen with hero image and a primary action',
+  uxOnboard: 'Onboarding screen with illustration, message and pager',
+  uxDash: 'Dashboard with stat tiles, chart and list',
+  hud: 'Heads-up display: a full-bleed view framed by a reticle, heading tape, side ladders, radar, gauges and readouts in the corners'
+};
+const ARCH_SHORT = {
+  stack: 'Image-led stack', swissAsym: 'Asymmetric modular', centered: 'Centered axis', fullbleed: 'Full-bleed image', split: 'Split field',
+  editorialCols: 'Editorial columns', diagonal: 'Diagonal', collage: 'Collage', panels: 'Panel grid', typeOnly: 'Type only', banner: 'Banner line',
+  contents: 'Contents list', mastheadCover: 'Masthead cover', webLanding: 'Landing page', webGrid: 'Portfolio grid', webArticle: 'Article page',
+  uxList: 'List screen', uxDetail: 'Detail screen', uxOnboard: 'Onboarding', uxDash: 'Dashboard', hud: 'Heads-up display'
+};
+const Z = (role, c0, cs, r0, rs, extra) => Object.assign({ role, c: [c0, cs], r: [r0, rs] }, extra || {});
+
+function makeG(ctx, rng) {
+  const { C, R } = ctx;
+  return Object.assign({}, ctx, {
+    rng,
+    f: (a, b) => a + (b - a) * rng(),
+    int: (a, b) => a + Math.floor(rng() * (b - a + 1)),
+    chance: p => rng() < p,
+    pick: arr => pick(rng, arr),
+    span: fr => clamp(Math.round(fr * C), 1, C),
+    rspan: fr => clamp(Math.round(fr * R), 1, R),
+    keep: n => Math.max(1, Math.round(n * (1 - 0.5 * ctx.w))),
+    mid: s => Math.max(0, Math.floor((C - s) / 2))
+  });
+}
+
+const A = {};
+A.stack = g => {
+  const { C, R } = g, z = [], ctr = g.align === 'center';
+  const imgR = clamp(g.keep(Math.round(R * g.f(0.4, 0.58))), 1, Math.max(1, R - 3));
+  if (g.chance(0.45)) z.push(Z('image', 0, C, 0, imgR, { bleed: 'tlr' }));
+  else { const is = ctr ? g.span(g.f(0.6, 1)) : g.span(g.f(0.6, 1)); z.push(Z('image', ctr ? g.mid(is) : (g.chance(0.5) ? 0 : C - is), is, 0, imgR)); }
+  let r = imgR;
+  const hr = Math.max(1, Math.round(R * g.f(0.14, 0.24)));
+  const hs = ctr ? C : g.span(g.f(0.6, 1)), hc = ctr ? 0 : (g.chance(0.25) ? C - hs : 0);
+  z.push(Z('head', hc, hs, r, hr, { kicker: g.chance(0.5), deck: g.chance(0.45) })); r += hr;
+  const left = R - r - 1;
+  if (left >= 1) {
+    const bs = ctr ? g.span(0.6) : g.span(g.f(0.45, 0.75));
+    const bc = ctr ? g.mid(bs) : (hc === 0 ? 0 : C - bs);
+    z.push(Z('body', bc, bs, r, g.keep(left)));
+    if (!ctr && C - bs >= 2 && g.chance(0.6)) z.push(Z('caption', bc === 0 ? bs + 1 : 0, C - bs - 1, r, 1));
+  }
+  const ls = g.span(0.22);
+  z.push(Z('logo', ctr ? g.mid(ls) : C - ls, ls, R - 1, 1, { pin: 1 }));
+  if (g.doc === 'ad' && !ctr && C - ls > 2 && g.chance(0.7)) z.push(Z('cta', 0, Math.min(g.span(0.3), C - ls - 1), R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.swissAsym = g => {
+  const { C, R } = g, z = [];
+  const off = g.chance(0.55) ? g.span(g.f(0.15, 0.34)) : 0;
+  const hs = Math.max(1, C - off - (g.chance(0.4) ? g.span(0.17) : 0));
+  const headTop = g.chance(0.6) ? 0 : Math.floor(R * 0.12);
+  const hr = Math.max(1, Math.round(R * g.f(0.16, 0.3)));
+  z.push(Z('head', off, hs, headTop, hr, { kicker: g.chance(0.3), deck: g.chance(0.35) }));
+  const ir0 = headTop + hr;
+  const ir = clamp(g.keep(Math.round(R * g.f(0.28, 0.48))), 1, Math.max(1, R - ir0 - 1));
+  const is = clamp(g.span(g.f(0.4, 0.7)), 1, C);
+  const ic = g.chance(0.5) ? C - is : Math.min(off, C - is);
+  z.push(Z('image', ic, is, ir0, ir, g.chance(0.25) && ic + is === C ? { bleed: 'r' } : {}));
+  const left = R - ir0 - 1;
+  if (ic >= 1) z.push(Z('body', 0, ic, ir0, Math.max(1, g.keep(left))));
+  else if (ic + is < C) z.push(Z('body', ic + is, C - ic - is, ir0, Math.max(1, g.keep(left))));
+  else if (ir0 + ir + 1 < R - 1) z.push(Z('body', off, Math.max(1, Math.min(C - off, g.span(0.5))), ir0 + ir + 1, Math.max(1, g.keep(R - ir0 - ir - 2))));
+  if (ir0 + ir < R - 1 && g.chance(0.7)) z.push(Z('caption', ic, Math.max(1, Math.round(is / 2)), ir0 + ir, 1));
+  const n = C >= 6 ? g.int(2, 3) : 1, w = Math.max(1, Math.floor(C / n) - (n > 1 ? 0 : 0));
+  for (let i = 0; i < n; i++) z.push(Z('meta', i * w, Math.max(1, w - (i < n - 1 && w > 1 ? 1 : 0)), R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.centered = g => {
+  const { C, R } = g, z = [];
+  let r = R >= 9 ? 1 : 0;
+  const hr = Math.max(1, Math.round(R * g.f(0.16, 0.26)));
+  const hs = g.span(g.f(0.7, 1));
+  z.push(Z('head', g.mid(hs), hs, r, hr, { kicker: g.chance(0.6), deck: g.chance(0.35), align: 'center' })); r += hr;
+  if (R >= 10) { z.push(Z('ornament', g.mid(g.span(0.4)), g.span(0.4), r, 1)); r += 1; }
+  const rest = R - r - 1;
+  if (g.chance(0.75) && rest >= 2) {
+    const ir = clamp(g.keep(Math.round(rest * g.f(0.5, 0.75))), 1, rest - 1), is = g.span(g.f(0.5, 0.85));
+    z.push(Z('image', g.mid(is), is, r, ir, { oval: g.chance(0.2) })); r += ir;
+  }
+  if (r < R - 1) { const bs = g.span(g.f(0.5, 0.7)); z.push(Z('body', g.mid(bs), bs, r, Math.max(1, g.keep(R - 1 - r)), { align: 'center' })); }
+  const fs = g.span(0.6);
+  z.push(Z('meta', g.mid(fs), fs, R - 1, 1, { pin: 1, align: 'center' }));
+  return z;
+};
+A.fullbleed = g => {
+  const { C, R } = g, z = [];
+  z.push(Z('image', 0, C, 0, R, { bleed: 'tlrb', dark: true }));
+  const hr = Math.max(1, Math.round(R * g.f(0.18, 0.32))), hs = g.span(g.f(0.6, 1));
+  const top = g.chance(0.4), ctr = g.align === 'center';
+  z.push(Z('head', ctr ? g.mid(hs) : 0, hs, top ? 0 : R - hr - 1, hr, { kicker: g.chance(0.4), deck: g.chance(0.4), onImage: 1 }));
+  if (g.doc === 'ad' || g.doc === 'album' || g.chance(0.4)) { const ls = g.span(0.2); z.push(Z(g.doc === 'ad' ? 'logo' : 'meta', C - ls, ls, R - 1, 1, { pin: 1, onImage: 1 })); }
+  if (g.chance(0.5)) z.push(Z('caption', 0, g.span(0.35), top ? R - 1 : 0, 1, { onImage: 1, pin: 1 }));
+  return z;
+};
+A.split = g => {
+  const { C, R } = g, z = [];
+  const land = g.ratio >= 1.05;
+  const first = g.chance(0.5);
+  if (land) {
+    const is = Math.max(1, Math.round(C * g.f(0.45, 0.6))), ic = first ? 0 : C - is, tc = first ? is + (C - is > 2 ? 1 : 0) : 0, ts = C - is - (C - is > 2 ? 1 : 0);
+    z.push(Z('image', ic, is, 0, R, { bleed: first ? 'tlb' : 'trb' }));
+    const hr = Math.max(1, Math.round(R * 0.3));
+    z.push(Z('head', tc, ts, 0, hr, { kicker: g.chance(0.5), deck: g.chance(0.5) }));
+    if (R - hr - 1 >= 1) z.push(Z('body', tc, ts, hr, g.keep(R - hr - 1)));
+    z.push(Z(g.doc === 'ad' ? 'cta' : 'meta', tc, Math.max(1, Math.round(ts * 0.6)), R - 1, 1, { pin: 1 }));
+  } else {
+    const ir = Math.max(1, Math.round(R * g.f(0.42, 0.58))), ir0 = first ? 0 : R - ir;
+    z.push(Z('image', 0, C, ir0, ir, { bleed: first ? 'tlr' : 'blr' }));
+    const t0 = first ? ir : 0, tr = R - ir;
+    const hr = Math.max(1, Math.round(tr * 0.45));
+    z.push(Z('head', 0, g.span(g.f(0.7, 1)), t0, hr, { kicker: g.chance(0.5), deck: g.chance(0.4) }));
+    if (tr - hr >= 1) z.push(Z('body', 0, g.span(g.f(0.5, 0.75)), t0 + hr, Math.max(1, g.keep(tr - hr))));
+    if (tr - hr >= 1 && g.doc === 'ad') z.push(Z('cta', C - g.span(0.3), g.span(0.3), t0 + tr - 1, 1));
+  }
+  return z;
+};
+A.editorialCols = g => {
+  const { C, R } = g, z = [];
+  let r = 0;
+  if ((g.doc === 'editorial' && g.sub === 'news') || g.chance(0.1)) { z.push(Z('masthead', 0, C, 0, 1, { pin: 1 })); r = 1; }
+  const hr = Math.max(1, Math.round(R * g.f(0.12, 0.2)));
+  z.push(Z('head', 0, g.span(g.f(0.6, 1)), r, hr, { kicker: g.chance(0.7), deck: g.chance(0.7) })); r += hr;
+  const avail = R - r - 1;
+  const ir = clamp(g.keep(Math.round(avail * g.f(0.35, 0.6))), 1, Math.max(1, avail - 1));
+  const is = g.span(g.f(0.45, 0.75)), ic = g.chance(0.5) ? 0 : C - is;
+  z.push(Z('image', ic, is, r, ir));
+  if (C - is >= 1) z.push(Z('body', ic === 0 ? is : 0, C - is, r, ir));
+  let r2 = r + ir;
+  if (r2 < R - 1) { z.push(Z('caption', ic, Math.max(1, Math.round(is / 2)), r2, 1)); }
+  if (r2 + 1 < R - 1) z.push(Z('body', 0, C, r2 + 1, R - 1 - (r2 + 1)));
+  if (g.chance(0.4) && C >= 6 && r2 + 3 < R - 1) z.push(Z('deck', 0, g.span(0.34), r2 + 1, 2, { pull: 1 }));
+  z.push(Z('folio', 0, C, R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.diagonal = g => {
+  const { C, R } = g, z = [];
+  const ang = (g.chance(0.5) ? -1 : 1) * g.f(10, 28);
+  const hr = Math.max(1, Math.round(R * g.f(0.18, 0.28)));
+  const hr0 = clamp(Math.round(R * g.f(0.25, 0.45)), 0, R - hr);
+  z.push(Z('image', g.chance(0.5) ? 0 : C - g.span(0.55), g.span(0.55), 0, Math.max(1, hr0 + 1), { rot: ang * 0.3 }));
+  z.push(Z('head', 0, C, hr0, hr, { rot: ang, band: g.chance(0.6) }));
+  z.push(Z('shape', C - g.span(0.35), g.span(0.35), Math.min(R - 2, hr0 + hr), 2, { shape: 'auto' }));
+  const bs = g.span(g.f(0.35, 0.5));
+  if (R - hr0 - hr - 1 >= 1) z.push(Z('body', 0, bs, hr0 + hr, Math.max(1, g.keep(R - hr0 - hr - 1)), { rot: ang * 0.15 }));
+  z.push(Z('meta', 0, g.span(0.6), R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.collage = g => {
+  const { C, R } = g, z = [];
+  const rot = () => (g.chance(0.5) ? -1 : 1) * g.f(1, 3 + 8 * g.T.rot);
+  const n = g.int(2, 4);
+  for (let i = 0; i < n; i++) {
+    const cs = clamp(g.span(g.f(0.35, 0.75)), 1, C), rs = clamp(g.rspan(g.f(0.2, 0.45)), 1, R);
+    z.push(Z('image', g.int(0, C - cs), cs, g.int(0, R - rs), rs, { rot: rot() }));
+  }
+  const nh = g.int(1, 2);
+  for (let i = 0; i < nh; i++) {
+    const cs = clamp(g.span(g.f(0.5, 0.95)), 1, C), rs = Math.max(1, g.rspan(g.f(0.1, 0.2)));
+    z.push(Z('head', g.int(0, C - cs), cs, i === 0 ? g.int(0, Math.floor(R * 0.3)) : g.int(Math.floor(R * 0.5), R - rs), rs, { rot: rot(), box: g.chance(0.6), words: g.int(1, 3) }));
+  }
+  const bs = clamp(g.span(g.f(0.35, 0.6)), 1, C), brs = Math.max(1, g.rspan(0.2));
+  z.push(Z('body', g.int(0, C - bs), bs, g.int(0, R - brs), brs, { rot: rot(), box: true }));
+  if (g.chance(0.6)) z.push(Z('arrow', g.int(0, Math.max(0, C - 2)), Math.min(C, 2), g.int(0, R - 1), 1, { rot: rot() * 4 }));
+  if (g.chance(0.5)) z.push(Z('marker', 0, 1, g.int(0, R - 1), 1, { rot: rot() }));
+  if (g.doc === 'zine') z.push(Z('folio', 0, C, R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.panels = g => {
+  const { C, R } = g, z = [];
+  let tiers, rowsPer;
+  if (R <= 5) { tiers = R; rowsPer = 1; } else { tiers = g.int(3, 4); rowsPer = Math.floor(R / tiers); }
+  let r = 0;
+  for (let t = 0; t < tiers; t++) {
+    let rs = rowsPer;
+    if (t === tiers - 1) rs = R - r;
+    if (rs < 1) break;
+    const splash = t < tiers - 1 && g.chance(0.15);
+    if (splash) rs += rowsPer;
+    const k = C === 1 ? 1 : g.pick(C >= 6 ? [1, 2, 2, 3, 3, 4] : [1, 2, 2, 3]);
+    const cuts = [];
+    let left = C;
+    for (let i = 0; i < k; i++) { const remain = k - i; const s = i === k - 1 ? left : clamp(g.int(1, left - (remain - 1)), 1, left - (remain - 1)); cuts.push(s); left -= s; }
+    let c = 0;
+    for (const s of cuts) {
+      z.push(Z('panel', c, s, r, rs, { balloon: g.chance(0.6), capbox: g.chance(0.3), sfx: g.chance(0.1) }));
+      c += s;
+    }
+    r += rs;
+    if (splash) t++;
+    if (r >= R) break;
+  }
+  return z;
+};
+A.typeOnly = g => {
+  const { C, R } = g, z = [], ctr = g.align === 'center';
+  const top = g.chance(0.6) ? 0 : Math.floor(R * 0.2);
+  const hr = clamp(Math.round(R * g.f(0.45, 0.7) * (1 - 0.35 * g.w)), 1, R - 1 - top);
+  z.push(Z('head', 0, C, top, hr, { words: g.int(1, 4), kicker: g.chance(0.3), deck: g.chance(0.4), big: 1, align: ctr ? 'center' : undefined }));
+  if (g.chance(0.3) && top + hr < R - 2) { const s = g.span(0.3); z.push(Z('image', ctr ? g.mid(s) : C - s, s, top + hr, Math.max(1, R - top - hr - 2))); }
+  const n = C >= 6 ? g.int(2, 3) : 1, w = Math.max(1, Math.floor(C / n));
+  for (let i = 0; i < n; i++) z.push(Z('meta', i * w, Math.max(1, w - (n > 1 && w > 1 ? 1 : 0)), R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.banner = g => {
+  const { C, R } = g, z = [];
+  if (g.ratio >= 1.4) {
+    const ls = Math.max(1, Math.round(C * 0.16)); z.push(Z('logo', 0, ls, 0, R));
+    let c = ls;
+    if (g.chance(0.6) && C - c > 5) { const is = Math.max(1, Math.round(C * 0.25)); z.push(Z('image', c, is, 0, R, { bleed: 'tb' })); c += is; }
+    const cs = Math.max(1, Math.round(C * 0.2));
+    z.push(Z('head', c, Math.max(1, C - c - cs), 0, R, { words: g.int(3, 6), vcenter: 1 }));
+    z.push(Z('cta', C - cs, cs, 0, R, { vcenter: 1 }));
+  } else {
+    z.push(Z('logo', 0, g.span(0.4), 0, 1));
+    const ir = Math.max(1, Math.round(R * g.f(0.3, 0.45)));
+    z.push(Z('image', 0, C, 1, ir, { bleed: 'lr' }));
+    z.push(Z('head', 0, C, 1 + ir, Math.max(1, R - ir - 2), { words: g.int(3, 6) }));
+    z.push(Z('cta', 0, g.span(0.6), R - 1, 1));
+  }
+  return z;
+};
+A.contents = g => {
+  const { C, R } = g, z = [];
+  const hr = Math.max(1, Math.round(R * 0.16));
+  z.push(Z('head', 0, g.span(g.f(0.6, 1)), 0, hr, { words: 1, kicker: g.chance(0.5) }));
+  const imgSide = g.chance(0.6);
+  const ls = imgSide ? g.span(0.58) : C;
+  const lc = imgSide && g.chance(0.5) ? C - ls : 0;
+  z.push(Z('list', lc, ls, hr, R - hr - 1));
+  if (imgSide && C - ls >= 1) {
+    const ic = lc === 0 ? ls + (C - ls > 2 ? 1 : 0) : 0, is = C - ls - (C - ls > 2 ? 1 : 0);
+    const ir = Math.max(1, Math.round((R - hr - 1) * 0.45));
+    z.push(Z('image', ic, is, hr, ir));
+    z.push(Z('caption', ic, is, hr + ir, 1));
+    if (hr + ir + 1 < R - 1) z.push(Z('image', ic, is, hr + ir + 1, R - 1 - hr - ir - 1));
+  }
+  z.push(Z('folio', 0, C, R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.mastheadCover = g => {
+  const { C, R } = g, z = [];
+  const mr = Math.max(1, Math.round(R * 0.16));
+  if (g.chance(0.8)) z.push(Z('image', 0, C, 0, R, { bleed: 'tlrb' }));
+  else z.push(Z('image', 0, C, mr, R - mr - 1));
+  z.push(Z('masthead', 0, C, 0, mr));
+  const cs = g.span(0.36);
+  const cl = g.chance(0.7) ? 0 : C - cs;
+  z.push(Z('coverline', cl, cs, mr + 1, Math.max(1, Math.round(R * 0.4))));
+  z.push(Z('head', 0, g.span(g.f(0.6, 0.85)), Math.max(mr, R - 3), 2, { words: g.int(2, 4), deck: g.chance(0.5) }));
+  z.push(Z('barcode', C - g.span(0.2), g.span(0.2), R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.webLanding = g => {
+  const { C, R } = g, z = [];
+  z.push(Z('nav', 0, C, 0, 1, { pin: 1 }));
+  const heroR = clamp(Math.round(R * g.f(0.4, 0.55)), 2, R - 3);
+  const v = C >= 8 ? g.pick(['split', 'centered', 'bleed']) : g.pick(['centered', 'bleed', 'stacked']);
+  if (v === 'split') {
+    const h = C / 2;
+    z.push(Z('head', 0, h, 1, heroR - 1, { kicker: g.chance(0.5), deck: true }));
+    z.push(Z('button', 0, Math.max(1, Math.round(C / 4)), heroR, 1));
+    z.push(Z('image', h, C - h, 1, heroR));
+  } else if (v === 'centered') {
+    const hs = g.span(0.75);
+    z.push(Z('head', g.mid(hs), hs, 1, heroR - 1, { deck: true, align: 'center' }));
+    z.push(Z('button', g.mid(g.span(0.25)), g.span(0.25), heroR, 1));
+  } else if (v === 'bleed') {
+    z.push(Z('image', 0, C, 1, heroR, { bleed: 'lr', dark: true }));
+    z.push(Z('head', 0, g.span(0.66), 1, heroR, { deck: true, onImage: 1, vcenter: 1 }));
+  } else {
+    z.push(Z('head', 0, C, 1, Math.max(1, heroR - 2), { deck: true }));
+    z.push(Z('image', 0, C, heroR - 1, 2));
+  }
+  const r = 1 + heroR, cr = R - r - 1;
+  if (cr >= 1) {
+    const n = C >= 12 ? g.pick([3, 4]) : C >= 8 ? 2 : 1, cw = Math.floor(C / n);
+    for (let i = 0; i < n; i++) z.push(Z('card', i * cw, cw, r, cr));
+  }
+  z.push(Z('footer', 0, C, R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.webGrid = g => {
+  const { C, R } = g, z = [];
+  z.push(Z('nav', 0, C, 0, 1, { pin: 1 }));
+  z.push(Z('head', 0, g.span(g.f(0.5, 0.8)), 1, Math.max(1, Math.round(R * 0.15)), { words: g.int(2, 5) }));
+  let r = 1 + Math.max(1, Math.round(R * 0.15));
+  const tw = C >= 12 ? g.pick([3, 4, 6]) : C >= 8 ? g.pick([2, 4]) : 2;
+  const th = Math.max(1, Math.round((R - r - 1) / 2));
+  while (r + th <= R - 1) {
+    for (let c = 0; c + tw <= C; c += tw) z.push(Z('card', c, tw, r, th, { tile: 1 }));
+    r += th;
+  }
+  z.push(Z('footer', 0, C, R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.webArticle = g => {
+  const { C, R } = g, z = [];
+  z.push(Z('nav', 0, C, 0, 1, { pin: 1 }));
+  const wide = C >= 12, mc = wide ? 2 : 0, ms = wide ? 7 : C;
+  z.push(Z('head', mc, wide ? 8 : C, 1, 2, { kicker: true, deck: true }));
+  const ir = Math.max(1, Math.round(R * 0.25));
+  z.push(Z('image', 0, C, 3, ir, { bleed: g.chance(0.5) ? 'lr' : '' }));
+  const r = 3 + ir;
+  if (R - 1 - r >= 1) {
+    z.push(Z('body', mc, ms, r, R - 1 - r));
+    if (wide) z.push(Z('legend', 10, 2, r, Math.min(2, R - 1 - r)));
+  }
+  z.push(Z('footer', 0, C, R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.hud = g => {
+  const { C, R } = g, z = [];
+  z.push(Z('image', 0, C, 0, R, { bleed: 'tlrb', scene: 1 }));
+  const side = Math.max(1, g.span(0.26));
+  const mid = Math.max(1, C - side * 2);
+  const topR = Math.max(1, Math.round(R * 0.16));
+  z.push(Z('readout', 0, side, 0, topR, { corner: 'tl', pin: 1 }));
+  z.push(Z('readout', C - side, side, 0, topR, { corner: 'tr', pin: 1, align: 'right' }));
+  z.push(Z('compass', side, mid, 0, 1, { pin: 1 }));
+  if (g.chance(0.6) && R >= 8) z.push(Z('alert', g.mid(Math.max(1, g.span(0.4))), Math.max(1, g.span(0.4)), 1, 1, { pin: 1 }));
+  const lad = Math.max(1, g.span(0.08));
+  const l0 = Math.round(R * 0.22), lr = Math.max(1, R - l0 * 2);
+  if (C >= 6) {
+    z.push(Z('ladder', 0, lad, l0, lr, { pin: 1, side: 'l' }));
+    z.push(Z('ladder', C - lad, lad, l0, lr, { pin: 1, side: 'r' }));
+  }
+  const rs = Math.max(1, g.span(0.34)), rr = Math.max(1, Math.round(R * 0.34));
+  z.push(Z('reticle', g.mid(rs), rs, Math.max(0, Math.floor((R - rr) / 2)), rr, { pin: 1 }));
+  const botR = Math.max(1, Math.round(R * 0.2));
+  z.push(Z('radar', 0, side, R - botR, botR, { pin: 1 }));
+  z.push(Z('gauge', C - side, side, R - botR, botR, { pin: 1 }));
+  z.push(Z('head', side, mid, R - Math.max(1, Math.round(R * 0.12)), Math.max(1, Math.round(R * 0.12)), { kicker: true, words: g.int(2, 4), align: 'center', hudTitle: 1, pin: 1 }));
+  return z;
+};
+A.uxList = g => {
+  const { C, R } = g, z = [];
+  if (g.edges.top) z.push({ role: 'status', edge: 'top', size: g.edges.top * 0.75, kind: g.edges.kind });
+  z.push(Z('title', 0, C, 0, 1, { pin: 1 }));
+  z.push(Z('field', 0, C, 1, 1));
+  for (let r = 2; r < R; r++) z.push(Z('item', 0, C, r, 1));
+  if (g.edges.bottom) z.push({ role: 'tabbar', edge: 'bottom', size: g.edges.bottom * 0.75 });
+  return z;
+};
+A.uxDetail = g => {
+  const { C, R } = g, z = [];
+  if (g.edges.top) z.push({ role: 'status', edge: 'top', size: g.edges.top * 0.75, kind: g.edges.kind });
+  z.push(Z('appbar', 0, C, 0, 1, { pin: 1 }));
+  const ir = clamp(Math.round(R * g.f(0.3, 0.45)), 1, R - 4);
+  z.push(Z('image', 0, C, 1, ir, { bleed: g.chance(0.6) ? 'lr' : '' }));
+  z.push(Z('head', 0, C, 1 + ir, 1, { words: g.int(2, 4), kicker: g.chance(0.5) }));
+  z.push(Z('meta', 0, C, 2 + ir, 1));
+  if (R - 3 - ir - 1 >= 1) z.push(Z('body', 0, C, 3 + ir, R - 4 - ir));
+  z.push(Z('button', 0, C, R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.uxOnboard = g => {
+  const { C, R } = g, z = [];
+  if (g.edges.top) z.push({ role: 'status', edge: 'top', size: g.edges.top * 0.75, kind: g.edges.kind });
+  const ir = clamp(Math.round(R * g.f(0.38, 0.5)), 1, R - 4);
+  const is = C >= 8 ? g.span(0.6) : C;
+  z.push(Z('image', g.mid(is), is, 0, ir, { oval: g.chance(0.4) }));
+  z.push(Z('head', 0, C, ir, 1, { words: g.int(2, 5), align: 'center' }));
+  z.push(Z('body', g.mid(g.span(0.85)), g.span(0.85), ir + 1, Math.max(1, R - ir - 3), { align: 'center' }));
+  z.push(Z('dots', 0, C, R - 2, 1));
+  z.push(Z('button', 0, C, R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.uxDash = g => {
+  const { C, R } = g, z = [];
+  const wide = C >= 8;
+  if (g.edges.top) z.push({ role: 'status', edge: 'top', size: g.edges.top * 0.75, kind: g.edges.kind });
+  let c0 = 0;
+  if (wide && g.ratio > 1.2) { z.push(Z('sidebar', 0, 2, 0, R, { pin: 1 })); c0 = 2; }
+  const cw = C - c0;
+  z.push(Z('title', c0, cw, 0, 1, { pin: 1 }));
+  const n = wide ? g.pick([3, 4]) : 2, sw = Math.floor(cw / n);
+  for (let i = 0; i < n; i++) z.push(Z('stat', c0 + i * sw, sw, 1, 1));
+  const chR = clamp(Math.round(R * 0.35), 1, R - 3);
+  if (wide) {
+    const chS = Math.round(cw * 2 / 3);
+    z.push(Z('chart', c0, chS, 2, chR));
+    for (let r = 2; r < Math.min(R, 2 + chR); r++) z.push(Z('item', c0 + chS, cw - chS, r, 1, { compact: 1 }));
+    for (let r = 2 + chR; r < R; r++) z.push(Z('item', c0, cw, r, 1));
+  } else {
+    z.push(Z('chart', c0, cw, 2, chR));
+    for (let r = 2 + chR; r < R; r++) z.push(Z('item', c0, cw, r, 1));
+  }
+  if (g.edges.bottom) z.push({ role: 'tabbar', edge: 'bottom', size: g.edges.bottom * 0.75 });
+  return z;
+};
+
+/* ---------- lorem ---------- */
+const LOREM = 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum'.split(' ');
+function loremWords(rng, n) { const s = Math.floor(rng() * LOREM.length); const out = []; for (let i = 0; i < n; i++) out.push(LOREM[(s + i) % LOREM.length]); return out; }
+function applyCase(str, c) {
+  if (c === 'upper') return str.toUpperCase();
+  if (c === 'lower') return str.toLowerCase();
+  if (c === 'title') return str.replace(/\b\w/g, m => m.toUpperCase());
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/* ---------- generate ---------- */
+function archWeights(st, T) {
+  const d = DOCS[st.doc];
+  const docW = d.arch[st.sub] || d.arch['*'] || Object.values(d.arch)[0];
+  const ratio = st.w / st.h;
+  const w = {};
+  const hasPref = Object.keys(docW).some(k => T.arch[k] > 0);
+  for (const k in docW) w[k] = docW[k] * (T.arch[k] > 0 ? T.arch[k] : hasPref ? 0.12 : 1);
+  if (st.doc === 'ad' && (ratio > 2.6 || ratio < 0.4) && w.banner == null) w.banner = 6;
+  if (st.doc === 'ad' && (ratio > 2.6 || ratio < 0.4)) for (const k in w) if (k !== 'banner') w[k] *= 0.15;
+  if (st.doc === 'zine' && T.styleId === 'comix') w.panels = (w.panels || 0) + 3;
+  if (T.ownArch && st.doc !== 'comic' && ratio <= 3 && ratio >= 0.33) { for (const k in w) w[k] *= 0.05; w[T.ownArch] = 20; }
+  return w;
+}
+function chooseArch(st, T, rng, recent) {
+  const w = archWeights(st, T);
+  let a = pickW(rng, w);
+  for (let i = 0; i < 4 && !(T.ownArch && a === T.ownArch) && recent && recent.includes(a) && Object.keys(w).length > 1; i++) a = pickW(rng, w);
+  return a;
+}
+
+function generateZones(st, layout) {
+  const T = buildTradition(layout.era, layout.style, layout.alt);
+  const D = derive(st);
+  const rng = mulberry32(layout.seed);
+  const ctx = { C: D.C, R: D.R, w: st.white, align: T.align, ratio: st.w / st.h, doc: st.doc, sub: st.sub, T, edges: uxEdges(st) };
+  const g = makeG(ctx, rng);
+  let zones = (A[layout.arch] || A.stack)(g);
+  // clamp to grid
+  zones = zones.filter(z => {
+    if (z.edge) return true;
+    z.c[0] = clamp(Math.round(z.c[0]), 0, D.C - 1); z.c[1] = clamp(Math.round(z.c[1]), 1, D.C - z.c[0]);
+    z.r[0] = clamp(Math.round(z.r[0]), 0, D.R - 1); z.r[1] = clamp(Math.round(z.r[1]), 1, D.R - z.r[0]);
+    return true;
+  });
+  // white-space distribution
+  const movable = zones.filter(z => !z.edge && !z.pin);
+  if (st.dist !== 'none' && movable.length && !movable.some(z => z.bleed || z.rot)) {
+    let lo = 0, hi = D.R;
+    for (const z of zones) if (z.pin && !z.edge) { if (z.r[0] === 0) lo = Math.max(lo, z.r[1]); else if (z.r[0] + z.r[1] === D.R) hi = Math.min(hi, z.r[0]); }
+    const s = Math.min(...movable.map(z => z.r[0])), e = Math.max(...movable.map(z => z.r[0] + z.r[1]));
+    const free = (hi - lo) - (e - s);
+    if (free > 0 && s >= lo && e <= hi) {
+      const target = st.dist === 'top' ? hi - (e - s) : st.dist === 'bottom' ? lo : lo + Math.floor(free / 2);
+      const dlt = target - s;
+      movable.forEach(z => { z.r[0] += dlt; });
+    }
+  }
+  // tradition post-passes
+  const web = st.doc === 'website' || st.doc === 'ux';
+  if (T.rot > 0.5 && !web && layout.arch !== 'panels') {
+    zones.forEach(z => { if (!z.edge && !z.pin && z.rot == null && !(z.bleed && z.bleed.length >= 3)) z.rot = (rng() < 0.5 ? -1 : 1) * (0.5 + rng() * 4 * T.rot); });
+  }
+  if (T.break && !web && layout.arch !== 'panels') {
+    zones.forEach(z => {
+      if (z.edge || z.pin || rng() > T.break) return;
+      z.dx = Math.round((rng() - 0.5) * 1.4 * 100) / 100;
+      z.dy = Math.round((rng() - 0.5) * 0.9 * 100) / 100;
+      if (z.role === 'image' && rng() < 0.6) z.grow = Math.round((0.1 + rng() * 0.3) * 100) / 100;
+    });
+  }
+  if (T.archImg) {
+    const imgs = zones.filter(z => z.role === 'image' && !z.edge);
+    if (imgs.length && rng() < T.archImg) {
+      const big = imgs.reduce((a, b) => (b.c[1] * b.r[1] > a.c[1] * a.r[1] ? b : a));
+      if (!(big.bleed && big.bleed.length >= 3)) big.arch = true;
+    }
+  }
+  if (T.arc) zones.forEach(z => { if (z.role === 'head' && !z.band && rng() < T.arc) z.arc = true; });
+  if (T.shapes !== 'none' && (!web || T.group === 'digital') && layout.arch !== 'panels' && st.doc !== 'comic') {
+    const sn = T.shapeN || [1, 3];
+    const n = sn[0] + Math.floor(rng() * (sn[1] - sn[0] + 1));
+    for (let i = 0; i < n; i++) {
+      const cs = clamp(Math.round(D.C * (0.15 + rng() * 0.3)), 1, D.C), rs = clamp(Math.round(D.R * (0.1 + rng() * 0.25)), 1, D.R);
+      zones.unshift(Z('shape', Math.floor(rng() * (D.C - cs + 1)), cs, Math.floor(rng() * (D.R - rs + 1)), rs, { shape: 'auto', under: 1 }));
+    }
+  }
+  // assign shapes and text deterministically
+  let si = 0;
+  zones.forEach((z, i) => {
+    const zr = mulberry32(layout.seed + i * 7919);
+    z.seed = (layout.seed + i * 104729) >>> 0;
+    if (z.role === 'shape') {
+      const kinds = { bauhaus: ['circle', 'square', 'triangle', 'bar'], memphis: ['squiggle', 'dots', 'triangle', 'circle'], destijl: ['plane', 'bars'], mid: ['circle', 'blob', 'circle'], bars: ['bar', 'bar', 'circle'], grid: ['gridlet', 'bar'],
+        psych: ['psych', 'psych', 'whiplash', 'wave'], whiplash: ['whiplash'], rays: ['rays'], orbit: ['orbit', 'orbit', 'stars'], hud: ['hud', 'hud', 'gridlet'], glitch: ['glitch'], badge: ['badge'], rainbow: ['rainbow', 'rainbow', 'stars'], stars: ['stars', 'rays', 'circle'],
+        bubbles: ['bubbles', 'bubbles', 'swoosh'], gvc: ['spiral', 'leafy', 'dotline', 'spiral'], blobs: ['blob2', 'blob2', 'circle', 'plant'], none: ['circle'] }[T.shapes] || ['circle', 'bar'];
+      z.shape = pick(zr, kinds); z.color = T.pal.shapes[si++ % T.pal.shapes.length];
+    }
+    if (z.role === 'head') {
+      const n = z.words || (z.big ? 1 + Math.floor(zr() * 3) : 2 + Math.floor(zr() * 5));
+      z.text = applyCase(loremWords(zr, n).join(' '), T.case);
+      if (z.kicker) z.kt = loremWords(zr, 2).join(' ').toUpperCase();
+      if (z.deck) z.dt = applyCase(loremWords(zr, 8 + Math.floor(zr() * 10)).join(' '), 'sentence');
+    }
+    if (z.role === 'deck') z.dt = applyCase(loremWords(zr, 10 + Math.floor(zr() * 8)).join(' '), 'sentence');
+    if (z.role === 'masthead') { const long = LOREM.filter(w => w.length >= 5 && w.length <= 9); z.text = pick(zr, long).toUpperCase(); }
+    if (z.role === 'title') z.text = applyCase(loremWords(zr, 1 + Math.floor(zr() * 2)).join(' '), 'title');
+  });
+  return { zones, T, D };
+}
+
+/* ---------- zone rectangles ---------- */
+function zoneRect(z, D) {
+  if (z.edge === 'top') return { x: 0, y: 0, w: D.W, h: z.size };
+  if (z.edge === 'bottom') return { x: 0, y: D.H - z.size, w: D.W, h: z.size };
+  const [c0, cs] = z.c, [r0, rs] = z.r;
+  let x = D.m.l + c0 * (D.colW + D.g), w = cs * D.colW + (cs - 1) * D.g;
+  let y = D.m.t + r0 * (D.rowH + D.rg), h = rs * D.rowH + (rs - 1) * D.rg;
+  if (z.dx) x += z.dx * (D.colW + D.g);
+  if (z.dy) y += z.dy * (D.rowH + D.rg);
+  if (z.grow) { const gw = w * z.grow, gh = h * z.grow; x -= gw / 2; y -= gh / 2; w += gw; h += gh; }
+  const b = z.bleed || '';
+  if (b.includes('t')) { h += y + D.bleed; y = -D.bleed; }
+  if (b.includes('b')) { h = D.H + D.bleed - y; }
+  if (b.includes('l')) { w += x + D.bleed; x = -D.bleed; }
+  if (b.includes('r')) { w = D.W + D.bleed - x; }
+  return { x, y, w, h };
+}
+
+/* ---------- text measurement + wrap ---------- */
+let measureWord = (word, face, weight) => word.length * 55; // width at size 100; replaced in browser
+const _mcache = new Map();
+function mw(word, face, weight) {
+  const k = face + '|' + weight + '|' + word;
+  let v = _mcache.get(k);
+  if (v == null) { v = measureWord(word, face, weight); _mcache.set(k, v); }
+  return v;
+}
+function lineWidth(words, size, face, weight, ls) {
+  let w = 0;
+  for (const wd of words) w += mw(wd, face, weight);
+  w += (words.length - 1) * mw(' ', face, weight);
+  const chars = words.join(' ').length;
+  return w * size / 100 + ls * size * Math.max(0, chars - 1);
+}
+function wrapWords(words, size, face, weight, maxW, ls) {
+  const lines = []; let cur = [];
+  for (const wd of words) {
+    const t = cur.concat(wd);
+    if (cur.length && lineWidth(t, size, face, weight, ls) > maxW) { lines.push(cur); cur = [wd]; }
+    else cur = t;
+  }
+  if (cur.length) lines.push(cur);
+  return lines.map(l => ({ t: l.join(' '), w: lineWidth(l, size, face, weight, ls) }));
+}
+function fitText(text, w, h, face, weight, lh, ls, maxLines, maxSize) {
+  const words = text.split(' ');
+  let s = Math.min(h / lh, maxSize || 1e9);
+  for (let i = 0; i < 60 && s > 3; i++) {
+    const lines = wrapWords(words, s, face, weight, w, ls);
+    if (lines.length * s * lh <= h + 0.01 && lines.length <= (maxLines || 99) && lines.every(l => l.w <= w + 0.5)) return { s, lines };
+    s *= 0.92;
+  }
+  s = Math.max(3, s);
+  const lines = wrapWords(words, s, face, weight, w, ls);
+  return { s, lines: lines.slice(0, Math.max(1, Math.floor(h / (s * lh)))) };
+}
+
+/* ---------- SVG rendering ---------- */
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const n2 = v => (Math.round(v * 100) / 100).toString();
+function hexRgb(h) { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }
+function mix(a, b, t) { const A1 = hexRgb(a), B1 = hexRgb(b); return '#' + A1.map((v, i) => Math.round(v + (B1[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
+
+function svgText(x, y, str, o) {
+  return `<text x="${n2(x)}" y="${n2(y)}" font-family="${esc(o.face)}" font-size="${n2(o.size)}" font-weight="${o.weight || 400}"${o.anchor ? ` text-anchor="${o.anchor}"` : ''}${o.ls ? ` letter-spacing="${n2(o.ls * o.size)}"` : ''}${o.italic ? ' font-style="italic"' : ''} fill="${o.fill}"${o.op != null ? ` fill-opacity="${o.op}"` : ''}${o.tl ? ` textLength="${n2(o.tl)}" lengthAdjust="spacing"` : ''}>${esc(str)}</text>`;
+}
+function textLines(lines, x, y, w, s, lh, o) {
+  const anchor = o.align === 'center' ? 'middle' : o.align === 'right' ? 'end' : null;
+  const ax = o.align === 'center' ? x + w / 2 : o.align === 'right' ? x + w : x;
+  return lines.map((l, i) => svgText(ax, y + s * 0.8 + i * s * lh, l.t, Object.assign({}, o, { size: s, anchor }))).join('');
+}
+
+function bodyBlock(x, y, w, h, R, ctx, o) {
+  const { T, pal } = ctx;
+  const size = ctx.bodySize, lead = ctx.lead;
+  const n = Math.floor(h / lead);
+  if (n < 1 || w < size * 2) return '';
+  const face = FACES[o.face || (T.face === 'mono' ? 'mono' : (T.face === 'serif' || T.face === 'slab') ? 'serif' : 'sans')];
+  const align = o.align || (T.justify ? 'justify' : (T.align === 'center' ? 'center' : 'left'));
+  let out = '', idx = Math.floor(R() * LOREM.length), paraLeft = 4 + Math.floor(R() * 5);
+  let dcW = 0;
+  if (o.dropcap && n >= 5 && w > lead * 8) {
+    const ds = lead * 3 * 0.92; dcW = ds * 0.82;
+    out += `<rect x="${n2(x)}" y="${n2(y + lead * 0.15)}" width="${n2(dcW - lead * 0.3)}" height="${n2(lead * 2.9)}" fill="${pal.accent}"/>`;
+    out += svgText(x + (dcW - lead * 0.3) / 2, y + lead * 2.55, 'L', { face: FACES.serif, size: ds * 0.9, weight: 700, fill: pal.paper, anchor: 'middle' });
+    paraLeft = Math.max(paraLeft, 5);
+  }
+  for (let i = 0; i < n; i++) {
+    if (paraLeft === 0) { paraLeft = 4 + Math.floor(R() * 5); continue; }
+    const last = paraLeft === 1 || i === n - 1;
+    const ind = dcW && i < 3 ? dcW : 0;
+    const lx = x + ind, lw = w - ind;
+    const target = last ? lw * (0.25 + 0.45 * R()) : align === 'justify' ? lw : lw * (0.84 + 0.16 * R());
+    const words = [];
+    for (let k = 0; k < 40; k++) {
+      const wd = LOREM[idx % LOREM.length];
+      if (words.length && lineWidth(words.concat(wd), size, face, 400, 0) > target) break;
+      words.push(wd); idx++;
+    }
+    if (!words.length) break;
+    const str = words.join(' ');
+    const yy = y + i * lead + lead * 0.72;
+    const anchor = align === 'center' ? 'middle' : null;
+    out += svgText(align === 'center' ? lx + lw / 2 : lx, yy, str, { face, size, fill: o.fill || pal.ink, op: o.op != null ? o.op : 0.55, anchor, tl: align === 'justify' && !last ? lw : null });
+    paraLeft--;
+  }
+  return out;
+}
+
+function imagePlaceholder(r, z, ctx) {
+  const { pal, S, T } = ctx;
+  const { x, y, w, h } = r;
+  let fill = z.dark ? mix(pal.ink, pal.image, 0.45) : pal.image;
+  if (T.duotone) fill = mix(fill, pal.accent, 0.5);
+  const line = z.dark ? pal.paper : pal.ink;
+  let out = '';
+  const id = 'c' + z.seed;
+  if (z.arch) { const ar = Math.min(w / 2, h); out += `<clipPath id="${id}"><path d="M${n2(x)} ${n2(y + h)}V${n2(y + ar)}A${n2(w / 2)} ${n2(ar)} 0 0 1 ${n2(x + w)} ${n2(y + ar)}V${n2(y + h)}Z"/></clipPath>`; }
+  else if (z.oval) out += `<clipPath id="${id}"><ellipse cx="${n2(x + w / 2)}" cy="${n2(y + h / 2)}" rx="${n2(w / 2)}" ry="${n2(h / 2)}"/></clipPath>`;
+  else out += `<clipPath id="${id}"><rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}"${T.roundImg && !(z.bleed && z.bleed.length) ? ` rx="${n2(Math.min(w, h) * T.roundImg)}"` : ''}/></clipPath>`;
+  out += `<g clip-path="url(#${id})">`;
+  out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="${fill}"/>`;
+  if (T.halftone) out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="url(#ht)"/>`;
+  out += `<path d="M${n2(x)} ${n2(y)}L${n2(x + w)} ${n2(y + h)}M${n2(x + w)} ${n2(y)}L${n2(x)} ${n2(y + h)}" stroke="${line}" stroke-opacity="0.22" stroke-width="${n2(S * 0.8)}"/>`;
+  // focal crop: rule-of-thirds safe crop
+  if (Math.min(w, h) > S * 60) {
+    const ix = x + w * 0.12, iy = y + h * 0.12, iw = w * 0.76, ih = h * 0.76;
+    out += `<rect x="${n2(ix)}" y="${n2(iy)}" width="${n2(iw)}" height="${n2(ih)}" fill="none" stroke="${line}" stroke-opacity="0.35" stroke-width="${n2(S * 0.7)}" stroke-dasharray="${n2(S * 4)} ${n2(S * 3)}"/>`;
+  }
+  out += '</g>';
+  // crop marks at corners
+  const cm = Math.min(w, h) * 0.06, off = S * 2;
+  if (z.arch) { const ar = Math.min(w / 2, h); out += `<path d="M${n2(x)} ${n2(y + h)}V${n2(y + ar)}A${n2(w / 2)} ${n2(ar)} 0 0 1 ${n2(x + w)} ${n2(y + ar)}V${n2(y + h)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(S * 2.5)}"/>`; }
+  if (!z.oval && !z.arch && !T.roundImg && Math.min(w, h) > S * 30) {
+    const c = (px, py, dx, dy) => `M${n2(px + dx * off)} ${n2(py)}L${n2(px + dx * (off + cm))} ${n2(py)}M${n2(px)} ${n2(py + dy * off)}L${n2(px)} ${n2(py + dy * (off + cm))}`;
+    out += `<path d="${c(x, y, 1, 1)}${c(x + w, y, -1, 1)}${c(x, y + h, 1, -1)}${c(x + w, y + h, -1, -1)}" stroke="${line}" stroke-opacity="0.5" stroke-width="${n2(S * 0.7)}"/>`;
+  }
+  if (z.scene) {
+    out += `<path d="M${n2(x)} ${n2(y + h * 0.58)}L${n2(x + w * 0.3)} ${n2(y + h * 0.5)}L${n2(x + w * 0.55)} ${n2(y + h * 0.56)}L${n2(x + w * 0.8)} ${n2(y + h * 0.47)}L${n2(x + w)} ${n2(y + h * 0.54)}V${n2(y + h)}H${n2(x)}Z" fill="${pal.ink}" fill-opacity="0.06"/>`;
+    const ls2 = clamp(Math.min(w, h) * 0.03, S * 4, S * 10);
+    out += svgText(x + w / 2, y + h * 0.64, 'SCENE / CAMERA VIEW ' + ratioLabel(w, h), { face: FACES.mono, size: ls2, fill: pal.ink, op: 0.35, anchor: 'middle', ls: 0.1 });
+    return out;
+  }
+  // ratio label
+  const ls = clamp(Math.min(w, h) * 0.07, S * 5, S * 16);
+  if (w > ls * 6 && h > ls * 2.2) {
+    const label = 'IMAGE ' + ratioLabel(w, h);
+    const lw = lineWidth(label.split(' '), ls, FACES.sans, 600, 0.08) + ls * 1.2;
+    out += `<rect x="${n2(x + w / 2 - lw / 2)}" y="${n2(y + h / 2 - ls * 0.9)}" width="${n2(lw)}" height="${n2(ls * 1.8)}" rx="${n2(ls * 0.3)}" fill="${pal.paper}" fill-opacity="0.85"/>`;
+    out += svgText(x + w / 2, y + h / 2 + ls * 0.35, label, { face: FACES.sans, size: ls, weight: 600, fill: pal.ink, anchor: 'middle', ls: 0.08 });
+  }
+  return out;
+}
+function ratioLabel(w, h) {
+  const r = w / h;
+  const common = [[1, 1], [5, 4], [4, 5], [4, 3], [3, 4], [3, 2], [2, 3], [16, 9], [9, 16], [2, 1], [1, 2], [21, 9], [3, 1], [1, 3], [5, 7], [7, 5]];
+  for (const [a, b] of common) if (Math.abs(r / (a / b) - 1) < 0.025) return a + ':' + b;
+  return r >= 1 ? (Math.round(r * 100) / 100) + ':1' : '1:' + (Math.round(100 / r) / 100);
+}
+
+function renderZone(z, r, ctx) {
+  const { T, pal, S } = ctx;
+  const { x, y, w, h } = r;
+  const R = mulberry32(z.seed || 1);
+  const face = FACES[T.face];
+  const ink = z.onImage ? pal.paper : pal.ink;
+  const align = z.align || T.align;
+  let out = '';
+  const box = (pad) => z.box ? `<rect x="${n2(x - pad)}" y="${n2(y - pad)}" width="${n2(w + pad * 2)}" height="${n2(h + pad * 2)}" fill="${pal.paper}" stroke="${pal.ink}" stroke-width="${n2(S * 1.2)}"/>` : '';
+  switch (z.role) {
+    case 'image': out = imagePlaceholder(r, z, ctx); break;
+    case 'head': case 'title': {
+      out += box(S * 4);
+      let top = y, bot = y + h;
+      const bs = ctx.bodySize;
+      if (z.role === 'title') {
+        const s = Math.min(h * 0.42, ctx.bodySize * 1.7);
+        out += svgText(x, y + h / 2 + s * 0.35, z.text, { face, size: s, weight: 700, fill: ink });
+        break;
+      }
+      if (z.kicker && h > bs * 4) {
+        const ks = Math.min(bs * 0.9, h * 0.12);
+        if (z.hudTitle) z.kt = 'OBJECTIVE · ' + z.kt;
+        out += svgText(align === 'center' ? x + w / 2 : x, top + ks, z.kt, { face: FACES.sans, size: ks, weight: 700, fill: z.onImage ? pal.paper : pal.accent, ls: 0.12, anchor: align === 'center' ? 'middle' : null });
+        top += ks * 2.1;
+      }
+      if (z.deck && bot - top > bs * 5) {
+        const dh = Math.min((bot - top) * 0.32, bs * 1.3 * 4);
+        const fit = fitText(z.dt, w * (align === 'center' ? 1 : 0.9), dh, FACES[T.face === 'mono' ? 'mono' : 'serif'], 400, 1.25, 0, 4, bs * 2.2);
+        out += textLines(fit.lines, x, bot - dh, w, fit.s, 1.25, { face: FACES[T.face === 'mono' ? 'mono' : 'serif'], weight: 400, fill: ink, op: 0.8, align: align === 'center' ? 'center' : 'left' });
+        bot -= dh + bs * 0.6;
+      }
+      const lh = T.lh || 1;
+      const fit = fitText(z.text, w, Math.max(4, bot - top), face, T.weight, lh, T.ls || 0, z.big ? 5 : 6);
+      let ty = top;
+      if (z.vcenter) ty = top + (bot - top - fit.lines.length * fit.s * lh) / 2;
+      if (z.band) {
+        const bh = fit.lines.length * fit.s * lh + fit.s * 0.5;
+        out += `<rect x="${n2(x - ctx.D.W)}" y="${n2(ty - fit.s * 0.2)}" width="${n2(w + ctx.D.W * 2)}" height="${n2(bh)}" fill="${pal.accent}"/>`;
+      }
+      if (z.arc && fit.lines.length >= 1) {
+        const l0 = fit.lines[0], s0 = fit.s;
+        const by0 = ty + s0 * 0.8, lift = Math.min(s0 * 1.1, w * 0.12);
+        const pid = 'arc' + z.seed;
+        out += `<path id="${pid}" d="M${n2(x)} ${n2(by0 + lift * 0.35)}Q${n2(x + w / 2)} ${n2(by0 - lift * 1.3)} ${n2(x + w)} ${n2(by0 + lift * 0.35)}" fill="none"/>`;
+        out += `<text font-family="${esc(face)}" font-size="${n2(s0)}" font-weight="${T.weight}" fill="${z.band ? pal.paper : ink}"${T.ls ? ` letter-spacing="${n2(T.ls * s0)}"` : ''}><textPath href="#${pid}" startOffset="50%" text-anchor="middle">${esc(l0.t)}</textPath></text>`;
+        out += textLines(fit.lines.slice(1), x, ty + s0 * lh, w, s0, lh, { face, weight: T.weight, fill: z.band ? pal.paper : ink, ls: T.ls || 0, align: align === 'center' ? 'center' : 'left' });
+        break;
+      }
+      if (T.echo && !z.onImage) {
+        const ex = fit.s * 0.35, ey = -fit.s * 0.45;
+        const ghost = textLines(fit.lines, x + ex, ty + ey, w, fit.s * 1.25, lh, { face, weight: T.weight, fill: 'none', ls: T.ls || 0, align: align === 'center' ? 'center' : 'left' });
+        out += ghost.replace(/<text /g, `<text stroke="${pal.accent}" stroke-width="${n2(Math.max(S * 0.8, fit.s * 0.025))}" `);
+      }
+      out += textLines(fit.lines, x, ty, w, fit.s, lh, { face, weight: T.weight, fill: z.band ? pal.paper : ink, ls: T.ls || 0, align: align === 'center' ? 'center' : 'left' });
+      break;
+    }
+    case 'deck': {
+      const fs = ctx.bodySize * 1.6;
+      const fit = fitText(z.dt, w, h, FACES.serif, 400, 1.2, 0, 6, fs);
+      out += `<path d="M${n2(x)} ${n2(y)}H${n2(x + w)}" stroke="${pal.accent}" stroke-width="${n2(S * 2)}"/>`;
+      out += textLines(fit.lines, x, y + S * 6, w, fit.s, 1.2, { face: FACES.serif, weight: 400, fill: pal.ink, italic: true });
+      break;
+    }
+    case 'body': {
+      const pad = S * 6;
+      out += box(pad);
+      const tw = 30 * ctx.bodySize;
+      const D = ctx.D;
+      let cols = Math.max(1, Math.round(w / tw));
+      if (z.c) cols = clamp(cols, 1, z.c[1]);
+      if (z.edge || z.box || z.rot) cols = 1;
+      if (cols === 1) out += bodyBlock(x, y, w, h, R, ctx, { align: z.align, dropcap: T.dropcap && !z.box });
+      else {
+        const per = Math.floor(z.c[1] / cols);
+        for (let i = 0; i < cols; i++) {
+          const span = i === cols - 1 ? z.c[1] - per * (cols - 1) : per;
+          const cx = x + i * per * (D.colW + D.g);
+          const cw = span * D.colW + (span - 1) * D.g;
+          out += bodyBlock(cx, y, cw, h, R, ctx, { dropcap: T.dropcap && i === 0 });
+        }
+      }
+      break;
+    }
+    case 'caption': case 'meta': {
+      const s = ctx.bodySize * 0.82;
+      const lines = Math.max(1, Math.min(3, Math.floor(h / (s * 1.35))));
+      for (let i = 0; i < lines; i++) {
+        const wds = loremWords(R, 3 + Math.floor(R() * 4)).join(' ');
+        const str = i === 0 && z.role === 'meta' ? wds.toUpperCase() : wds;
+        out += svgText(align === 'center' ? x + w / 2 : x, y + s * 1.05 + i * s * 1.35, fitStr(str, w, s, FACES.sans, i === 0 && z.role === 'meta' ? 700 : 400), { face: FACES.sans, size: s, weight: i === 0 && z.role === 'meta' ? 700 : 400, fill: ink, op: z.role === 'caption' ? 0.7 : 0.85, italic: z.role === 'caption' && T.face === 'serif', anchor: align === 'center' ? 'middle' : null });
+      }
+      break;
+    }
+    case 'logo': {
+      const lh2 = Math.min(h * 0.7, w * 0.4);
+      const lx = x + w - Math.min(w, lh2 * 2.6), ly = y + (h - lh2) / 2;
+      const lw = Math.min(w, lh2 * 2.6);
+      out += `<rect x="${n2(lx)}" y="${n2(ly)}" width="${n2(lw)}" height="${n2(lh2)}" fill="none" stroke="${ink}" stroke-width="${n2(S)}" stroke-dasharray="${n2(S * 3)} ${n2(S * 2)}"/>`;
+      out += svgText(lx + lw / 2, ly + lh2 / 2 + lh2 * 0.12, 'LOGO', { face: FACES.sans, size: lh2 * 0.32, weight: 700, fill: ink, anchor: 'middle', ls: 0.15, op: 0.7 });
+      break;
+    }
+    case 'cta': case 'button': {
+      const bh = z.role === 'button' ? Math.min(h * 0.75, ctx.bodySize * 3.2) : Math.min(h * 0.7, ctx.bodySize * 3);
+      const by = z.vcenter || z.role === 'button' ? y + (h - bh) / 2 : y + (h - bh) / 2;
+      const rad = (T.frame === 'rounded' || ctx.screen) ? bh / 2 : 0;
+      out += `<rect x="${n2(x)}" y="${n2(by)}" width="${n2(w)}" height="${n2(bh)}" rx="${n2(rad)}" fill="${pal.accent}"/>`;
+      const s = Math.min(bh * 0.38, ctx.bodySize * 1.1);
+      out += svgText(x + w / 2, by + bh / 2 + s * 0.35, fitStr('LOREM IPSUM', w * 0.85, s, FACES.sans, 700), { face: FACES.sans, size: s, weight: 700, fill: pal.paper, anchor: 'middle', ls: 0.08 });
+      break;
+    }
+    case 'shape': out = drawShape(z, r, ctx); break;
+    case 'readout': case 'compass': case 'ladder': case 'reticle': case 'radar': case 'gauge': case 'alert': out = drawHud(z, r, ctx, R); break;
+    case 'ornament': {
+      const cy = y + h / 2;
+      out += `<path d="M${n2(x)} ${n2(cy)}H${n2(x + w / 2 - S * 6)}M${n2(x + w / 2 + S * 6)} ${n2(cy)}H${n2(x + w)}" stroke="${pal.ink}" stroke-width="${n2(S)}"/>`;
+      out += `<path d="M${n2(x + w / 2)} ${n2(cy - S * 4)}L${n2(x + w / 2 + S * 4)} ${n2(cy)}L${n2(x + w / 2)} ${n2(cy + S * 4)}L${n2(x + w / 2 - S * 4)} ${n2(cy)}Z" fill="${pal.accent}"/>`;
+      break;
+    }
+    case 'arrow': {
+      const cy = y + h / 2, ah = Math.min(h * 0.4, S * 10);
+      out += `<path d="M${n2(x)} ${n2(cy)}H${n2(x + w - ah)}" stroke="${pal.ink}" stroke-width="${n2(S * 2.2)}"/><path d="M${n2(x + w - ah * 1.4)} ${n2(cy - ah)}L${n2(x + w)} ${n2(cy)}L${n2(x + w - ah * 1.4)} ${n2(cy + ah)}Z" fill="${pal.ink}"/>`;
+      break;
+    }
+    case 'marker': {
+      const s = Math.min(w, h) * 0.8;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(s)}" height="${n2(s)}" fill="${pal.accent}"/>`;
+      out += svgText(x + s / 2, y + s * 0.68, String(1 + Math.floor(R() * 9)).padStart(2, '0'), { face: FACES.sans, size: s * 0.48, weight: 800, fill: pal.paper, anchor: 'middle' });
+      break;
+    }
+    case 'folio': {
+      const s = ctx.bodySize * 0.8, by = y + h - s * 0.6;
+      out += `<path d="M${n2(x)} ${n2(y + h - s * 2)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.35" stroke-width="${n2(S * 0.6)}"/>`;
+      out += svgText(x, by, String(10 + Math.floor(R() * 80)), { face: FACES.sans, size: s, weight: 700, fill: pal.ink });
+      out += svgText(x + s * 3, by, 'LOREM IPSUM · DOLOR', { face: FACES.sans, size: s, weight: 400, fill: pal.ink, op: 0.7, ls: 0.1 });
+      if (ctx.spread) out += svgText(x + w, by, String(11 + Math.floor(R() * 80)), { face: FACES.sans, size: s, weight: 700, fill: pal.ink, anchor: 'end' });
+      break;
+    }
+    case 'legend': {
+      const s = ctx.bodySize * 0.8;
+      out += svgText(x, y + s, 'LEGEND', { face: FACES.sans, size: s, weight: 700, fill: pal.ink, ls: 0.1 });
+      for (let i = 0; i < 3; i++) {
+        const yy = y + s * 2.6 + i * s * 1.9;
+        if (yy + s > y + h) break;
+        out += `<rect x="${n2(x)}" y="${n2(yy - s * 0.8)}" width="${n2(s)}" height="${n2(s)}" fill="${[pal.accent, pal.ink, pal.image][i]}"/>`;
+        out += svgText(x + s * 1.6, yy, loremWords(R, 2).join(' '), { face: FACES.sans, size: s, fill: pal.ink, op: 0.8 });
+      }
+      break;
+    }
+    case 'masthead': {
+      const fit = fitText(z.text, w, h * 0.92, face, 900, 0.9, T.ls || 0, 1);
+      out += textLines(fit.lines, x, y, w, fit.s, 0.9, { face, weight: 900, fill: z.onImage ? pal.paper : pal.ink, align: 'center', ls: T.ls || 0 });
+      if (h > ctx.bodySize * 4) out += svgText(x + w / 2, y + h - ctx.bodySize * 0.2, 'ISSUE 00 · LOREM IPSUM', { face: FACES.sans, size: ctx.bodySize * 0.7, weight: 700, fill: pal.ink, anchor: 'middle', ls: 0.15, op: 0.7 });
+      break;
+    }
+    case 'coverline': {
+      let yy = y; const s = ctx.bodySize * 1.5;
+      while (yy + s * 3.2 < y + h) {
+        out += svgText(x, yy + s, fitStr(loremWords(R, 2).join(' ').toUpperCase(), w, s, face, 800), { face, size: s, weight: 800, fill: pal.ink });
+        out += svgText(x, yy + s * 2.1, fitStr(loremWords(R, 4).join(' '), w, s * 0.6, FACES.sans, 400), { face: FACES.sans, size: s * 0.6, fill: pal.ink, op: 0.8 });
+        yy += s * 3.4;
+      }
+      break;
+    }
+    case 'barcode': {
+      const bw = Math.min(w, h * 1.6), bh = h * 0.8, bx = x + w - bw, by = y + (h - bh);
+      out += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(bw)}" height="${n2(bh)}" fill="#ffffff"/>`;
+      let xx = bx + bw * 0.08, i = 0;
+      while (xx < bx + bw * 0.92) { const lw = bw * (0.008 + 0.02 * R()); if (i++ % 2 === 0) out += `<rect x="${n2(xx)}" y="${n2(by + bh * 0.1)}" width="${n2(lw)}" height="${n2(bh * 0.7)}" fill="#111"/>`; xx += lw; }
+      break;
+    }
+    case 'list': {
+      const s = ctx.bodySize * 1.15, step = s * 3.1;
+      let yy = y, i = 0;
+      while (yy + step <= y + h) {
+        out += svgText(x, yy + s * 1.1, String(i + 1).padStart(2, '0'), { face: FACES.sans, size: s * 1.4, weight: 800, fill: pal.accent });
+        out += svgText(x + s * 3, yy + s, fitStr(applyCase(loremWords(R, 2 + Math.floor(R() * 3)).join(' '), 'title'), w - s * 6, s, face, 700), { face, size: s, weight: 700, fill: pal.ink });
+        out += svgText(x + s * 3, yy + s * 2.2, fitStr(loremWords(R, 6).join(' '), w - s * 6, s * 0.7, FACES.sans, 400), { face: FACES.sans, size: s * 0.7, fill: pal.ink, op: 0.65 });
+        out += svgText(x + w, yy + s, String(4 + i * 6 + Math.floor(R() * 4)), { face: FACES.sans, size: s, weight: 700, fill: pal.ink, anchor: 'end' });
+        yy += step; i++;
+      }
+      break;
+    }
+    case 'panel': {
+      const sw = S * (T.heavy ? 3.2 : 1.8);
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="${mix(pal.paper, pal.image, 0.35)}" stroke="${pal.ink}" stroke-width="${n2(sw)}"/>`;
+      out += `<path d="M${n2(x + w * 0.15)} ${n2(y + h)}Q${n2(x + w * 0.35)} ${n2(y + h * (0.45 + 0.2 * R()))} ${n2(x + w * 0.55)} ${n2(y + h * 0.75)}T${n2(x + w * 0.95)} ${n2(y + h * 0.55)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.2" stroke-width="${n2(S)}"/>`;
+      const fs = ctx.bodySize * 0.9;
+      if (z.capbox && w > fs * 8) {
+        const cw = Math.min(w * 0.6, fs * 14), chh = fs * 2.6;
+        out += `<rect x="${n2(x + sw / 2)}" y="${n2(y + sw / 2)}" width="${n2(cw)}" height="${n2(chh)}" fill="${mix(pal.paper, pal.accent, 0.35)}" stroke="${pal.ink}" stroke-width="${n2(sw * 0.6)}"/>`;
+        out += svgText(x + sw + fs * 0.5, y + fs * 1.5, fitStr(loremWords(R, 4).join(' ').toUpperCase(), cw - fs, fs * 0.85, FACES.sans, 700), { face: FACES.sans, size: fs * 0.85, weight: 700, fill: pal.ink });
+      }
+      if (z.balloon && w > fs * 7 && h > fs * 5) {
+        const bw = Math.min(w * 0.55, fs * 14), bh2 = fs * 3.4;
+        const bx = x + w * (0.25 + 0.3 * R()) , by = y + (z.capbox ? fs * 3.4 : 0) + fs * 0.8 + bh2 / 2;
+        const cx = Math.min(bx, x + w - bw / 2 - sw), cy = by;
+        out += `<path d="M${n2(cx - bw * 0.1)} ${n2(cy + bh2 * 0.4)}L${n2(cx - bw * 0.25)} ${n2(cy + bh2 * 0.95)}L${n2(cx + bw * 0.05)} ${n2(cy + bh2 * 0.42)}Z" fill="#fff" stroke="${pal.ink}" stroke-width="${n2(sw * 0.5)}"/>`;
+        out += `<ellipse cx="${n2(cx)}" cy="${n2(cy)}" rx="${n2(bw / 2)}" ry="${n2(bh2 / 2)}" fill="#fff" stroke="${pal.ink}" stroke-width="${n2(sw * 0.5)}"/>`;
+        out += svgText(cx, cy - fs * 0.15, fitStr(loremWords(R, 3).join(' ').toUpperCase(), bw * 0.75, fs * 0.8, FACES.sans, 700), { face: FACES.sans, size: fs * 0.8, weight: 700, fill: pal.ink, anchor: 'middle' });
+        out += svgText(cx, cy + fs * 0.85, fitStr(loremWords(R, 3).join(' ').toUpperCase(), bw * 0.7, fs * 0.8, FACES.sans, 700), { face: FACES.sans, size: fs * 0.8, weight: 700, fill: pal.ink, anchor: 'middle' });
+      }
+      if (z.sfx && w > fs * 6) out += svgText(x + w * 0.62, y + h * 0.72, 'LOREM!', { face: FACES.sans, size: Math.min(h * 0.25, w * 0.18), weight: 900, fill: pal.accent, anchor: 'middle' });
+      break;
+    }
+    case 'nav': {
+      const cy = y + h / 2, s = Math.min(h * 0.28, ctx.bodySize);
+      out += `<path d="M${n2(x)} ${n2(y + h)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.2" stroke-width="${n2(S * 0.6)}"/>`;
+      out += `<rect x="${n2(x)}" y="${n2(cy - s)}" width="${n2(s * 5)}" height="${n2(s * 2)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(S * 0.8)}" stroke-dasharray="${n2(S * 3)} ${n2(S * 2)}"/>`;
+      out += svgText(x + s * 2.5, cy + s * 0.35, 'LOGO', { face: FACES.sans, size: s * 0.8, weight: 700, fill: pal.ink, anchor: 'middle', op: 0.7 });
+      const n = w > s * 40 ? 4 : w > s * 22 ? 2 : 0;
+      let xx = x + w;
+      if (w > s * 22) { const bw = s * 6; out += `<rect x="${n2(xx - bw)}" y="${n2(cy - s * 1.1)}" width="${n2(bw)}" height="${n2(s * 2.2)}" rx="${n2(s * 1.1)}" fill="${pal.accent}"/>`; out += svgText(xx - bw / 2, cy + s * 0.35, 'LOREM', { face: FACES.sans, size: s * 0.85, weight: 700, fill: pal.paper, anchor: 'middle' }); xx -= bw + s * 2; }
+      for (let i = 0; i < n; i++) { const t = applyCase(loremWords(R, 1)[0], 'title'); out += svgText(xx, cy + s * 0.35, t, { face: FACES.sans, size: s, fill: pal.ink, anchor: 'end', op: 0.8 }); xx -= lineWidth([t], s, FACES.sans, 400, 0) + s * 2; }
+      if (n === 0) { for (let i = 0; i < 3; i++) out += `<rect x="${n2(x + w - s * 2)}" y="${n2(cy - s * 0.7 + i * s * 0.6)}" width="${n2(s * 2)}" height="${n2(S * 1.2)}" fill="${pal.ink}"/>`; }
+      break;
+    }
+    case 'footer': {
+      out += `<rect x="${n2(-ctx.D.bleed)}" y="${n2(y)}" width="${n2(ctx.D.W + ctx.D.bleed * 2)}" height="${n2(ctx.D.H - y + ctx.D.bleed)}" fill="${mix(pal.paper, pal.ink, 0.07)}"/>`;
+      const s = Math.min(h * 0.22, ctx.bodySize * 0.85);
+      const n = w > s * 40 ? 4 : 2, cw = w / n;
+      for (let i = 0; i < n; i++) { out += svgText(x + i * cw, y + s * 2, applyCase(loremWords(R, 1)[0], 'upper'), { face: FACES.sans, size: s * 0.8, weight: 700, fill: pal.ink, ls: 0.1 }); out += svgText(x + i * cw, y + s * 3.6, loremWords(R, 2).join(' '), { face: FACES.sans, size: s, fill: pal.ink, op: 0.65 }); }
+      break;
+    }
+    case 'card': {
+      const ih = z.tile ? h - ctx.bodySize * 2.6 : h * 0.55;
+      out += imagePlaceholder({ x, y, w, h: Math.max(4, ih) }, z, ctx);
+      const s = ctx.bodySize;
+      out += svgText(x, y + ih + s * 1.5, fitStr(applyCase(loremWords(R, 3).join(' '), 'title'), w, s, face, 700), { face, size: s, weight: 700, fill: pal.ink });
+      if (!z.tile) out += bodyBlock(x, y + ih + s * 2.2, w, h - ih - s * 2.2, R, ctx, {});
+      break;
+    }
+    case 'status': {
+      const s = Math.min(h * 0.32, 11);
+      out += svgText(x + (z.kind === 'phone' ? h * 0.8 : s * 2), y + h * 0.62, z.kind === 'desktop' ? '' : '9:41', { face: FACES.sans, size: s, weight: 700, fill: pal.ink });
+      if (z.kind === 'desktop') { for (let i = 0; i < 3; i++) out += `<circle cx="${n2(x + s * 1.5 + i * s * 1.6)}" cy="${n2(y + h / 2)}" r="${n2(s * 0.5)}" fill="${pal.ink}" fill-opacity="0.25"/>`; out += `<path d="M0 ${n2(h)}H${n2(w)}" stroke="${pal.ink}" stroke-opacity="0.15"/>`; }
+      else { out += `<rect x="${n2(x + w - h * 0.8 - s * 2.2)}" y="${n2(y + h * 0.62 - s * 0.75)}" width="${n2(s * 2.2)}" height="${n2(s)}" rx="${n2(s * 0.25)}" fill="none" stroke="${pal.ink}" stroke-width="1"/>`; out += `<rect x="${n2(x + w - h * 0.8 - s * 6)}" y="${n2(y + h * 0.62 - s * 0.75)}" width="${n2(s * 2.8)}" height="${n2(s)}" fill="${pal.ink}" fill-opacity="0.7"/>`; }
+      break;
+    }
+    case 'tabbar': {
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="${mix(pal.paper, pal.ink, 0.05)}"/><path d="M${n2(x)} ${n2(y)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.15"/>`;
+      const n = 4, cw = w / n, s = Math.min(h * 0.18, 9);
+      for (let i = 0; i < n; i++) { const cx = x + cw * (i + 0.5); out += `<rect x="${n2(cx - s)}" y="${n2(y + h * 0.15)}" width="${n2(s * 2)}" height="${n2(s * 2)}" rx="${n2(s * 0.5)}" fill="${i === 0 ? pal.accent : pal.ink}" fill-opacity="${i === 0 ? 1 : 0.35}"/>`; out += svgText(cx, y + h * 0.15 + s * 3.4, applyCase(loremWords(R, 1)[0], 'title'), { face: FACES.sans, size: s * 0.9, fill: pal.ink, anchor: 'middle', op: 0.7 }); }
+      break;
+    }
+    case 'appbar': {
+      const s = Math.min(h * 0.3, ctx.bodySize * 1.1), cy = y + h / 2;
+      out += `<path d="M${n2(x + s)} ${n2(cy - s * 0.7)}L${n2(x + s * 0.3)} ${n2(cy)}L${n2(x + s)} ${n2(cy + s * 0.7)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(S * 1.6)}"/>`;
+      out += svgText(x + w / 2, cy + s * 0.35, applyCase(loremWords(R, 2).join(' '), 'title'), { face: FACES.sans, size: s, weight: 700, fill: pal.ink, anchor: 'middle' });
+      for (let i = 0; i < 3; i++) out += `<circle cx="${n2(x + w - s * 0.4)}" cy="${n2(cy - s * 0.5 + i * s * 0.5)}" r="${n2(S * 1.1)}" fill="${pal.ink}"/>`;
+      break;
+    }
+    case 'field': {
+      const fh = Math.min(h * 0.6, ctx.bodySize * 3), fy = y + (h - fh) / 2;
+      out += `<rect x="${n2(x)}" y="${n2(fy)}" width="${n2(w)}" height="${n2(fh)}" rx="${n2(fh * 0.3)}" fill="${mix(pal.paper, pal.ink, 0.07)}"/>`;
+      out += `<circle cx="${n2(x + fh * 0.5)}" cy="${n2(fy + fh / 2)}" r="${n2(fh * 0.17)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.5" stroke-width="${n2(S * 1.2)}"/>`;
+      out += svgText(x + fh * 0.9, fy + fh / 2 + ctx.bodySize * 0.35, 'Search', { face: FACES.sans, size: ctx.bodySize, fill: pal.ink, op: 0.45 });
+      break;
+    }
+    case 'item': {
+      const th = Math.min(h * 0.72, ctx.bodySize * 4), ty = y + (h - th) / 2, s = ctx.bodySize;
+      if (!z.compact) out += imagePlaceholder({ x, y: ty, w: th, h: th }, Object.assign({}, z, { seed: z.seed + 1 }), Object.assign({}, ctx, { S: ctx.S * 0.5 }));
+      const tx = z.compact ? x : x + th + s;
+      out += svgText(tx, y + h / 2 - s * 0.15, fitStr(applyCase(loremWords(R, 2 + Math.floor(R() * 2)).join(' '), 'title'), w - (tx - x) - s * 2, s, FACES.sans, 600), { face: FACES.sans, size: s, weight: 600, fill: pal.ink });
+      out += svgText(tx, y + h / 2 + s * 1.2, fitStr(loremWords(R, 5).join(' '), w - (tx - x) - s * 2, s * 0.85, FACES.sans, 400), { face: FACES.sans, size: s * 0.85, fill: pal.ink, op: 0.55 });
+      out += `<path d="M${n2(x + w - s * 0.9)} ${n2(y + h / 2 - s * 0.45)}L${n2(x + w - s * 0.4)} ${n2(y + h / 2)}L${n2(x + w - s * 0.9)} ${n2(y + h / 2 + s * 0.45)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.4" stroke-width="${n2(S * 1.2)}"/>`;
+      out += `<path d="M${n2(tx)} ${n2(y + h)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.12"/>`;
+      break;
+    }
+    case 'dots': {
+      const s = ctx.bodySize * 0.35, cy = y + h / 2;
+      for (let i = 0; i < 4; i++) out += `<circle cx="${n2(x + w / 2 + (i - 1.5) * s * 3.2)}" cy="${n2(cy)}" r="${n2(s)}" fill="${i === 0 ? pal.accent : pal.ink}" fill-opacity="${i === 0 ? 1 : 0.25}"/>`;
+      break;
+    }
+    case 'sidebar': {
+      out += `<rect x="${n2(-ctx.D.bleed)}" y="${n2(0)}" width="${n2(x + w + ctx.D.g / 2)}" height="${n2(ctx.D.H)}" fill="${mix(pal.paper, pal.ink, 0.05)}"/>`;
+      const s = ctx.bodySize;
+      for (let i = 0; i < 7; i++) { const yy = y + s * 1.5 + i * s * 2.6; if (yy > y + h) break; out += `<rect x="${n2(x)}" y="${n2(yy - s * 0.8)}" width="${n2(s)}" height="${n2(s)}" rx="${n2(s * 0.25)}" fill="${i === 1 ? pal.accent : pal.ink}" fill-opacity="${i === 1 ? 1 : 0.3}"/>`; out += svgText(x + s * 1.8, yy, applyCase(loremWords(R, 1)[0], 'title'), { face: FACES.sans, size: s * 0.95, fill: pal.ink, op: i === 1 ? 1 : 0.7, weight: i === 1 ? 700 : 400 }); }
+      break;
+    }
+    case 'stat': {
+      const s = ctx.bodySize;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(s * 0.5)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.2" stroke-width="${n2(S)}"/>`;
+      out += svgText(x + s, y + s * 1.6, loremWords(R, 1)[0].toUpperCase(), { face: FACES.sans, size: s * 0.75, weight: 700, fill: pal.ink, op: 0.6, ls: 0.08 });
+      out += svgText(x + s, y + Math.min(h - s * 0.6, s * 4.2), String(10 + Math.floor(R() * 890)), { face: FACES.sans, size: Math.min(h * 0.4, s * 2.2), weight: 700, fill: pal.ink });
+      break;
+    }
+    case 'chart': {
+      const s = ctx.bodySize, px = x + s * 2, py = y + s, pw = w - s * 3, ph = h - s * 3;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(s * 0.5)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.2" stroke-width="${n2(S)}"/>`;
+      for (let i = 0; i <= 3; i++) out += `<path d="M${n2(px)} ${n2(py + ph * i / 3)}H${n2(px + pw)}" stroke="${pal.ink}" stroke-opacity="0.1"/>`;
+      let d = ''; const nP = 12;
+      for (let i = 0; i < nP; i++) { const vx = px + pw * i / (nP - 1), vy = py + ph * (0.2 + 0.6 * R()); d += (i ? 'L' : 'M') + n2(vx) + ' ' + n2(vy); }
+      out += `<path d="${d}" fill="none" stroke="${pal.accent}" stroke-width="${n2(S * 2)}"/>`;
+      break;
+    }
+  }
+  if (z.rot) {
+    const cx = x + w / 2, cy = y + h / 2;
+    out = `<g transform="rotate(${n2(z.rot)} ${n2(cx)} ${n2(cy)})">${out}</g>`;
+  }
+  return out;
+}
+function drawHud(z, r, ctx, R) {
+  const { pal, S } = ctx; const { x, y, w, h } = r;
+  const A2 = pal.accent, ink = pal.ink, mono = FACES.mono;
+  const sw = Math.max(S * 1.1, 0.5);
+  const fs = clamp(Math.min(w, h) * 0.09, ctx.bodySize * 0.7, ctx.bodySize * 1.2);
+  let o = '';
+  switch (z.role) {
+    case 'readout': {
+      const right = z.align === 'right', ax = right ? x + w : x, anchor = right ? 'end' : null;
+      const L2 = Math.min(w, h) * 0.18;
+      o += `<path d="${right ? `M${n2(x + w - L2)} ${n2(y)}H${n2(x + w)}V${n2(y + L2)}` : `M${n2(x)} ${n2(y + L2)}V${n2(y)}H${n2(x + L2)}`}" fill="none" stroke="${A2}" stroke-width="${n2(sw * 1.8)}"/>`;
+      const pad = fs * 0.8, lines = Math.max(1, Math.floor((h - pad) / (fs * 1.45)));
+      const labels = ['SYS', 'PWR', 'TGT', 'LAT', 'LON', 'ALT', 'T+', 'COM'];
+      for (let i = 0; i < lines; i++) {
+        const yy = y + pad + fs * 1.1 + i * fs * 1.45;
+        const lab = labels[(i + (right ? 3 : 0)) % labels.length];
+        const val = i === 0 ? (right ? 'LINK 98%' : 'NOMINAL') : (Math.floor(R() * 9000) / 10).toFixed(1);
+        const str = right ? `${val}  ${lab}` : `${lab}  ${val}`;
+        o += svgText(right ? ax - pad * 0.5 : ax + pad * 0.5, yy, fitStr(str, w - pad, fs, mono, 400), { face: mono, size: fs, fill: i === 0 ? A2 : ink, op: i === 0 ? 1 : 0.85, anchor });
+      }
+      break;
+    }
+    case 'compass': {
+      const cy = y + h * 0.55, span = 120, deg = Math.floor(R() * 360);
+      o += `<path d="M${n2(x)} ${n2(cy)}H${n2(x + w)}" stroke="${A2}" stroke-opacity="0.6" stroke-width="${n2(sw)}"/>`;
+      const pxPer = w / span;
+      for (let d = Math.ceil((deg - span / 2) / 5) * 5; d <= deg + span / 2; d += 5) {
+        const xx = x + w / 2 + (d - deg) * pxPer, major = d % 30 === 0;
+        o += `<path d="M${n2(xx)} ${n2(cy)}V${n2(cy - (major ? h * 0.32 : h * 0.14))}" stroke="${A2}" stroke-width="${n2(sw)}"/>`;
+        if (major) { const dd = ((d % 360) + 360) % 360; const lab = { 0: 'N', 90: 'E', 180: 'S', 270: 'W' }[dd] || String(dd).padStart(3, '0'); o += svgText(xx, cy - h * 0.4, lab, { face: mono, size: fs * 0.9, fill: ink, anchor: 'middle' }); }
+      }
+      o += `<path d="M${n2(x + w / 2 - fs * 0.5)} ${n2(cy + fs * 0.9)}L${n2(x + w / 2)} ${n2(cy + fs * 0.2)}L${n2(x + w / 2 + fs * 0.5)} ${n2(cy + fs * 0.9)}Z" fill="${A2}"/>`;
+      o += `<rect x="${n2(x + w / 2 - fs * 1.8)}" y="${n2(cy + fs * 1.1)}" width="${n2(fs * 3.6)}" height="${n2(fs * 1.5)}" fill="none" stroke="${A2}" stroke-width="${n2(sw)}"/>`;
+      o += svgText(x + w / 2, cy + fs * 2.2, String(deg).padStart(3, '0'), { face: mono, size: fs, weight: 700, fill: A2, anchor: 'middle' });
+      break;
+    }
+    case 'ladder': {
+      const left = z.side === 'l', ex = left ? x + w : x;
+      o += `<path d="M${n2(ex)} ${n2(y)}V${n2(y + h)}" stroke="${A2}" stroke-opacity="0.6" stroke-width="${n2(sw)}"/>`;
+      const n = 16, base = Math.floor(R() * 900);
+      for (let i = 0; i <= n; i++) {
+        const yy = y + h * i / n, major = i % 4 === 0, len = major ? w * 0.45 : w * 0.22;
+        o += `<path d="M${n2(ex)} ${n2(yy)}H${n2(left ? ex - len : ex + len)}" stroke="${A2}" stroke-width="${n2(sw)}"/>`;
+        if (major) o += svgText(left ? ex - w * 0.55 : ex + w * 0.55, yy + fs * 0.35, String(base + (n / 2 - i) * 5), { face: mono, size: fs * 0.85, fill: ink, op: 0.8, anchor: left ? 'end' : null });
+      }
+      const bh = fs * 1.6, by = y + h / 2 - bh / 2, bw = Math.max(w * 0.95, fs * 3.4);
+      o += `<path d="${left ? `M${n2(ex)} ${n2(y + h / 2)}L${n2(ex - fs * 0.6)} ${n2(by)}H${n2(ex - bw)}V${n2(by + bh)}H${n2(ex - fs * 0.6)}Z` : `M${n2(ex)} ${n2(y + h / 2)}L${n2(ex + fs * 0.6)} ${n2(by)}H${n2(ex + bw)}V${n2(by + bh)}H${n2(ex + fs * 0.6)}Z`}" fill="${pal.paper}" fill-opacity="0.75" stroke="${A2}" stroke-width="${n2(sw * 1.3)}"/>`;
+      o += svgText(left ? ex - fs * 0.9 : ex + fs * 0.9, y + h / 2 + fs * 0.38, String(base), { face: mono, size: fs, weight: 700, fill: A2, anchor: left ? 'end' : null });
+      break;
+    }
+    case 'reticle': {
+      const cx = x + w / 2, cy = y + h / 2, rr = Math.min(w, h) / 2;
+      o += `<g fill="none" stroke="${A2}" stroke-width="${n2(sw * 1.3)}">`;
+      o += `<circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(rr * 0.7)}" stroke-dasharray="${n2(rr * 0.5)} ${n2(rr * 0.2)}" stroke-opacity="0.7"/>`;
+      o += `<circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(rr * 0.06)}"/>`;
+      o += `<path d="M${n2(cx - rr)} ${n2(cy)}H${n2(cx - rr * 0.25)}M${n2(cx + rr * 0.25)} ${n2(cy)}H${n2(cx + rr)}M${n2(cx)} ${n2(cy - rr)}V${n2(cy - rr * 0.25)}M${n2(cx)} ${n2(cy + rr * 0.25)}V${n2(cy + rr * 0.6)}"/>`;
+      for (let i = 1; i <= 3; i++) o += `<path d="M${n2(cx - rr * 0.05 * i)} ${n2(cy + rr * (0.25 + i * 0.12))}H${n2(cx + rr * 0.05 * i)}"/>`;
+      const b = rr * 0.95, L2 = rr * 0.22;
+      o += `<path d="M${n2(cx - b)} ${n2(cy - b + L2)}V${n2(cy - b)}H${n2(cx - b + L2)}M${n2(cx + b - L2)} ${n2(cy - b)}H${n2(cx + b)}V${n2(cy - b + L2)}M${n2(cx + b)} ${n2(cy + b - L2)}V${n2(cy + b)}H${n2(cx + b - L2)}M${n2(cx - b + L2)} ${n2(cy + b)}H${n2(cx - b)}V${n2(cy + b - L2)}" stroke-width="${n2(sw * 2)}"/>`;
+      o += '</g>';
+      o += svgText(cx + b + fs * 0.4, cy - b + fs, 'RNG ' + (100 + Math.floor(R() * 900)) + 'M', { face: mono, size: fs * 0.9, fill: A2 });
+      o += svgText(cx + b + fs * 0.4, cy - b + fs * 2.3, 'LOCK', { face: mono, size: fs * 0.9, weight: 700, fill: ink });
+      break;
+    }
+    case 'radar': {
+      const rr = Math.min(w, h) / 2 * 0.92, cx = x + rr + sw, cy = y + h - rr - sw;
+      o += `<circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(rr)}" fill="${pal.paper}" fill-opacity="0.55" stroke="${A2}" stroke-width="${n2(sw * 1.3)}"/>`;
+      for (const k of [0.33, 0.66]) o += `<circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(rr * k)}" fill="none" stroke="${A2}" stroke-opacity="0.45" stroke-width="${n2(sw)}"/>`;
+      o += `<path d="M${n2(cx - rr)} ${n2(cy)}H${n2(cx + rr)}M${n2(cx)} ${n2(cy - rr)}V${n2(cy + rr)}" stroke="${A2}" stroke-opacity="0.35" stroke-width="${n2(sw)}"/>`;
+      const a = R() * Math.PI * 2;
+      o += `<path d="M${n2(cx)} ${n2(cy)}L${n2(cx + Math.cos(a) * rr)} ${n2(cy + Math.sin(a) * rr)}A${n2(rr)} ${n2(rr)} 0 0 0 ${n2(cx + Math.cos(a - 0.6) * rr)} ${n2(cy + Math.sin(a - 0.6) * rr)}Z" fill="${A2}" fill-opacity="0.3"/>`;
+      for (let i = 0; i < 4; i++) { const ba = R() * Math.PI * 2, bd = rr * (0.2 + R() * 0.7); o += `<circle cx="${n2(cx + Math.cos(ba) * bd)}" cy="${n2(cy + Math.sin(ba) * bd)}" r="${n2(Math.max(sw * 1.5, rr * 0.045))}" fill="${i === 0 ? '#FF5A4E' : A2}"/>`; }
+      o += `<path d="M${n2(cx)} ${n2(cy - rr * 0.1)}L${n2(cx + rr * 0.07)} ${n2(cy + rr * 0.08)}L${n2(cx - rr * 0.07)} ${n2(cy + rr * 0.08)}Z" fill="${ink}"/>`;
+      if (w > rr * 2 + fs * 6) { o += svgText(cx + rr + fs * 0.6, cy - rr + fs, 'SCAN', { face: mono, size: fs * 0.9, weight: 700, fill: A2 }); o += svgText(cx + rr + fs * 0.6, cy - rr + fs * 2.3, (Math.floor(R() * 40) / 10 + 1).toFixed(1) + ' KM', { face: mono, size: fs * 0.9, fill: ink, op: 0.8 }); }
+      break;
+    }
+    case 'gauge': {
+      const labs = ['PWR', 'SHD', 'AUX', 'O2'], n = Math.max(1, Math.min(labs.length, Math.floor(h / (fs * 2.4))));
+      const lw = fs * 3, segN = 12, gx = x + lw, gw = w - lw - fs * 3;
+      for (let i = 0; i < n; i++) {
+        const yy = y + h - (n - i) * fs * 2.4 + fs * 0.6, v = 0.25 + R() * 0.75, sh = fs * 1.1;
+        o += svgText(x, yy + sh * 0.8, labs[i], { face: mono, size: fs * 0.9, weight: 700, fill: ink });
+        const segW = gw / segN;
+        for (let k = 0; k < segN; k++) o += `<rect x="${n2(gx + k * segW)}" y="${n2(yy)}" width="${n2(segW * 0.75)}" height="${n2(sh)}" fill="${k / segN < v ? (v < 0.4 && i === 0 ? '#FF5A4E' : A2) : 'none'}" stroke="${A2}" stroke-opacity="0.5" stroke-width="${n2(sw * 0.7)}"/>`;
+        o += svgText(x + w, yy + sh * 0.8, String(Math.round(v * 100)), { face: mono, size: fs * 0.9, fill: A2, anchor: 'end' });
+      }
+      break;
+    }
+    case 'alert': {
+      const bh = Math.min(h * 0.7, fs * 2.4), by = y + (h - bh) / 2, warn = '#F2A33A';
+      o += `<rect x="${n2(x)}" y="${n2(by)}" width="${n2(w)}" height="${n2(bh)}" fill="${pal.paper}" fill-opacity="0.7" stroke="${warn}" stroke-width="${n2(sw * 1.4)}"/>`;
+      for (const ex of [x, x + w - bh]) for (let k = 0; k < 3; k++) o += `<path d="M${n2(ex + k * bh / 3)} ${n2(by + bh)}L${n2(ex + k * bh / 3 + bh / 3)} ${n2(by)}" stroke="${warn}" stroke-width="${n2(bh / 8)}"/>`;
+      o += svgText(x + w / 2, by + bh / 2 + fs * 0.38, fitStr('WARNING · ' + loremWords(R, 3).join(' ').toUpperCase(), w - bh * 2.4, fs, mono, 700), { face: mono, size: fs, weight: 700, fill: warn, anchor: 'middle', ls: 0.06 });
+      break;
+    }
+  }
+  return o;
+}
+function fitStr(str, w, s, face, weight) {
+  const words = str.split(' ');
+  while (words.length > 1 && lineWidth(words, s, face, weight, 0) > w) words.pop();
+  return words.join(' ');
+}
+function drawShape(z, r, ctx) {
+  const { x, y, w, h } = r, { S } = ctx;
+  const col = z.color, m = Math.min(w, h);
+  const cx = x + w / 2, cy = y + h / 2;
+  const op = ' fill-opacity="0.9"';
+  switch (z.shape) {
+    case 'circle': return `<circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(m / 2)}" fill="${col}"${op}/>`;
+    case 'square': return `<rect x="${n2(cx - m / 2)}" y="${n2(cy - m / 2)}" width="${n2(m)}" height="${n2(m)}" fill="${col}"${op}/>`;
+    case 'triangle': return `<path d="M${n2(cx)} ${n2(cy - m / 2)}L${n2(cx + m / 2)} ${n2(cy + m / 2)}L${n2(cx - m / 2)} ${n2(cy + m / 2)}Z" fill="${col}"${op}/>`;
+    case 'bar': return `<rect x="${n2(x)}" y="${n2(cy - m * 0.12)}" width="${n2(w)}" height="${n2(m * 0.24)}" fill="${col}"${op}/>`;
+    case 'blob': return `<ellipse cx="${n2(cx)}" cy="${n2(cy)}" rx="${n2(w / 2)}" ry="${n2(h * 0.32)}" fill="${col}"${op} transform="rotate(-18 ${n2(cx)} ${n2(cy)})"/>`;
+    case 'plane': return `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="${col}" stroke="${ctx.pal.ink}" stroke-width="${n2(S * 4)}"/>`;
+    case 'bars': return `<path d="M${n2(x)} ${n2(y)}H${n2(x + w)}M${n2(x)} ${n2(y)}V${n2(y + h)}" stroke="${ctx.pal.ink}" stroke-width="${n2(S * 5)}"/>`;
+    case 'squiggle': { let d = `M${n2(x)} ${n2(cy)}`; const k = 6; for (let i = 1; i <= k; i++) d += `L${n2(x + w * i / k)} ${n2(cy + (i % 2 ? -1 : 1) * h * 0.25)}`; return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${n2(S * 4)}" stroke-linejoin="round"/>`; }
+    case 'dots': { let o = ''; const st = Math.max(S * 8, m / 5); for (let yy = y + st / 2; yy < y + h; yy += st) for (let xx = x + st / 2; xx < x + w; xx += st) o += `<circle cx="${n2(xx)}" cy="${n2(yy)}" r="${n2(st * 0.18)}" fill="${col}"/>`; return o; }
+    case 'psych': {
+      const cols = ctx.T.pal.shapes; let o = '';
+      const k = 6;
+      for (let i = 0; i < k; i++) {
+        const rr = m / 2 * (1 - i / k);
+        if (i % 2 === 0) {
+          let d = ''; const pts = 72, amp = rr * 0.06, waves = 8 + i * 2;
+          for (let j = 0; j <= pts; j++) { const a = j / pts * Math.PI * 2; const r2 = rr + Math.sin(a * waves) * amp; d += (j ? 'L' : 'M') + n2(cx + Math.cos(a) * r2) + ' ' + n2(cy + Math.sin(a) * r2); }
+          o += `<path d="${d}Z" fill="${cols[i / 2 % cols.length]}" fill-opacity="0.92"/>`;
+        } else o += `<circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(rr)}" fill="${ctx.pal.paper}"/>`;
+      }
+      return o;
+    }
+    case 'wave': {
+      let o = ''; const cols = ctx.T.pal.shapes; const bands = 4, bh = h / bands;
+      for (let i = 0; i < bands; i++) {
+        let d = `M${n2(x)} ${n2(y + i * bh + bh / 2)}`; const k = 4;
+        for (let j = 1; j <= k; j++) d += `Q${n2(x + w * (j - 0.5) / k)} ${n2(y + i * bh + bh / 2 + (j % 2 ? -1 : 1) * bh * 0.6)} ${n2(x + w * j / k)} ${n2(y + i * bh + bh / 2)}`;
+        o += `<path d="${d}" fill="none" stroke="${cols[i % cols.length]}" stroke-width="${n2(bh * 0.45)}" stroke-linecap="round"/>`;
+      }
+      return o;
+    }
+    case 'whiplash': {
+      const sw2 = Math.max(S * 2.5, m * 0.025);
+      let o = `<path d="M${n2(x + w * 0.15)} ${n2(y)}C${n2(x + w * 1.05)} ${n2(y + h * 0.28)} ${n2(x - w * 0.15)} ${n2(y + h * 0.62)} ${n2(x + w * 0.75)} ${n2(y + h)}" fill="none" stroke="${col}" stroke-width="${n2(sw2)}" stroke-linecap="round"/>`;
+      o += `<path d="M${n2(x + w * 0.55)} ${n2(y)}C${n2(x + w * 0.05)} ${n2(y + h * 0.35)} ${n2(x + w * 1.1)} ${n2(y + h * 0.55)} ${n2(x + w * 0.3)} ${n2(y + h)}" fill="none" stroke="${col}" stroke-opacity="0.55" stroke-width="${n2(sw2 * 0.6)}" stroke-linecap="round"/>`;
+      for (let i = 1; i <= 3; i++) { const ly = y + h * i / 4, lx = x + w * (0.35 + 0.3 * Math.sin(i * 2.1)); o += `<ellipse cx="${n2(lx)}" cy="${n2(ly)}" rx="${n2(m * 0.07)}" ry="${n2(m * 0.03)}" fill="${col}" transform="rotate(${-35 + i * 25} ${n2(lx)} ${n2(ly)})"/>`; }
+      return o;
+    }
+    case 'rays': {
+      const n = 18, R2 = Math.hypot(w, h); let o = `<clipPath id="rc${z.seed}"><circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(Math.max(w, h) * 0.55)}"/></clipPath><g clip-path="url(#rc${z.seed})">`;
+      for (let i = 0; i < n; i += 2) { const a1 = i / n * Math.PI * 2, a2 = (i + 1) / n * Math.PI * 2; o += `<path d="M${n2(cx)} ${n2(cy)}L${n2(cx + Math.cos(a1) * R2)} ${n2(cy + Math.sin(a1) * R2)}L${n2(cx + Math.cos(a2) * R2)} ${n2(cy + Math.sin(a2) * R2)}Z" fill="${col}" fill-opacity="0.75"/>`; }
+      return o + '</g>';
+    }
+    case 'orbit': {
+      let o = '';
+      for (let i = 0; i < 3; i++) o += `<ellipse cx="${n2(cx)}" cy="${n2(cy)}" rx="${n2(w / 2 * (1 - i * 0.18))}" ry="${n2(h * 0.18 * (1 - i * 0.15))}" fill="none" stroke="${col}" stroke-width="${n2(S * 1.4)}" transform="rotate(${-20 + i * 28} ${n2(cx)} ${n2(cy)})"/>`;
+      o += `<circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(m * 0.12)}" fill="${col}"/><circle cx="${n2(cx + w * 0.4)}" cy="${n2(cy - h * 0.1)}" r="${n2(m * 0.035)}" fill="${ctx.pal.ink}"/>`;
+      return o;
+    }
+    case 'hud': {
+      const r1 = m / 2; let o = `<g fill="none" stroke="${col}" stroke-width="${n2(S * 1.2)}">`;
+      o += `<circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(r1)}" stroke-dasharray="${n2(r1 * 0.3)} ${n2(r1 * 0.12)}"/><circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(r1 * 0.62)}"/><circle cx="${n2(cx)}" cy="${n2(cy)}" r="${n2(r1 * 0.08)}" fill="${col}"/>`;
+      o += `<path d="M${n2(cx - r1 * 1.15)} ${n2(cy)}H${n2(cx - r1 * 0.3)}M${n2(cx + r1 * 0.3)} ${n2(cy)}H${n2(cx + r1 * 1.15)}M${n2(cx)} ${n2(cy - r1 * 1.15)}V${n2(cy - r1 * 0.3)}M${n2(cx)} ${n2(cy + r1 * 0.3)}V${n2(cy + r1 * 1.15)}"/>`;
+      for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2, r3 = r1 * (i % 6 === 0 ? 0.82 : 0.9); o += `<path d="M${n2(cx + Math.cos(a) * r3)} ${n2(cy + Math.sin(a) * r3)}L${n2(cx + Math.cos(a) * r1 * 0.98)} ${n2(cy + Math.sin(a) * r1 * 0.98)}"/>`; }
+      o += '</g>';
+      const fs = Math.max(S * 5, r1 * 0.12);
+      o += svgText(cx + r1 * 0.7, cy - r1 * 0.75, 'TRK 0.42', { face: FACES.mono, size: fs, fill: col });
+      o += svgText(cx + r1 * 0.7, cy - r1 * 0.75 + fs * 1.3, 'RNG 118', { face: FACES.mono, size: fs, fill: col, op: 0.7 });
+      return o;
+    }
+    case 'glitch': {
+      const cols = ctx.T.pal.shapes; let o = ''; const R3 = mulberry32(z.seed || 3); const k = 7;
+      for (let i = 0; i < k; i++) { const bh = h / k * (0.3 + R3() * 0.6), bw = w * (0.3 + R3() * 0.7), bx = x + R3() * (w - bw); o += `<rect x="${n2(bx)}" y="${n2(y + i * h / k)}" width="${n2(bw)}" height="${n2(bh)}" fill="${cols[i % cols.length]}" fill-opacity="${0.55 + R3() * 0.4}"/>`; }
+      return o;
+    }
+    case 'badge': {
+      const pts = 18, r1 = m / 2, r2 = r1 * 0.82; let d = '';
+      for (let i = 0; i < pts * 2; i++) { const a = i / (pts * 2) * Math.PI * 2, rr = i % 2 ? r2 : r1; d += (i ? 'L' : 'M') + n2(cx + Math.cos(a) * rr) + ' ' + n2(cy + Math.sin(a) * rr); }
+      return `<g transform="rotate(-12 ${n2(cx)} ${n2(cy)})"><path d="${d}Z" fill="${col}"/>` + svgText(cx, cy - r1 * 0.05, 'LOREM', { face: FACES.wide, size: r1 * 0.34, weight: 900, fill: ctx.pal.ink, anchor: 'middle' }) + svgText(cx, cy + r1 * 0.32, 'IPSUM VOL. 2', { face: FACES.sans, size: r1 * 0.15, weight: 700, fill: ctx.pal.ink, anchor: 'middle', ls: 0.08 }) + '</g>';
+    }
+    case 'rainbow': {
+      const cols = ctx.T.pal.shapes; let o = ''; const bw = m / 2 / (cols.length + 1.5);
+      cols.forEach((c, i) => { const rr = m / 2 - i * bw - bw / 2; o += `<path d="M${n2(cx - rr)} ${n2(y + h)}A${n2(rr)} ${n2(rr)} 0 0 1 ${n2(cx + rr)} ${n2(y + h)}" fill="none" stroke="${c}" stroke-width="${n2(bw * 0.92)}"/>`; });
+      return o;
+    }
+    case 'stars': {
+      let o = ''; const R3 = mulberry32(z.seed || 5); const k = 5 + Math.floor(R3() * 5);
+      for (let i = 0; i < k; i++) { const sx = x + R3() * w, sy = y + R3() * h, sr = m * (0.04 + R3() * 0.12); o += `<path d="M${n2(sx)} ${n2(sy - sr)}Q${n2(sx)} ${n2(sy)} ${n2(sx + sr)} ${n2(sy)}Q${n2(sx)} ${n2(sy)} ${n2(sx)} ${n2(sy + sr)}Q${n2(sx)} ${n2(sy)} ${n2(sx - sr)} ${n2(sy)}Q${n2(sx)} ${n2(sy)} ${n2(sx)} ${n2(sy - sr)}Z" fill="${ctx.T.pal.shapes[i % ctx.T.pal.shapes.length]}"/>`; }
+      return o;
+    }
+    case 'bubbles': {
+      const R3 = mulberry32(z.seed || 9); let o = ''; const k = 3 + Math.floor(R3() * 4);
+      for (let i = 0; i < k; i++) {
+        const r1 = m * (0.08 + R3() * 0.22), bx = x + r1 + R3() * Math.max(1, w - 2 * r1), by = y + r1 + R3() * Math.max(1, h - 2 * r1);
+        const c = ctx.T.pal.shapes[i % ctx.T.pal.shapes.length], gid = 'bg' + z.seed + '_' + i;
+        o += `<radialGradient id="${gid}" cx="0.35" cy="0.3" r="0.75"><stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="0.55" stop-color="${c}" stop-opacity="0.55"/><stop offset="1" stop-color="${c}" stop-opacity="0.9"/></radialGradient>`;
+        o += `<circle cx="${n2(bx)}" cy="${n2(by)}" r="${n2(r1)}" fill="url(#${gid})" stroke="#ffffff" stroke-opacity="0.8" stroke-width="${n2(S)}"/>`;
+        o += `<ellipse cx="${n2(bx - r1 * 0.3)}" cy="${n2(by - r1 * 0.45)}" rx="${n2(r1 * 0.45)}" ry="${n2(r1 * 0.2)}" fill="#ffffff" fill-opacity="0.75" transform="rotate(-25 ${n2(bx - r1 * 0.3)} ${n2(by - r1 * 0.45)})"/>`;
+      }
+      return o;
+    }
+    case 'swoosh': {
+      const cols = ctx.T.pal.shapes; let o = '';
+      for (let i = 0; i < 3; i++) o += `<path d="M${n2(x)} ${n2(y + h * (0.75 - i * 0.12))}C${n2(x + w * 0.35)} ${n2(y + h * (0.2 - i * 0.05))} ${n2(x + w * 0.65)} ${n2(y + h * (1 - i * 0.1))} ${n2(x + w)} ${n2(y + h * (0.35 - i * 0.08))}" fill="none" stroke="${cols[i % cols.length]}" stroke-opacity="${0.75 - i * 0.18}" stroke-width="${n2(m * (0.06 - i * 0.015))}" stroke-linecap="round"/>`;
+      return o;
+    }
+    case 'spiral': {
+      let d = `M${n2(cx)} ${n2(cy)}`; const turns = 3, pts = 90, rmax = m * 0.42;
+      for (let i = 1; i <= pts; i++) { const t = i / pts, a = t * turns * Math.PI * 2; d += `L${n2(cx + Math.cos(a) * rmax * t)} ${n2(cy + Math.sin(a) * rmax * t)}`; }
+      let o = `<path d="${d}" fill="none" stroke="${col}" stroke-width="${n2(Math.max(S * 2, m * 0.035))}" stroke-linecap="round"/>`;
+      for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; o += `<path d="M${n2(cx + Math.cos(a) * m * 0.47)} ${n2(cy + Math.sin(a) * m * 0.47)}L${n2(cx + Math.cos(a + 0.13) * m * 0.55)} ${n2(cy + Math.sin(a + 0.13) * m * 0.55)}L${n2(cx + Math.cos(a - 0.13) * m * 0.55)} ${n2(cy + Math.sin(a - 0.13) * m * 0.55)}Z" fill="${col}"/>`; }
+      return o;
+    }
+    case 'leafy': {
+      let o = `<path d="M${n2(x + w * 0.1)} ${n2(y + h * 0.9)}Q${n2(cx)} ${n2(cy)} ${n2(x + w * 0.9)} ${n2(y + h * 0.1)}" fill="none" stroke="${col}" stroke-width="${n2(S * 2.2)}"/>`;
+      for (let i = 1; i < 6; i++) { const t = i / 6, lx = x + w * (0.1 + 0.8 * t), ly = y + h * (0.9 - 0.8 * t) - Math.sin(t * Math.PI) * h * 0.15; for (const sgn of [-1, 1]) o += `<ellipse cx="${n2(lx + sgn * m * 0.06)}" cy="${n2(ly - sgn * m * 0.03)}" rx="${n2(m * 0.08)}" ry="${n2(m * 0.03)}" fill="${col}" fill-opacity="0.85" transform="rotate(${sgn * 40 - 45} ${n2(lx + sgn * m * 0.06)} ${n2(ly - sgn * m * 0.03)})"/>`; }
+      return o;
+    }
+    case 'dotline': {
+      let o = ''; const k = 7;
+      for (let i = 0; i <= k * 3; i++) { const t = i / (k * 3); o += `<circle cx="${n2(x + w * t)}" cy="${n2(cy + Math.sin(t * Math.PI * 4) * h * 0.25)}" r="${n2(Math.max(S * 1.6, m * 0.025))}" fill="${col}"/>`; }
+      return o;
+    }
+    case 'blob2': {
+      const R3 = mulberry32(z.seed || 11); const k = 7; const P = [];
+      for (let i = 0; i < k; i++) { const a = i / k * Math.PI * 2, rr = 0.75 + R3() * 0.3; P.push([cx + Math.cos(a) * w / 2 * rr, cy + Math.sin(a) * h / 2 * rr]); }
+      let d = '';
+      for (let i = 0; i < k; i++) { const p0 = P[i], p1 = P[(i + 1) % k], mx = (p0[0] + p1[0]) / 2, my = (p0[1] + p1[1]) / 2; if (i === 0) d += `M${n2((P[k - 1][0] + p0[0]) / 2)} ${n2((P[k - 1][1] + p0[1]) / 2)}`; d += `Q${n2(p0[0])} ${n2(p0[1])} ${n2(mx)} ${n2(my)}`; }
+      return `<path d="${d}Z" fill="${col}" fill-opacity="0.9"/>`;
+    }
+    case 'plant': {
+      const pot = m * 0.3; let o = `<path d="M${n2(cx - pot / 2)} ${n2(y + h - pot)}H${n2(cx + pot / 2)}L${n2(cx + pot * 0.38)} ${n2(y + h)}H${n2(cx - pot * 0.38)}Z" fill="${col}"/>`;
+      const leaf = ctx.T.pal.shapes[3 % ctx.T.pal.shapes.length];
+      for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + (i - 2) * 0.45, lx = cx + Math.cos(a) * m * 0.3, ly = y + h - pot + Math.sin(a) * m * 0.4; o += `<ellipse cx="${n2(lx)}" cy="${n2(ly)}" rx="${n2(m * 0.06)}" ry="${n2(m * 0.2)}" fill="${leaf}" transform="rotate(${n2((i - 2) * 26)} ${n2(lx)} ${n2(ly)})"/>`; }
+      return o;
+    }
+    case 'gridlet': { let o = ''; const st = m / 4; for (let i = 0; i <= 4; i++) o += `<path d="M${n2(x + i * st)} ${n2(y)}V${n2(y + 4 * st)}M${n2(x)} ${n2(y + i * st)}H${n2(x + 4 * st)}" stroke="${col}" stroke-width="${n2(S * 0.8)}"/>`; return o; }
+  }
+  return '';
+}
+
+function drawFrame(T, D, pal, S) {
+  const inset = Math.min(D.m.t, D.m.l, D.m.r, D.m.b) * 0.45;
+  const x = inset, y = inset, w = D.W - inset * 2, h = D.H - inset * 2;
+  const sw = S * 1.4;
+  switch (T.frame) {
+    case 'rule': return `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(sw * (T.heavy ? 2 : 1))}"/>`;
+    case 'rounded': return `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(Math.min(w, h) * 0.06)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(sw * 1.5)}"/>`;
+    case 'ornate': {
+      const g2 = S * 5, dm = S * 6;
+      let o = `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(sw * 2)}"/><rect x="${n2(x + g2)}" y="${n2(y + g2)}" width="${n2(w - g2 * 2)}" height="${n2(h - g2 * 2)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(sw * 0.6)}"/>`;
+      for (const [px, py] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]) o += `<path d="M${n2(px)} ${n2(py - dm)}L${n2(px + dm)} ${n2(py)}L${n2(px)} ${n2(py + dm)}L${n2(px - dm)} ${n2(py)}Z" fill="${pal.accent}"/>`;
+      return o;
+    }
+    case 'nouveau': {
+      const g2 = Math.min(w, h) * 0.035, ar = Math.min((w - g2 * 2) / 2, h * 0.32);
+      let o = `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(Math.min(w, h) * 0.05)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(sw * 1.6)}"/>`;
+      o += `<path d="M${n2(x + g2)} ${n2(y + h - g2)}V${n2(y + g2 + ar)}A${n2((w - g2 * 2) / 2)} ${n2(ar)} 0 0 1 ${n2(x + w - g2)} ${n2(y + g2 + ar)}V${n2(y + h - g2)}Z" fill="none" stroke="${pal.accent}" stroke-width="${n2(sw * 0.9)}"/>`;
+      const c = (px, py, dx) => `M${n2(px)} ${n2(py)}c${n2(dx * g2 * 2)} ${n2(-g2 * 3)} ${n2(dx * g2 * 5)} ${n2(g2 * 1)} ${n2(dx * g2 * 3)} ${n2(-g2 * 3.5)}c${n2(-dx * g2 * 1.2)} ${n2(-g2 * 1.4)} ${n2(-dx * g2 * 2.4)} ${n2(g2 * 0.2)} ${n2(-dx * g2 * 1.2)} ${n2(g2 * 1.2)}`;
+      o += `<path d="${c(x + g2 * 0.5, y + h - g2 * 0.5, 1)}${c(x + w - g2 * 0.5, y + h - g2 * 0.5, -1)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(sw * 1.2)}" stroke-linecap="round"/>`;
+      return o;
+    }
+    case 'dotted': {
+      const r = Math.max(S * 1.6, Math.min(w, h) * 0.006), gap = r * 4.5;
+      return `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(Math.min(w, h) * 0.03)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(r * 2)}" stroke-linecap="round" stroke-dasharray="0 ${n2(gap)}"/>` +
+        `<rect x="${n2(x + gap)}" y="${n2(y + gap)}" width="${n2(w - gap * 2)}" height="${n2(h - gap * 2)}" rx="${n2(Math.min(w, h) * 0.025)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(sw * 0.7)}"/>`;
+    }
+    case 'brackets': {
+      const L2 = Math.min(w, h) * 0.07, s2 = sw * 1.8;
+      let o = `<path d="M${n2(x)} ${n2(y + L2)}V${n2(y)}H${n2(x + L2)}M${n2(x + w - L2)} ${n2(y)}H${n2(x + w)}V${n2(y + L2)}M${n2(x + w)} ${n2(y + h - L2)}V${n2(y + h)}H${n2(x + w - L2)}M${n2(x + L2)} ${n2(y + h)}H${n2(x)}V${n2(y + h - L2)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(s2)}"/>`;
+      for (let i = -3; i <= 3; i++) o += `<path d="M${n2(x + w / 2 + i * L2 * 0.4)} ${n2(y)}v${n2(i === 0 ? L2 * 0.5 : L2 * 0.25)}" stroke="${pal.accent}" stroke-width="${n2(sw * 0.6)}"/>`;
+      return o;
+    }
+    case 'illuminated': {
+      const g2 = S * 6, cs2 = Math.min(w, h) * 0.06;
+      let o = `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(sw * 3)}"/><rect x="${n2(x + g2)}" y="${n2(y + g2)}" width="${n2(w - g2 * 2)}" height="${n2(h - g2 * 2)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(sw * 0.6)}"/>`;
+      const blue = (T.pal.shapes || [pal.accent])[0], gold = (T.pal.shapes || [pal.accent])[1] || pal.accent;
+      for (const [px, py] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]) o += `<rect x="${n2(px - cs2 / 2)}" y="${n2(py - cs2 / 2)}" width="${n2(cs2)}" height="${n2(cs2)}" fill="${blue}"/><circle cx="${n2(px)}" cy="${n2(py)}" r="${n2(cs2 * 0.22)}" fill="${gold}"/>`;
+      for (const yy of [y, y + h]) for (let i = 1; i < 8; i++) o += `<circle cx="${n2(x + w * i / 8)}" cy="${n2(yy)}" r="${n2(S * 2.4)}" fill="${i % 2 ? gold : blue}"/>`;
+      return o;
+    }
+    case 'stepped': {
+      const st = Math.min(w, h) * 0.04;
+      const p = (o) => `M${n2(x + o + st * 2)} ${n2(y + o)}H${n2(x + w - o - st * 2)}V${n2(y + o + st)}H${n2(x + w - o - st)}V${n2(y + o + st * 2)}H${n2(x + w - o)}V${n2(y + h - o - st * 2)}H${n2(x + w - o - st)}V${n2(y + h - o - st)}H${n2(x + w - o - st * 2)}V${n2(y + h - o)}H${n2(x + o + st * 2)}V${n2(y + h - o - st)}H${n2(x + o + st)}V${n2(y + h - o - st * 2)}H${n2(x + o)}V${n2(y + o + st * 2)}H${n2(x + o + st)}V${n2(y + o + st)}H${n2(x + o + st * 2)}Z`;
+      return `<path d="${p(0)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(sw * 1.6)}"/><path d="${p(S * 5)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(sw * 0.6)}"/>`;
+    }
+  }
+  return '';
+}
+
+const GUIDE = { margin: '#E5007E', column: '#8A5CF6', baseline: '#4FB6E8', bleed: '#E5312B', safe: '#F08C00', fold: '#7C8B85' };
+
+/* opts: {guides, baseline, labels, clean (crop to trim), annotate (legend band), px (output width) } */
+function renderSVG(st, layout, opts) {
+  opts = opts || {};
+  const { zones, T, D } = generateZones(st, layout);
+  const pal = T.pal;
+  const S = Math.min(D.W, D.H) / 400;
+  const screen = st.unit === 'px';
+  const bodyPt = D.baseline / 1.35;
+  const ctx = { T, pal, S, D, screen, bodySize: bodyPt, lead: D.baseline, spread: isSpread(st) };
+  const showBleed = !opts.clean && D.bleed > 0;
+  const bx = showBleed ? -D.bleed : 0, by = showBleed ? -D.bleed : 0;
+  const vw = D.W + (showBleed ? D.bleed * 2 : 0);
+  const pageH = D.H + (showBleed ? D.bleed * 2 : 0);
+  const fsA = Math.max(D.W, D.H) / 60;
+  const annoH = opts.annotate ? fsA * 4.6 : 0;
+  const vh = pageH + annoH;
+  const outW = opts.px || null;
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${n2(bx)} ${n2(by)} ${n2(vw)} ${n2(vh)}"${outW ? ` width="${outW}" height="${Math.round(outW * vh / vw)}"` : ''} preserveAspectRatio="xMidYMid meet">`;
+  s += `<defs><clipPath id="page"><rect x="${n2(bx)}" y="${n2(by)}" width="${n2(vw)}" height="${n2(pageH)}"/></clipPath>`;
+  const hs = S * 5;
+  s += `<pattern id="ht" width="${n2(hs)}" height="${n2(hs)}" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="${n2(hs / 2)}" cy="${n2(hs / 2)}" r="${n2(hs * 0.28)}" fill="${pal.ink}" fill-opacity="0.35"/></pattern>`;
+  s += `<pattern id="bl" width="${n2(S * 6)}" height="${n2(S * 6)}" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V${n2(S * 6)}" stroke="${GUIDE.bleed}" stroke-opacity="0.35" stroke-width="${n2(S * 0.8)}"/></pattern></defs>`;
+  if (opts.annotate) s += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(vw)}" height="${n2(vh)}" fill="#ffffff"/>`;
+  s += `<g clip-path="url(#page)">`;
+  if (T.bgGrad) s += `<linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${T.bgGrad[0]}"/><stop offset="1" stop-color="${T.bgGrad[1]}"/></linearGradient>`;
+  s += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(vw)}" height="${n2(pageH)}" fill="${T.bgGrad ? 'url(#pg)' : pal.paper}"/>`;
+  const web = st.doc === 'website' || st.doc === 'ux';
+  const frameOk = T.frame !== 'none' && !web && st.doc !== 'comic' && !(st.doc === 'ad' && st.sub === 'display');
+  const isBase = z => z.role === 'image' || z.role === 'sidebar' || z.role === 'footer';
+  const base = zones.filter(isBase), deco = zones.filter(z => !isBase(z) && z.under);
+  const over = zones.filter(z => !isBase(z) && !z.under);
+  for (const z of base) s += renderZone(z, zoneRect(z, D), ctx);
+  for (const z of deco) s += renderZone(z, zoneRect(z, D), ctx);
+  if (frameOk) s += drawFrame(T, D, pal, S);
+  for (const z of over) s += renderZone(z, zoneRect(z, D), ctx);
+  if (ctx.spread) s += `<path d="M${n2(D.W / 2)} ${n2(by)}V${n2(by + pageH)}" stroke="${GUIDE.fold}" stroke-opacity="0.5" stroke-width="${n2(S)}" stroke-dasharray="${n2(S * 6)} ${n2(S * 4)}"/>`;
+  s += '</g>';
+  // guides
+  const gw = Math.max(S * 0.7, 0.4);
+  if (opts.guides) {
+    if (opts.baseline && D.baseline > 0) {
+      let p = '';
+      for (let yy = D.m.t + D.baseline; yy <= D.H - D.m.b + 0.01; yy += D.baseline) p += `M${n2(D.m.l)} ${n2(yy)}H${n2(D.W - D.m.r)}`;
+      s += `<path d="${p}" stroke="${GUIDE.baseline}" stroke-opacity="0.7" stroke-width="${n2(gw * 0.7)}"/>`;
+    }
+    if (D.ok) {
+      let cols = '';
+      for (let i = 0; i < D.C; i++) cols += `<rect x="${n2(D.m.l + i * (D.colW + D.g))}" y="${n2(D.m.t)}" width="${n2(D.colW)}" height="${n2(D.liveH)}"/>`;
+      s += `<g fill="${GUIDE.column}" fill-opacity="0.09">${cols}</g>`;
+      let rows = '';
+      for (let i = 1; i < D.R; i++) { const yy = D.m.t + i * (D.rowH + D.rg); rows += `M${n2(D.m.l)} ${n2(yy - D.rg)}H${n2(D.W - D.m.r)}M${n2(D.m.l)} ${n2(yy)}H${n2(D.W - D.m.r)}`; }
+      s += `<path d="${rows}" stroke="${GUIDE.column}" stroke-opacity="0.55" stroke-width="${n2(gw)}"/>`;
+      let cl = '';
+      for (let i = 0; i < D.C; i++) { const x0 = D.m.l + i * (D.colW + D.g); cl += `M${n2(x0)} ${n2(D.m.t)}V${n2(D.H - D.m.b)}M${n2(x0 + D.colW)} ${n2(D.m.t)}V${n2(D.H - D.m.b)}`; }
+      s += `<path d="${cl}" stroke="${GUIDE.column}" stroke-opacity="0.7" stroke-width="${n2(gw)}"/>`;
+    }
+    s += `<rect x="${n2(D.m.l)}" y="${n2(D.m.t)}" width="${n2(Math.max(0, D.liveW))}" height="${n2(Math.max(0, D.liveH))}" fill="none" stroke="${GUIDE.margin}" stroke-width="${n2(gw * 1.4)}"/>`;
+    if (D.safe > 0) s += `<rect x="${n2(D.safe)}" y="${n2(D.safe)}" width="${n2(D.W - D.safe * 2)}" height="${n2(D.H - D.safe * 2)}" fill="none" stroke="${GUIDE.safe}" stroke-width="${n2(gw)}" stroke-dasharray="${n2(S * 4)} ${n2(S * 3)}"/>`;
+    if (showBleed) {
+      s += `<path d="M${n2(bx)} ${n2(by)}H${n2(bx + vw)}V${n2(by + pageH)}H${n2(bx)}Z M0 0V${n2(D.H)}H${n2(D.W)}V0Z" fill="url(#bl)" fill-rule="evenodd"/>`;
+      s += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(vw)}" height="${n2(pageH)}" fill="none" stroke="${GUIDE.bleed}" stroke-width="${n2(gw * 1.2)}"/>`;
+    }
+  }
+  if (showBleed || opts.guides) s += `<rect x="0" y="0" width="${n2(D.W)}" height="${n2(D.H)}" fill="none" stroke="#222" stroke-opacity="0.55" stroke-width="${n2(gw)}"/>`;
+  if (opts.labels) {
+    const ls = clamp(Math.min(D.W, D.H) / 50, S * 5, S * 14);
+    zones.forEach((z, i) => {
+      const r = zoneRect(z, D);
+      const t = `${i + 1} ${ROLE_LABEL[z.role] || z.role}`;
+      const tw = lineWidth(t.split(' '), ls, FACES.sans, 700, 0) + ls;
+      const lx = clamp(r.x, 0, D.W - tw), ly = clamp(r.y, 0, D.H - ls * 1.5);
+      s += `<rect x="${n2(lx)}" y="${n2(ly)}" width="${n2(tw)}" height="${n2(ls * 1.5)}" fill="#111" fill-opacity="0.82"/>`;
+      s += svgText(lx + ls * 0.5, ly + ls * 1.08, t, { face: FACES.sans, size: ls, weight: 700, fill: '#ffffff' });
+    });
+  }
+  if (opts.annotate) {
+    const y0 = pageH + by + fsA * 1.4;
+    const lines = annotationLines(st, layout, T, D);
+    s += svgText(bx + fsA * 0.6, y0, lines[0], { face: FACES.sans, size: fsA, weight: 700, fill: '#111' });
+    s += svgText(bx + fsA * 0.6, y0 + fsA * 1.5, lines[1], { face: FACES.sans, size: fsA * 0.8, fill: '#333' });
+    s += svgText(bx + fsA * 0.6, y0 + fsA * 2.8, lines[2], { face: FACES.sans, size: fsA * 0.8, fill: '#333' });
+  }
+  s += '</svg>';
+  return s;
+}
+function annotationLines(st, layout, T, D) {
+  const u = st.unit, f = v => fmtU(v, u);
+  return [
+    `${DOCS[st.doc].label} · ${f(st.w)} × ${f(st.h)} ${u} · ${T.label}-inspired · ${ARCH_SHORT[layout.arch]}`,
+    `Margins T ${f(st.m.t)} R ${f(st.m.r)} B ${f(st.m.b)} L ${f(st.m.l)} · ${D.C} col × ${fmtU(D.colW / UNIT_PT[u], u)}, gutter ${f(st.gutter)} · ${D.R} rows × ${fmtU(D.rowH / UNIT_PT[u], u)}, gap ${f(st.rowGap)}`,
+    `Baseline ${f(st.baseline)} · Bleed ${f(st.bleed || 0)} · Safe ${f(st.safe || 0)} (${u}) · Gridder layout direction, not a finished design`
+  ];
+}
+
+/* ---------- specification ---------- */
+const ROLE_LABEL = {
+  head: 'Headline', title: 'Screen title', deck: 'Pull quote', kicker: 'Kicker', body: 'Body copy', caption: 'Caption', image: 'Image', nav: 'Navigation',
+  folio: 'Folio', marker: 'Section marker', arrow: 'Arrow', legend: 'Legend', cta: 'Call to action', button: 'Primary button', logo: 'Logo',
+  panel: 'Panel', shape: 'Accent shape', list: 'Contents list', card: 'Card', tabbar: 'Tab bar', status: 'Status bar', field: 'Search field',
+  masthead: 'Masthead', coverline: 'Cover lines', barcode: 'Barcode / price', stat: 'Stat tile', chart: 'Chart', dots: 'Page indicator',
+  meta: 'Info line', footer: 'Footer', readout: 'Data readout', compass: 'Heading tape', ladder: 'Ladder scale', reticle: 'Reticle', radar: 'Radar / minimap', gauge: 'Gauges', alert: 'Alert banner', ornament: 'Ornamental rule', appbar: 'App bar', item: 'List item', sidebar: 'Sidebar'
+};
+const ROLE_RANK = { reticle: 1.5, readout: 6, compass: 6, gauge: 6, radar: 6, alert: 2.5, ladder: 7, masthead: 0, head: 1, title: 1, image: 2, panel: 2, deck: 3, coverline: 3, list: 3, body: 4, card: 4, stat: 4, chart: 4, item: 5, cta: 5, button: 5, caption: 6, meta: 7, logo: 7, nav: 0.5, appbar: 0.5 };
+
+function zoneSpecs(zones, D, u) {
+  const f = v => roundU(v / UNIT_PT[u], u);
+  return zones.map((z, i) => {
+    const r = zoneRect(z, D);
+    const o = { id: i + 1, role: z.role, label: ROLE_LABEL[z.role] || z.role };
+    if (z.edge) o.anchor = z.edge;
+    else { o.column = { start: z.c[0] + 1, span: z.c[1] }; o.row = { start: z.r[0] + 1, span: z.r[1] }; }
+    o.x = f(r.x); o.y = f(r.y); o.width = f(r.w); o.height = f(r.h);
+    if (z.bleed) o.bleeds = z.bleed.split('').map(c => ({ t: 'top', r: 'right', b: 'bottom', l: 'left' }[c]));
+    if (z.rot) o.rotation = Math.round(z.rot * 10) / 10;
+    if (z.role === 'image' || z.role === 'card') o.aspect = ratioLabel(r.w, r.h);
+    if (z.role === 'head') { const parts = []; if (z.kicker) parts.push('kicker'); parts.push('headline'); if (z.deck) parts.push('subhead'); o.contains = parts; }
+    if (z.onImage) o.overImage = true;
+    if (z.dx || z.dy || z.grow) o.offGrid = true;
+    if (z.arch) o.mask = 'arch';
+    if (z.arc) o.textOnArc = true;
+    return o;
+  });
+}
+function hierarchyOf(zones) {
+  const seen = new Set();
+  return zones.filter(z => !z.under && z.role !== 'shape').slice().sort((a, b) => (ROLE_RANK[a.role] ?? 8) - (ROLE_RANK[b.role] ?? 8))
+    .map(z => ROLE_LABEL[z.role] || z.role).filter(l => { if (seen.has(l)) return false; seen.add(l); return true; }).slice(0, 6);
+}
+function directionText(st, layout, T, zones, D) {
+  const d = DOCS[st.doc];
+  const sub = (d.subs.find(s => s[0] === st.sub) || [])[1];
+  const fam = shapeFamily(st.w, st.h);
+  const ws = st.white < 0.2 ? 'dense, little white space' : st.white < 0.4 ? 'moderate white space' : st.white < 0.6 ? 'generous white space' : 'very open, white space dominant';
+  const al = T.align === 'center' ? 'centered, symmetrical alignment' : 'flush-left, asymmetric alignment';
+  const h = hierarchyOf(zones);
+  return `${T.label}-inspired ${(sub ? sub + ' ' : '').toLowerCase()}${d.label.toLowerCase()} layout, ${fam} format (${fmtU(st.w, st.unit)} × ${fmtU(st.h, st.unit)} ${st.unit}). ${ARCH_INFO[layout.arch]}. ${D.C}-column grid with ${D.R} rows; ${al}; ${ws}${st.dist && st.dist !== 'none' ? ` (space ${st.dist === 'balanced' ? 'balanced top and bottom' : 'gathered at the ' + st.dist})` : ''}. Hierarchy: ${h.join(' → ')}. ${T.note} Placeholder content only; this is layout direction, not a finished design.`;
+}
+function specObject(st, layout) {
+  const { zones, T, D } = generateZones(st, layout);
+  const u = st.unit, f = v => roundU(v, u);
+  const d = DOCS[st.doc];
+  return {
+    format: 'gridder.layout',
+    version: 1,
+    kind: 'layout-specification',
+    note: 'Layout direction for a downstream grid maker, design app or AI tool. Not a finished design.',
+    document: {
+      type: st.doc, typeLabel: d.label, subtype: st.sub, subtypeLabel: (d.subs.find(s => s[0] === st.sub) || [])[1] || null,
+      unit: u, width: f(st.w), height: f(st.h), orientation: st.w > st.h ? 'landscape' : st.w < st.h ? 'portrait' : 'square',
+      proportion: shapeFamily(st.w, st.h), aspect: ratioLabel(st.w, st.h), bleed: f(st.bleed || 0), safeArea: f(st.safe || 0), spread: isSpread(st)
+    },
+    tradition: { label: T.label, era: layout.era, style: layout.style, alternative: !!layout.alt, period: T.years || null, basis: 'visual inspiration, not a documented historical reference' },
+    grid: {
+      margins: { top: f(st.m.t), right: f(st.m.r), bottom: f(st.m.b), left: f(st.m.l) },
+      liveArea: { width: roundU(D.liveW / UNIT_PT[u], u), height: roundU(D.liveH / UNIT_PT[u], u) },
+      columns: { count: D.C, width: roundU(D.colW / UNIT_PT[u], u), gutter: f(st.gutter) },
+      rows: { count: D.R, height: roundU(D.rowH / UNIT_PT[u], u), gap: f(st.rowGap) },
+      baseline: f(st.baseline)
+    },
+    whitespace: { amount: st.white, distribution: st.dist },
+    composition: { archetype: layout.arch, label: ARCH_SHORT[layout.arch], description: ARCH_INFO[layout.arch], alignment: T.align, hierarchy: hierarchyOf(zones) },
+    zones: zoneSpecs(zones, D, u),
+    direction: directionText(st, layout, T, zones, D),
+    seed: layout.seed
+  };
+}
+function specReadable(spec) {
+  const u = spec.document.unit, D = spec.document, G = spec.grid;
+  const L = [];
+  L.push('GRIDDER · LAYOUT SPECIFICATION');
+  L.push('Layout direction, not a finished design. Units: ' + u + '. Positions are measured from the top-left corner of the trim.');
+  L.push('');
+  L.push(`Document     ${D.typeLabel}${D.subtypeLabel ? ' / ' + D.subtypeLabel : ''}`);
+  L.push(`Trim size    ${D.width} × ${D.height} ${u} (${D.orientation}, ${D.aspect})${D.spread ? ', two-page spread' : ''}`);
+  if (D.bleed || D.safeArea) L.push(`Bleed / safe ${D.bleed} / ${D.safeArea} ${u}`);
+  L.push(`Inspiration  ${spec.tradition.label}${spec.tradition.period ? ' (' + spec.tradition.period + ')' : ''}, as visual inspiration`);
+  L.push('');
+  L.push(`Margins      top ${G.margins.top} · right ${G.margins.right} · bottom ${G.margins.bottom} · left ${G.margins.left}`);
+  L.push(`Live area    ${G.liveArea.width} × ${G.liveArea.height}`);
+  L.push(`Columns      ${G.columns.count} × ${G.columns.width}, gutter ${G.columns.gutter}`);
+  L.push(`Rows         ${G.rows.count} × ${G.rows.height}, gap ${G.rows.gap}`);
+  L.push(`Baseline     ${G.baseline}`);
+  L.push(`White space  ${Math.round(spec.whitespace.amount * 100)}%${spec.whitespace.distribution !== 'none' ? ', ' + spec.whitespace.distribution : ''}`);
+  L.push('');
+  L.push(`Composition  ${spec.composition.label}: ${spec.composition.description}`);
+  L.push(`Hierarchy    ${spec.composition.hierarchy.join(' → ')}`);
+  L.push('');
+  L.push('Zones');
+  for (const z of spec.zones) {
+    const pos = z.anchor ? `anchored ${z.anchor}` : `cols ${z.column.start}–${z.column.start + z.column.span - 1}, rows ${z.row.start}–${z.row.start + z.row.span - 1}`;
+    const extra = [z.aspect && 'aspect ' + z.aspect, z.bleeds && 'bleeds ' + z.bleeds.join('/'), z.rotation && 'rotated ' + z.rotation + '°', z.contains && z.contains.join(' + '), z.overImage && 'over image', z.offGrid && 'breaks the grid', z.mask && 'arched mask', z.textOnArc && 'headline on an arc'].filter(Boolean).join('; ');
+    L.push(` ${String(z.id).padStart(2)}. ${z.label.padEnd(16)} ${pos} · x ${z.x}, y ${z.y}, ${z.width} × ${z.height}${extra ? ' · ' + extra : ''}`);
+  }
+  L.push('');
+  L.push('Direction');
+  L.push(spec.direction);
+  return L.join('\n');
+}
+function guideScaffoldSVG(st, layout) {
+  const D = derive(st), u = st.unit;
+  const k = 1 / UNIT_PT[u];
+  const W = D.W * k, H = D.H * k, b = D.bleed * k;
+  const unitAttr = u === 'px' ? '' : u;
+  const f = v => String(roundU(v * k, u));
+  let s = `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Gridder guide scaffold: ${DOCS[st.doc].label}, ${fmtU(st.w, u)} x ${fmtU(st.h, u)} ${u}. A handoff aid for starting the grid in a design app. -->\n`;
+  s += `<svg xmlns="http://www.w3.org/2000/svg" width="${roundU(W, u)}${unitAttr}" height="${roundU(H, u)}${unitAttr}" viewBox="0 0 ${roundU(W, u)} ${roundU(H, u)}">\n`;
+  s += `<g id="trim"><rect x="0" y="0" width="${roundU(W, u)}" height="${roundU(H, u)}" fill="none" stroke="#222" stroke-width="${f(0.5)}"/></g>\n`;
+  if (b > 0) s += `<g id="bleed"><rect x="${-roundU(b, u)}" y="${-roundU(b, u)}" width="${roundU(W + 2 * b, u)}" height="${roundU(H + 2 * b, u)}" fill="none" stroke="${GUIDE.bleed}" stroke-width="${f(0.5)}"/></g>\n`;
+  s += `<g id="margins"><rect x="${f(D.m.l)}" y="${f(D.m.t)}" width="${f(D.liveW)}" height="${f(D.liveH)}" fill="none" stroke="${GUIDE.margin}" stroke-width="${f(0.5)}"/></g>\n`;
+  s += `<g id="columns" fill="${GUIDE.column}" fill-opacity="0.12">`;
+  for (let i = 0; i < D.C; i++) s += `<rect x="${f(D.m.l + i * (D.colW + D.g))}" y="${f(D.m.t)}" width="${f(D.colW)}" height="${f(D.liveH)}"/>`;
+  s += `</g>\n<g id="rows" fill="none" stroke="${GUIDE.column}" stroke-width="${f(0.35)}">`;
+  for (let i = 0; i < D.R; i++) s += `<rect x="${f(D.m.l)}" y="${f(D.m.t + i * (D.rowH + D.rg))}" width="${f(D.liveW)}" height="${f(D.rowH)}"/>`;
+  s += `</g>\n`;
+  if (D.baseline > 0) {
+    s += `<g id="baseline" stroke="${GUIDE.baseline}" stroke-width="${f(0.25)}">`;
+    for (let yy = D.m.t + D.baseline; yy <= D.H - D.m.b + 0.01; yy += D.baseline) s += `<line x1="${f(D.m.l)}" y1="${f(yy)}" x2="${f(D.W - D.m.r)}" y2="${f(yy)}"/>`;
+    s += `</g>\n`;
+  }
+  if (D.safe > 0) s += `<g id="safe-area"><rect x="${f(D.safe)}" y="${f(D.safe)}" width="${f(D.W - 2 * D.safe)}" height="${f(D.H - 2 * D.safe)}" fill="none" stroke="${GUIDE.safe}" stroke-dasharray="${f(4)} ${f(3)}" stroke-width="${f(0.5)}"/></g>\n`;
+  const { zones } = generateZones(st, layout);
+  s += `<g id="zones" fill="none" stroke="#111" stroke-width="${f(0.75)}" stroke-dasharray="${f(3)} ${f(2)}">`;
+  zones.forEach((z, i) => { const r = zoneRect(z, D); s += `<rect id="zone-${i + 1}-${z.role}" x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}"${z.rot ? ` transform="rotate(${Math.round(z.rot * 10) / 10} ${f(r.x + r.w / 2)} ${f(r.y + r.h / 2)})"` : ''}><title>${esc(ROLE_LABEL[z.role] || z.role)}</title></rect>`; });
+  s += `</g>\n</svg>\n`;
+  return s;
+}
+
+if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf, DOCS, DOC_ORDER, TRADS, ERA_IDS, STYLE_IDS, ALT_IDS, rollGeometry, derive, generateZones, renderSVG, specObject, specReadable, guideScaffoldSVG, resolveTradition, buildTradition, chooseArch, archWeights, mulberry32, toPt, fromPt, fmtU, roundU, UNIT_PT, UNIT_PREC, shapeFamily, RATIOS, ARCH_SHORT, ARCH_INFO, setMeasure: f => { measureWord = f; } };
+</script>
+<script>
+/* ============ Gridder UI ============ */
+(function () {
+  const $ = id => document.getElementById(id);
+  const mctx = document.createElement('canvas').getContext('2d');
+  measureWord = (word, face, weight) => { mctx.font = `${weight || 400} 100px ${face}`; return mctx.measureText(word).width; };
+
+  const LOCK_ICON_OPEN = '<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5.5" width="8" height="5.5" rx="1" fill="currentColor"/><path d="M4 5.5V3.5a2 2 0 0 1 4 0" fill="none" stroke="currentColor" stroke-width="1.4" transform="translate(2.2 0) rotate(18 6 3)"/></svg>';
+  const LOCK_ICON_CLOSED = '<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5.5" width="8" height="5.5" rx="1" fill="currentColor"/><path d="M4 5.5V3.5a2 2 0 0 1 4 0v2" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
+
+  const st = {
+    doc: 'poster', sub: 'event', preset: 'p:1', family: 'all',
+    unit: 'in', w: 18, h: 24, bleed: 0.125, safe: 0.375,
+    m: { t: 1, r: 1, b: 1, l: 1 }, cols: 12, gutter: 0.25, rows: 8, rowGap: 0.25, baseline: 0.3, white: 0.4, dist: 'none',
+    era: 'any', style: 'swiss', alt: false,
+    locks: { size: false, margins: false, cols: false, rows: false, baseline: false, white: false }
+  };
+  const view = { guides: true, baseline: false, labels: false, annot: false, specFmt: 'read' };
+  let layout = null;
+  const past = [];
+  const recentArch = [], recentSig = [];
+
+  /* ---------- filters ---------- */
+  function presetsFor() { return DOCS[st.doc].presets.map((p, i) => Object.assign({ i }, p)).filter(p => !p.s || p.s === st.sub); }
+  function buildDoc() {
+    $('f-doc').innerHTML = DOC_ORDER.map(k => `<option value="${k}">${DOCS[k].label}</option>`).join('');
+    $('f-era').innerHTML = '<option value="any">Any era</option>' + ERA_IDS.map(k => `<option value="${k}">${TRADS[k].label}</option>`).join('');
+    $('f-style').innerHTML = '<option value="any">Any style</option>' + STYLE_GROUPS.map(([g, label]) =>
+      `<optgroup label="${label}">` + STYLE_IDS.filter(k => styleGroupOf(k) === g).map(k => `<option value="${k}">${TRADS[k].label}${TRADS[k].alt && g !== 'alt' ? ' (alt)' : ''}</option>`).join('') + '</optgroup>').join('');
+    const fams = [['all', 'All'], ['square', 'Square'], ['portrait', 'Portrait'], ['tall', 'Tall'], ['landscape', 'Landscape'], ['wide', 'Wide']];
+    $('f-shape').innerHTML = fams.map(([k, l]) => `<button type="button" class="chip" data-fam="${k}" aria-pressed="false">${l}</button>`).join('');
+  }
+  function buildSub() { $('f-sub').innerHTML = DOCS[st.doc].subs.map(([k, l]) => `<option value="${k}">${l}</option>`).join(''); }
+  function buildSize() {
+    const fam = st.family;
+    const ps = presetsFor().filter(p => fam === 'all' || shapeFamily(p.w, p.h) === fam);
+    const rs = RATIOS.filter(([, a, b]) => fam === 'all' || shapeFamily(a, b) === fam);
+    let html = '';
+    if (ps.length) html += `<optgroup label="${DOCS[st.doc].label} sizes">` + ps.map(p => `<option value="p:${p.i}">${p.n} · ${p.w} × ${p.h} ${p.u}</option>`).join('') + '</optgroup>';
+    html += '<optgroup label="By proportion">' + rs.map(([l]) => `<option value="r:${l}">Ratio ${l}</option>`).join('') + '</optgroup>';
+    html += '<option value="custom">Custom size</option>';
+    $('f-size').innerHTML = html;
+    $('f-size').value = st.preset;
+    if ($('f-size').value !== st.preset) $('f-size').value = 'custom';
+  }
+  function applyPreset(val) {
+    if (val.startsWith('p:')) {
+      const p = DOCS[st.doc].presets[+val.slice(2)];
+      st.unit = p.u; st.w = p.w; st.h = p.h; st.bleed = p.b || 0; st.safe = p.sa || 0;
+      // margins and gutters are re-rolled below if unlocked; if locked, keep their physical size
+    } else if (val.startsWith('r:')) {
+      const r = RATIOS.find(x => x[0] === val.slice(2));
+      const long = Math.max(st.w, st.h);
+      if (r[1] >= r[2]) { st.w = long; st.h = roundU(long * r[2] / r[1], st.unit); } else { st.h = long; st.w = roundU(long * r[1] / r[2], st.unit); }
+    }
+    st.preset = val;
+  }
+  function defaultPresetForSub() {
+    const ps = presetsFor();
+    const fam = st.family;
+    const inFam = ps.filter(p => fam === 'all' || shapeFamily(p.w, p.h) === fam);
+    const pref = inFam.find(p => p.s === st.sub) || inFam[0] || ps.find(p => p.s === st.sub) || ps[0];
+    return pref ? 'p:' + pref.i : 'custom';
+  }
+  function syncFilters() {
+    $('f-doc').value = st.doc; $('f-sub').value = st.sub; $('f-era').value = st.era; $('f-style').value = st.style; $('f-alt').checked = st.alt;
+    document.querySelectorAll('#f-shape .chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.fam === st.family)));
+    const T = layout ? buildTradition(layout.era, layout.style, layout.alt) : null;
+    $('filter-sum').textContent = `${DOCS[st.doc].label} · ${fmtU(st.w, st.unit)} × ${fmtU(st.h, st.unit)} ${st.unit}${T ? ' · ' + T.label : ''}`;
+  }
+
+  /* ---------- directions ---------- */
+  function snapshot() { return JSON.stringify({ st, layout }); }
+  function next() {
+    if (layout) { past.push(snapshot()); if (past.length > 40) past.shift(); }
+    const seed = (Math.random() * 4294967296) >>> 0;
+    const rng = mulberry32(seed);
+    const res = resolveTradition(st, rng);
+    const T = buildTradition(res.era, res.style, res.alt);
+    rollGeometry(st, T, rng);
+    let arch, sig;
+    for (let i = 0; i < 6; i++) {
+      arch = chooseArch(st, T, rng, recentArch.slice(-2));
+      sig = [arch, res.era, res.style, st.cols, st.rows].join('|');
+      if (!recentSig.includes(sig)) break;
+    }
+    recentArch.push(arch); recentSig.push(sig); if (recentSig.length > 16) recentSig.shift(); if (recentArch.length > 8) recentArch.shift();
+    layout = Object.assign({}, res, { arch, seed });
+    refresh(true);
+  }
+  function back() {
+    if (!past.length) return;
+    const s = JSON.parse(past.pop());
+    Object.assign(st, s.st); layout = s.layout;
+    buildSub(); buildSize(); refresh(true);
+  }
+
+  /* ---------- geometry panel ---------- */
+  const GEO = [['g-w', 'w'], ['g-h', 'h'], ['g-bleed', 'bleed'], ['g-safe', 'safe'], ['g-mt', 'm.t'], ['g-mr', 'm.r'], ['g-mb', 'm.b'], ['g-ml', 'm.l'], ['g-gut', 'gutter'], ['g-rgap', 'rowGap'], ['g-base', 'baseline']];
+  const getP = p => p.includes('.') ? st[p.split('.')[0]][p.split('.')[1]] : st[p];
+  const setP = (p, v) => { if (p.includes('.')) st[p.split('.')[0]][p.split('.')[1]] = v; else st[p] = v; };
+  const LOCK_FOR = { 'g-w': 'size', 'g-h': 'size', 'g-bleed': 'size', 'g-safe': 'size', 'g-mt': 'margins', 'g-mr': 'margins', 'g-mb': 'margins', 'g-ml': 'margins', 'g-gut': 'cols', 'g-cols': 'cols', 'g-rows': 'rows', 'g-rgap': 'rows', 'g-base': 'baseline', 'g-white': 'white', 'g-dist': 'white' };
+  function syncGeo() {
+    const u = st.unit, act = document.activeElement;
+    for (const [id, p] of GEO) if (act !== $(id)) $(id).value = fmtU(getP(p), u);
+    if (act !== $('g-cols')) $('g-cols').value = st.cols;
+    if (act !== $('g-rows')) $('g-rows').value = st.rows;
+    $('g-unit').value = u;
+    $('g-white').value = Math.round(st.white * 100); $('d-white').textContent = Math.round(st.white * 100) + '%';
+    $('g-dist').value = st.dist;
+    const D = derive(st), k = 1 / UNIT_PT[u];
+    $('d-live').innerHTML = `Live area <b>${fmtU(D.liveW * k, u)} × ${fmtU(D.liveH * k, u)}</b> ${u}`;
+    $('d-col').innerHTML = `Column width <b>${fmtU(D.colW * k, u)}</b> ${u}`;
+    $('d-row').innerHTML = `Row height <b>${fmtU(D.rowH * k, u)}</b> ${u}`;
+    $('d-base').innerHTML = u === 'pt' ? '' : `= <b>${fmtU(D.baseline, 'pt')}</b> pt`;
+    $('geo-warn').hidden = D.ok;
+    document.querySelectorAll('.lock').forEach(b => {
+      const on = !!st.locks[b.dataset.lock];
+      b.setAttribute('aria-pressed', String(on));
+      b.innerHTML = (on ? LOCK_ICON_CLOSED : LOCK_ICON_OPEN) + (on ? 'Locked' : 'Lock');
+      b.title = on ? 'Locked: Next direction keeps these values' : 'Lock these values while exploring';
+    });
+  }
+  function onGeoInput(id, p) {
+    const v = parseFloat($(id).value);
+    if (!isFinite(v) || v < 0 || ((p === 'w' || p === 'h') && v <= 0)) return;
+    setP(p, roundU(v, st.unit));
+    if (p === 'w' || p === 'h') { st.preset = 'custom'; buildSize(); }
+    refresh(false);
+  }
+  function convertUnits(nu) {
+    const ou = st.unit; if (ou === nu) return;
+    const c = v => fromPt(toPt(v, ou), nu);
+    st.w = c(st.w); st.h = c(st.h); st.bleed = c(st.bleed); st.safe = c(st.safe);
+    st.m = { t: c(st.m.t), r: c(st.m.r), b: c(st.m.b), l: c(st.m.l) };
+    st.gutter = c(st.gutter); st.rowGap = c(st.rowGap); st.baseline = c(st.baseline);
+    st.unit = nu;
+  }
+
+  /* ---------- render ---------- */
+  let pngTimer = null, pngBlob = null, pngUrl = null;
+  function readout() {
+    const T = buildTradition(layout.era, layout.style, layout.alt);
+    $('readout').innerHTML = `<b>${esc(T.label)}</b> <span class="dim">${esc(T.years)}${T.years ? ' · ' : ''}inspiration</span> — ${esc(ARCH_SHORT[layout.arch])}<br><span class="dim">${esc(T.note)}</span>`;
+  }
+  function refresh(full) {
+    const svg = renderSVG(st, layout, { guides: view.guides, baseline: view.baseline, labels: view.labels });
+    $('sheet').innerHTML = svg;
+    readout(); syncGeo(); syncFilters();
+    $('btn-back').disabled = $('d-back').disabled = past.length === 0;
+    updateHandoff();
+    clearTimeout(pngTimer);
+    pngTimer = setTimeout(makePng, full ? 120 : 400);
+  }
+  let spec = null, specTxt = '', specJson = '';
+  function updateHandoff() {
+    spec = specObject(st, layout);
+    specTxt = specReadable(spec);
+    specJson = JSON.stringify(spec, null, 2);
+    $('h-dir').textContent = spec.direction;
+    $('h-spec').textContent = view.specFmt === 'read' ? specTxt : specJson;
+    $('h-save-spec').textContent = view.specFmt === 'read' ? 'Save .txt' : 'Save .json';
+  }
+  function refSVG(px) { return renderSVG(st, layout, { clean: !view.annot, guides: view.annot, baseline: false, labels: view.annot, annotate: view.annot, px }); }
+  async function makePng() {
+    try {
+      const long = 1800;
+      const D = derive(st);
+      const ratio = (D.W + (view.annot ? 0 : 0)) / D.H;
+      const px = ratio >= 1 ? long : Math.round(long * ratio);
+      const svg = refSVG(px);
+      const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+      const img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+      const cv = document.createElement('canvas');
+      cv.width = img.naturalWidth || px; cv.height = img.naturalHeight || Math.round(px / ratio);
+      const c2 = cv.getContext('2d');
+      c2.fillStyle = '#ffffff'; c2.fillRect(0, 0, cv.width, cv.height);
+      c2.drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(url);
+      $('h-img').src = cv.toDataURL('image/png');
+      pngUrl = $('h-img').src;
+      pngBlob = await new Promise(r => cv.toBlob(r, 'image/png'));
+    } catch (e) { pngBlob = null; }
+  }
+
+  /* ---------- feedback ---------- */
+  let toastT = null;
+  function toast(msg) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2600); }
+  function copyText(text, label, selectEl) {
+    const fallback = () => {
+      if (selectEl) { const r = document.createRange(); r.selectNodeContents(selectEl); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Text selected. Press Ctrl+C or ⌘C to copy.'); }
+      else toast('Copying is blocked here. Select the text and copy it yourself.');
+    };
+    try { navigator.clipboard.writeText(text).then(() => toast(label + ' copied'), fallback); } catch (e) { fallback(); }
+  }
+  function fileBase() {
+    const T = buildTradition(layout.era, layout.style, layout.alt);
+    return `gridder-${st.doc}-${fmtU(st.w, st.unit)}x${fmtU(st.h, st.unit)}${st.unit}-${(T.label || 'any').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+  }
+  let downloads = null;
+  (async () => {
+    if (window.claude && window.claude.use) {
+      try { downloads = await window.claude.use('downloads'); } catch (e) { downloads = null; }
+    } else {
+      // Standalone page: plain browser downloads.
+      downloads = { save: ({ filename, data }) => {
+        const blob = data instanceof Blob ? data : new Blob([data], { type: /\.json$/.test(filename) ? 'application/json' : /\.svg$/.test(filename) ? 'image/svg+xml' : 'text/plain' });
+        const url = URL.createObjectURL(blob), a = document.createElement('a');
+        a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        return Promise.resolve({ status: 'saved' });
+      } };
+    }
+    document.body.classList.toggle('can-save', !!downloads);
+  })();
+  async function save(filename, data) {
+    if (!downloads) return;
+    try { await downloads.save({ filename, data }); toast('Saved ' + filename); }
+    catch (e) {
+      const c = e && e.code;
+      if (c === 'declined') toast('Save cancelled');
+      else if (c === 'rate_limited') toast('A save prompt is already open');
+      else { toast('Saving is not available here. Use Copy instead.'); if (c === 'unavailable' || c === 'not_granted') { downloads = null; document.body.classList.remove('can-save'); } }
+    }
+  }
+
+  /* ---------- events ---------- */
+  function wire() {
+    $('btn-next').onclick = next; $('d-next').onclick = next;
+    $('btn-back').onclick = back; $('d-back').onclick = back;
+    $('d-hand').onclick = () => { selectTab('hand'); $('panel').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); };
+    $('f-doc').onchange = e => {
+      st.doc = e.target.value; st.sub = DOCS[st.doc].subs[0][0];
+      buildSub();
+      if (!st.locks.size) { st.preset = defaultPresetForSub(); if (st.preset !== 'custom') applyPreset(st.preset); }
+      buildSize(); next();
+    };
+    $('f-sub').onchange = e => {
+      st.sub = e.target.value;
+      if (!st.locks.size) { st.preset = defaultPresetForSub(); if (st.preset !== 'custom') applyPreset(st.preset); }
+      buildSize(); next();
+    };
+    $('f-shape').onclick = e => {
+      const b = e.target.closest('.chip'); if (!b) return;
+      st.family = b.dataset.fam;
+      if (!st.locks.size && st.family !== 'all' && shapeFamily(st.w, st.h) !== st.family) {
+        const p = defaultPresetForSub();
+        const pp = p.startsWith('p:') ? DOCS[st.doc].presets[+p.slice(2)] : null;
+        if (pp && shapeFamily(pp.w, pp.h) === st.family) applyPreset(p);
+        else { const r = RATIOS.find(([, a, b2]) => shapeFamily(a, b2) === st.family); applyPreset('r:' + r[0]); }
+      }
+      buildSize(); next();
+    };
+    $('f-size').onchange = e => {
+      if (e.target.value === 'custom') { st.preset = 'custom'; selectTab('geo'); $('g-w').focus(); return; }
+      applyPreset(e.target.value);
+      next();
+    };
+    $('f-era').onchange = e => { st.era = e.target.value; next(); };
+    $('f-style').onchange = e => { st.style = e.target.value; next(); };
+    $('f-alt').onchange = e => { st.alt = e.target.checked; next(); };
+    for (const [id, p] of GEO) $(id).addEventListener('change', () => onGeoInput(id, p));
+    $('g-cols').addEventListener('change', () => { const v = parseInt($('g-cols').value, 10); if (v >= 1 && v <= 48) { st.cols = v; refresh(false); } });
+    $('g-rows').addEventListener('change', () => { const v = parseInt($('g-rows').value, 10); if (v >= 1 && v <= 48) { st.rows = v; refresh(false); } });
+    $('g-unit').onchange = e => { convertUnits(e.target.value); refresh(false); };
+    $('g-white').addEventListener('input', () => { st.white = +$('g-white').value / 100; refresh(false); });
+    $('g-dist').onchange = e => { st.dist = e.target.value; refresh(false); };
+    $('g-rot').onclick = () => { const w = st.w; st.w = st.h; st.h = w; st.preset = 'custom'; buildSize(); refresh(false); };
+    document.querySelectorAll('.lock').forEach(b => b.onclick = () => { st.locks[b.dataset.lock] = !st.locks[b.dataset.lock]; syncGeo(); });
+    $('v-guides').onchange = e => { view.guides = e.target.checked; $('v-base').disabled = !view.guides; refresh(false); };
+    $('v-base').onchange = e => { view.baseline = e.target.checked; refresh(false); };
+    $('v-labels').onchange = e => { view.labels = e.target.checked; refresh(false); };
+    $('tab-geo').onclick = () => selectTab('geo');
+    $('tab-hand').onclick = () => selectTab('hand');
+    $('h-annot').onchange = e => { view.annot = e.target.checked; makePng(); };
+    $('s-read').onclick = () => { view.specFmt = 'read'; $('s-read').setAttribute('aria-pressed', 'true'); $('s-json').setAttribute('aria-pressed', 'false'); updateHandoff(); };
+    $('s-json').onclick = () => { view.specFmt = 'json'; $('s-json').setAttribute('aria-pressed', 'true'); $('s-read').setAttribute('aria-pressed', 'false'); updateHandoff(); };
+    $('h-copy-dir').onclick = () => copyText(spec.direction, 'Direction', $('h-dir'));
+    $('h-copy-spec').onclick = () => copyText(view.specFmt === 'read' ? specTxt : specJson, view.specFmt === 'read' ? 'Specification' : 'JSON', $('h-spec'));
+    $('h-copy-svg').onclick = () => copyText(guideScaffoldSVG(st, layout), 'Guide SVG', null);
+    $('h-save-spec').onclick = () => view.specFmt === 'read' ? save(fileBase() + '-spec.txt', specTxt) : save(fileBase() + '-spec.json', specJson);
+    $('h-save-svg').onclick = () => save(fileBase() + '-guides.svg', guideScaffoldSVG(st, layout));
+    $('h-save-png').onclick = async () => { if (!pngBlob) await makePng(); if (pngBlob) save(fileBase() + (view.annot ? '-annotated' : '') + '.png', pngBlob); };
+    $('h-copy-img').onclick = () => {
+      try {
+        if (!pngBlob || !window.ClipboardItem) throw new Error('no');
+        navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })]).then(() => toast('Image copied'), () => toast('Copying images is blocked here. Drag the image or press and hold to save it.'));
+      } catch (e) { toast('Copying images is blocked here. Drag the image or press and hold to save it.'); }
+    };
+    const dragSpec = e => {
+      e.dataTransfer.effectAllowed = 'copy';
+      e.dataTransfer.setData('text/plain', specTxt);
+      e.dataTransfer.setData('application/json', specJson);
+      if (pngUrl) { try { e.dataTransfer.setData('DownloadURL', 'image/png:' + fileBase() + '.png:' + pngUrl); } catch (err) { /* not supported */ } }
+    };
+    $('sheet').addEventListener('dragstart', dragSpec);
+    $('h-spec').addEventListener('dragstart', e => { e.dataTransfer.effectAllowed = 'copy'; e.dataTransfer.setData('text/plain', view.specFmt === 'read' ? specTxt : specJson); });
+    document.addEventListener('keydown', e => {
+      const tag = (e.target.tagName || '').toLowerCase();
+      if (['input', 'select', 'textarea'].includes(tag) || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === 'n' || e.key === 'N' || e.key === 'ArrowRight' || (e.key === ' ' && tag !== 'button')) { e.preventDefault(); next(); }
+      else if (e.key === 'b' || e.key === 'B' || e.key === 'ArrowLeft') { e.preventDefault(); back(); }
+    });
+    const mq = matchMedia('(min-width: 901px)');
+    const syncOpen = () => { if (mq.matches) $('filters').open = true; };
+    mq.addEventListener ? mq.addEventListener('change', syncOpen) : mq.addListener(syncOpen);
+    syncOpen();
+  }
+  function selectTab(which) {
+    const geo = which === 'geo';
+    $('tab-geo').setAttribute('aria-selected', String(geo)); $('tab-hand').setAttribute('aria-selected', String(!geo));
+    $('pane-geo').hidden = !geo; $('pane-hand').hidden = geo;
+    if (!geo && !pngBlob) makePng();
+  }
+
+  buildDoc(); buildSub();
+  applyPreset(st.preset);
+  buildSize();
+  wire();
+  next();
+})();
+</script>
+
+</body>
+</html>
