@@ -206,7 +206,7 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
         <div class="views">
           <label><input type="checkbox" id="v-guides" checked> Grid</label>
           <label><input type="checkbox" id="v-base"> Baseline</label>
-          <label><input type="checkbox" id="v-labels"> Zone numbers</label>
+          <label><input type="checkbox" id="v-labels"> Measurements</label>
           <span title="Margins"><i class="sw" style="background:var(--g-margin)"></i></span>
           <span title="Columns and rows"><i class="sw" style="background:var(--g-column)"></i></span>
           <span title="Baseline"><i class="sw" style="background:var(--g-baseline)"></i></span>
@@ -280,7 +280,7 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
       <div class="pane" id="pane-hand" role="tabpanel" aria-labelledby="tab-hand" hidden>
         <div class="grp">
           <div class="grp-h"><h3>Layout reference</h3><span class="kind">Visual reference</span></div>
-          <label class="switch"><input type="checkbox" id="h-annot"> Include grid, zone numbers and measurements</label>
+          <label class="switch"><input type="checkbox" id="h-annot" checked> Dimensioned: grid, rulers, margins and zone sizes</label>
           <img class="ref-img" id="h-img" alt="Layout reference image of the current direction" draggable="true">
           <p class="hint">Drag the image into another app, or press and hold to save it on a phone.</p>
           <div class="btns">
@@ -2255,15 +2255,19 @@ function renderSVG(st, layout, opts) {
   const vw = D.W + (showBleed ? D.bleed * 2 : 0);
   const pageH = D.H + (showBleed ? D.bleed * 2 : 0);
   const fsA = Math.max(D.W, D.H) / 60;
+  const fsM = Math.max(Math.min(D.W, D.H) / 48, Math.max(D.W, D.H) / 90);
+  const M = opts.measure ? { l: fsM * 6.2, t: fsM * 5.4, r: fsM * 3.4, b: fsM * 3.4 } : { l: 0, t: 0, r: 0, b: 0 };
   const annoH = opts.annotate ? fsA * 4.6 : 0;
-  const vh = pageH + annoH;
+  const vx = bx - M.l, vy = by - M.t;
+  const VW = vw + M.l + M.r;
+  const vh = pageH + annoH + M.t + M.b;
   const outW = opts.px || null;
-  let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${n2(bx)} ${n2(by)} ${n2(vw)} ${n2(vh)}"${outW ? ` width="${outW}" height="${Math.round(outW * vh / vw)}"` : ''} preserveAspectRatio="xMidYMid meet">`;
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${n2(vx)} ${n2(vy)} ${n2(VW)} ${n2(vh)}"${outW ? ` width="${outW}" height="${Math.round(outW * vh / VW)}"` : ''} preserveAspectRatio="xMidYMid meet">`;
   s += `<defs><clipPath id="page"><rect x="${n2(bx)}" y="${n2(by)}" width="${n2(vw)}" height="${n2(pageH)}"/></clipPath>`;
   const hs = S * 5;
   s += `<pattern id="ht" width="${n2(hs)}" height="${n2(hs)}" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="${n2(hs / 2)}" cy="${n2(hs / 2)}" r="${n2(hs * 0.28)}" fill="${pal.ink}" fill-opacity="0.35"/></pattern>`;
   s += `<pattern id="bl" width="${n2(S * 6)}" height="${n2(S * 6)}" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V${n2(S * 6)}" stroke="${GUIDE.bleed}" stroke-opacity="0.35" stroke-width="${n2(S * 0.8)}"/></pattern></defs>`;
-  if (opts.annotate) s += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(vw)}" height="${n2(vh)}" fill="#ffffff"/>`;
+  if (opts.annotate || opts.measure) s += `<rect x="${n2(vx)}" y="${n2(vy)}" width="${n2(VW)}" height="${n2(vh)}" fill="#ffffff"/>`;
   s += `<g clip-path="url(#page)">`;
   if (T.bgGrad) s += `<linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${T.bgGrad[0]}"/><stop offset="1" stop-color="${T.bgGrad[1]}"/></linearGradient>`;
   s += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(vw)}" height="${n2(pageH)}" fill="${T.bgGrad ? 'url(#pg)' : pal.paper}"/>`;
@@ -2307,17 +2311,25 @@ function renderSVG(st, layout, opts) {
   if (showBleed || opts.guides) s += `<rect x="0" y="0" width="${n2(D.W)}" height="${n2(D.H)}" fill="none" stroke="#222" stroke-opacity="0.55" stroke-width="${n2(gw)}"/>`;
   if (opts.labels) {
     const ls = clamp(Math.min(D.W, D.H) / 50, S * 5, S * 14);
+    const u = st.unit, fv = v => fmtU(v / UNIT_PT[u], u);
     zones.forEach((z, i) => {
+      if (z.role === 'shape' && opts.measure) return;
       const r = zoneRect(z, D);
       const t = `${i + 1} ${ROLE_LABEL[z.role] || z.role}`;
-      const tw = lineWidth(t.split(' '), ls, FACES.sans, 700, 0) + ls;
-      const lx = clamp(r.x, 0, D.W - tw), ly = clamp(r.y, 0, D.H - ls * 1.5);
-      s += `<rect x="${n2(lx)}" y="${n2(ly)}" width="${n2(tw)}" height="${n2(ls * 1.5)}" fill="#111" fill-opacity="0.82"/>`;
+      const t2 = opts.measure ? `${fv(r.w)} × ${fv(r.h)} at ${fv(r.x)}, ${fv(r.y)}` : '';
+      const ls2 = ls * 0.82;
+      const tw = Math.max(lineWidth(t.split(' '), ls, FACES.sans, 700, 0), t2 ? lineWidth(t2.split(' '), ls2, FACES.sans, 400, 0) : 0) + ls;
+      const th = t2 ? ls * 2.75 : ls * 1.5;
+      const lx = clamp(r.x, 0, D.W - tw), ly = clamp(r.y, 0, D.H - th);
+      s += `<rect x="${n2(lx)}" y="${n2(ly)}" width="${n2(tw)}" height="${n2(th)}" fill="#111" fill-opacity="0.84"/>`;
       s += svgText(lx + ls * 0.5, ly + ls * 1.08, t, { face: FACES.sans, size: ls, weight: 700, fill: '#ffffff' });
+      if (t2) s += svgText(lx + ls * 0.5, ly + ls * 2.3, t2, { face: FACES.sans, size: ls2, fill: '#ffffff', op: 0.9 });
+      if (opts.measure) s += `<rect x="${n2(r.x)}" y="${n2(r.y)}" width="${n2(r.w)}" height="${n2(r.h)}" fill="none" stroke="#111" stroke-opacity="0.55" stroke-width="${n2(gw)}" stroke-dasharray="${n2(S * 3)} ${n2(S * 2)}"${z.rot ? ` transform="rotate(${n2(z.rot)} ${n2(r.x + r.w / 2)} ${n2(r.y + r.h / 2)})"` : ''}/>`;
     });
   }
+  if (opts.measure) s += measureLayer(st, D, { bx, by, vw, pageH, fs: fsM, gw, S });
   if (opts.annotate) {
-    const y0 = pageH + by + fsA * 1.4;
+    const y0 = pageH + by + M.b + fsA * 1.4;
     const lines = annotationLines(st, layout, T, D);
     s += svgText(bx + fsA * 0.6, y0, lines[0], { face: FACES.sans, size: fsA, weight: 700, fill: '#111' });
     s += svgText(bx + fsA * 0.6, y0 + fsA * 1.5, lines[1], { face: FACES.sans, size: fsA * 0.8, fill: '#333' });
@@ -2325,6 +2337,74 @@ function renderSVG(st, layout, opts) {
   }
   s += '</svg>';
   return s;
+}
+function dimLine(x1, y1, x2, y2, label, o) {
+  const { fs, col, gw } = o;
+  const vert = Math.abs(x1 - x2) < 1e-6;
+  const t = fs * 0.35;
+  let s = `<path d="M${n2(x1)} ${n2(y1)}L${n2(x2)} ${n2(y2)}" stroke="${col}" stroke-width="${n2(gw)}"/>`;
+  // architectural slash ticks + extension stubs
+  for (const [px, py] of [[x1, y1], [x2, y2]]) {
+    s += `<path d="M${n2(px - t)} ${n2(py + t)}L${n2(px + t)} ${n2(py - t)}" stroke="${col}" stroke-width="${n2(gw * 1.6)}"/>`;
+    s += vert ? `<path d="M${n2(px - t * 1.4)} ${n2(py)}H${n2(px + t * 1.4)}" stroke="${col}" stroke-width="${n2(gw)}"/>` : `<path d="M${n2(px)} ${n2(py - t * 1.4)}V${n2(py + t * 1.4)}" stroke="${col}" stroke-width="${n2(gw)}"/>`;
+  }
+  if (label) {
+    const ls = fs * (o.small ? 0.72 : 0.85);
+    const lw = lineWidth(String(label).split(' '), ls, FACES.sans, 600, 0) + ls * 0.6;
+    const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
+    if (vert) {
+      s += `<g transform="rotate(-90 ${n2(cx)} ${n2(cy)})"><rect x="${n2(cx - lw / 2)}" y="${n2(cy - ls * 0.62)}" width="${n2(lw)}" height="${n2(ls * 1.24)}" fill="#ffffff"/>` + svgText(cx, cy + ls * 0.36, label, { face: FACES.sans, size: ls, weight: 600, fill: col, anchor: 'middle' }) + '</g>';
+    } else {
+      s += `<rect x="${n2(cx - lw / 2)}" y="${n2(cy - ls * 0.62)}" width="${n2(lw)}" height="${n2(ls * 1.24)}" fill="#ffffff"/>` + svgText(cx, cy + ls * 0.36, label, { face: FACES.sans, size: ls, weight: 600, fill: col, anchor: 'middle' });
+    }
+  }
+  return s;
+}
+function measureLayer(st, D, g) {
+  const u = st.unit, fv = v => fmtU(v / UNIT_PT[u], u);
+  const { bx, by, vw, pageH, fs, gw } = g;
+  const ink = '#1A1A1A', mg = GUIDE.margin, cl = GUIDE.column;
+  const W = D.W, H = D.H, top = by, left = bx, right = bx + vw, bottom = by + pageH;
+  let s = '<g id="measurements">';
+  // overall size
+  s += dimLine(0, top - fs * 4.4, W, top - fs * 4.4, `${fv(W)} ${u} trim width`, { fs, col: ink, gw });
+  s += dimLine(left - fs * 5.2, 0, left - fs * 5.2, H, `${fv(H)} ${u} trim height`, { fs, col: ink, gw });
+  // column ruler with numbers
+  const ry = top - fs * 1.0;
+  for (let i = 0; i < D.C; i++) {
+    const x0 = D.m.l + i * (D.colW + D.g), x1 = x0 + D.colW;
+    s += `<path d="M${n2(x0)} ${n2(ry + fs * 0.35)}V${n2(ry)}H${n2(x1)}V${n2(ry + fs * 0.35)}" fill="none" stroke="${cl}" stroke-width="${n2(gw * 1.3)}"/>`;
+    if (D.colW > fs * 0.9) s += svgText((x0 + x1) / 2, ry - fs * 0.25, String(i + 1), { face: FACES.sans, size: fs * 0.8, weight: 700, fill: cl, anchor: 'middle' });
+  }
+  // first column width and gutter
+  const cy = top - fs * 2.7, x0 = D.m.l;
+  s += dimLine(x0, cy, x0 + D.colW, cy, `col ${fv(D.colW)}`, { fs, col: cl, gw, small: true });
+  if (D.C > 1 && D.g > 0) s += dimLine(x0 + D.colW, cy, x0 + D.colW + D.g, cy, D.g > fs * 2.5 ? `gutter ${fv(D.g)}` : '', { fs, col: cl, gw, small: true });
+  if (D.C > 1 && D.g > 0 && D.g <= fs * 2.5) s += svgText(x0 + D.colW + D.g + fs * 0.4, cy + fs * 0.3, `gutter ${fv(D.g)}`, { face: FACES.sans, size: fs * 0.72, weight: 600, fill: cl });
+  // row ruler with numbers
+  const rx = left - fs * 1.0;
+  for (let i = 0; i < D.R; i++) {
+    const y0 = D.m.t + i * (D.rowH + D.rg), y1 = y0 + D.rowH;
+    s += `<path d="M${n2(rx + fs * 0.35)} ${n2(y0)}H${n2(rx)}V${n2(y1)}H${n2(rx + fs * 0.35)}" fill="none" stroke="${cl}" stroke-width="${n2(gw * 1.3)}"/>`;
+    if (D.rowH > fs * 0.9) s += svgText(rx - fs * 0.3, (y0 + y1) / 2 + fs * 0.28, String(i + 1), { face: FACES.sans, size: fs * 0.8, weight: 700, fill: cl, anchor: 'end' });
+  }
+  const rx2 = left - fs * 3.2, y0 = D.m.t;
+  s += dimLine(rx2, y0, rx2, y0 + D.rowH, `row ${fv(D.rowH)}`, { fs, col: cl, gw, small: true });
+  if (D.R > 1 && D.rg > 0) s += dimLine(rx2, y0 + D.rowH, rx2, y0 + D.rowH + D.rg, D.rg > fs * 2.5 ? `gap ${fv(D.rg)}` : '', { fs, col: cl, gw, small: true });
+  // margins: top/bottom on the right, left/right underneath
+  const mx = right + fs * 1.4;
+  s += dimLine(mx, 0, mx, D.m.t, D.m.t > fs * 2.2 ? `T ${fv(D.m.t)}` : '', { fs, col: mg, gw, small: true });
+  s += dimLine(mx, H - D.m.b, mx, H, D.m.b > fs * 2.2 ? `B ${fv(D.m.b)}` : '', { fs, col: mg, gw, small: true });
+  if (D.m.t <= fs * 2.2) s += svgText(mx + fs * 0.5, D.m.t / 2 + fs * 0.3, `T ${fv(D.m.t)}`, { face: FACES.sans, size: fs * 0.72, weight: 600, fill: mg });
+  if (D.m.b <= fs * 2.2) s += svgText(mx + fs * 0.5, H - D.m.b / 2 + fs * 0.3, `B ${fv(D.m.b)}`, { face: FACES.sans, size: fs * 0.72, weight: 600, fill: mg });
+  const my = bottom + fs * 1.4;
+  s += dimLine(0, my, D.m.l, my, D.m.l > fs * 3 ? `L ${fv(D.m.l)}` : '', { fs, col: mg, gw, small: true });
+  s += dimLine(W - D.m.r, my, W, my, D.m.r > fs * 3 ? `R ${fv(D.m.r)}` : '', { fs, col: mg, gw, small: true });
+  if (D.m.l <= fs * 3) s += svgText(D.m.l + fs * 0.4, my + fs * 0.3, `L ${fv(D.m.l)}`, { face: FACES.sans, size: fs * 0.72, weight: 600, fill: mg });
+  if (D.m.r <= fs * 3) s += svgText(W - D.m.r - fs * 0.4, my + fs * 0.3, `R ${fv(D.m.r)}`, { face: FACES.sans, size: fs * 0.72, weight: 600, fill: mg, anchor: 'end' });
+  // live area + bleed note
+  s += svgText(W / 2, my + fs * 0.3, `live area ${fv(D.liveW)} × ${fv(D.liveH)}${D.bleed > 0 ? ` · bleed ${fv(D.bleed)}` : ''} · baseline ${fv(D.baseline)} from top margin`, { face: FACES.sans, size: fs * 0.72, weight: 600, fill: ink, anchor: 'middle' });
+  return s + '</g>';
 }
 function annotationLines(st, layout, T, D) {
   const u = st.unit, f = v => fmtU(v, u);
@@ -2501,6 +2581,13 @@ function guideScaffoldSVG(st, layout) {
   const { zones } = generateZones(st, layout);
   s += `<g id="zones" fill="none" stroke="#111" stroke-width="${f(0.75)}" stroke-dasharray="${f(3)} ${f(2)}">`;
   zones.forEach((z, i) => { const r = zoneRect(z, D); s += `<rect id="zone-${i + 1}-${z.role}" x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}"${z.rot ? ` transform="rotate(${Math.round(z.rot * 10) / 10} ${f(r.x + r.w / 2)} ${f(r.y + r.h / 2)})"` : ''}><title>${esc(ROLE_LABEL[z.role] || z.role)}</title></rect>`; });
+  s += `</g>\n`;
+  const fsz = Math.max(D.m.t, D.m.l) * 0.28;
+  s += `<g id="labels" font-family="Helvetica, Arial, sans-serif" font-size="${f(Math.min(fsz, Math.min(D.W, D.H) / 50))}" fill="${GUIDE.column}">`;
+  for (let i = 0; i < D.C; i++) s += `<text x="${f(D.m.l + i * (D.colW + D.g) + D.colW / 2)}" y="${f(D.m.t * 0.7)}" text-anchor="middle">${i + 1}</text>`;
+  for (let i = 0; i < D.R; i++) s += `<text x="${f(D.m.l * 0.5)}" y="${f(D.m.t + i * (D.rowH + D.rg) + D.rowH / 2)}" text-anchor="middle">${i + 1}</text>`;
+  s += `<text x="${f(D.W / 2)}" y="${f(D.H - D.m.b * 0.35)}" text-anchor="middle" fill="${GUIDE.margin}">margins T ${fmtU(st.m.t, u)} R ${fmtU(st.m.r, u)} B ${fmtU(st.m.b, u)} L ${fmtU(st.m.l, u)} · ${D.C} col × ${fmtU(D.colW * k, u)}, gutter ${fmtU(st.gutter, u)} · ${D.R} rows × ${fmtU(D.rowH * k, u)}, gap ${fmtU(st.rowGap, u)} (${u})</text>`;
+  zones.forEach((z, i) => { const r = zoneRect(z, D); s += `<text x="${f(r.x + D.m.l * 0.08)}" y="${f(r.y + Math.min(fsz, Math.min(D.W, D.H) / 50) * 1.2)}" fill="#111">${i + 1} ${esc(ROLE_LABEL[z.role] || z.role)} · ${fmtU(r.w * k, u)} × ${fmtU(r.h * k, u)}</text>`; });
   s += `</g>\n</svg>\n`;
   return s;
 }
@@ -2524,7 +2611,7 @@ if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf
     era: 'any', style: 'swiss', alt: false,
     locks: { size: false, margins: false, cols: false, rows: false, baseline: false, white: false }
   };
-  const view = { guides: true, baseline: false, labels: false, annot: false, specFmt: 'read' };
+  const view = { guides: true, baseline: false, labels: false, annot: true, specFmt: 'read' };
   let layout = null;
   const past = [];
   const recentArch = [], recentSig = [];
@@ -2653,7 +2740,7 @@ if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf
     $('readout').innerHTML = `<b>${esc(T.label)}</b> <span class="dim">${esc(T.years)}${T.years ? ' · ' : ''}inspiration</span> — ${esc(ARCH_SHORT[layout.arch])}<br><span class="dim">${esc(T.note)}</span>`;
   }
   function refresh(full) {
-    const svg = renderSVG(st, layout, { guides: view.guides, baseline: view.baseline, labels: view.labels });
+    const svg = renderSVG(st, layout, { guides: view.guides || view.labels, baseline: view.baseline, labels: view.labels, measure: view.labels });
     $('sheet').innerHTML = svg;
     readout(); syncGeo(); syncFilters();
     $('btn-back').disabled = $('d-back').disabled = past.length === 0;
@@ -2670,13 +2757,13 @@ if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf
     $('h-spec').textContent = view.specFmt === 'read' ? specTxt : specJson;
     $('h-save-spec').textContent = view.specFmt === 'read' ? 'Save .txt' : 'Save .json';
   }
-  function refSVG(px) { return renderSVG(st, layout, { clean: !view.annot, guides: view.annot, baseline: false, labels: view.annot, annotate: view.annot, px }); }
+  function refSVG(px) { return renderSVG(st, layout, { clean: !view.annot, guides: view.annot, baseline: false, labels: view.annot, measure: view.annot, annotate: view.annot, px }); }
   async function makePng() {
     try {
       const long = 1800;
       const D = derive(st);
-      const ratio = (D.W + (view.annot ? 0 : 0)) / D.H;
-      const px = ratio >= 1 ? long : Math.round(long * ratio);
+      const ratio = D.W / D.H;
+      const px = view.annot ? long : (ratio >= 1 ? long : Math.round(long * ratio));
       const svg = refSVG(px);
       const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
       const img = new Image();
