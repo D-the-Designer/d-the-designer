@@ -227,7 +227,6 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
         <label class="field"><span>Format</span><select id="f-sub"></select></label>
         <div class="field"><span id="shape-lbl">Shape</span><div class="chips" id="f-shape" role="group" aria-labelledby="shape-lbl"></div></div>
         <label class="field"><span>Size</span><select id="f-size"></select></label>
-        <label class="field"><span>Era</span><select id="f-era"></select></label>
         <label class="field"><span>Style</span><select id="f-style"></select></label>
         <label class="switch" title="Pick from alternative, DIY and countercultural approaches"><input type="checkbox" id="f-alt"> Alternative</label>
       </div>
@@ -1048,7 +1047,9 @@ function buildTradition(eraId, styleId, alt) {
   return T;
 }
 function resolveTradition(st, rng) {
-  let era = st.era !== 'any' ? st.era : null, style = st.style !== 'any' ? st.style : null;
+  let era = st.era && st.era !== 'any' ? st.era : null, style = st.style !== 'any' ? st.style : null;
+  // Decades are offered in the Style menu; a decade picked there acts as the era.
+  if (style && TRADS[style].kind === 'era') { era = style; style = null; }
   if (!era && !style) {
     if (st.alt) style = pick(rng, ALT_IDS);
     else { const t = pick(rng, ERA_IDS.concat(STYLE_IDS)); if (TRADS[t].kind === 'era') era = t; else style = t; }
@@ -3135,9 +3136,11 @@ if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeL
   function presetsFor() { return DOCS[st.doc].presets.map((p, i) => Object.assign({ i }, p)).filter(p => !p.s || p.s === st.sub); }
   function buildDoc() {
     $('f-doc').innerHTML = DOC_ORDER.map(k => `<option value="${k}">${DOCS[k].label}</option>`).join('');
-    $('f-era').innerHTML = '<option value="any">Any era</option>' + ERA_IDS.map(k => `<option value="${k}">${TRADS[k].label}</option>`).join('');
-    $('f-style').innerHTML = '<option value="any">Any style</option>' + STYLE_GROUPS.map(([g, label]) =>
-      `<optgroup label="${label}">` + STYLE_IDS.filter(k => styleGroupOf(k) === g).map(k => `<option value="${k}">${TRADS[k].label}${TRADS[k].alt && g !== 'alt' ? ' (alt)' : ''}</option>`).join('') + '</optgroup>').join('');
+    const groups = STYLE_GROUPS.map(([g, label]) =>
+      `<optgroup label="${label}">` + STYLE_IDS.filter(k => styleGroupOf(k) === g).map(k => `<option value="${k}">${TRADS[k].label}${TRADS[k].alt && g !== 'alt' ? ' (alt)' : ''}</option>`).join('') + '</optgroup>');
+    const decades = '<optgroup label="Decades">' + ERA_IDS.map(k => `<option value="${k}">${TRADS[k].label}</option>`).join('') + '</optgroup>';
+    groups.splice(1, 0, decades);
+    $('f-style').innerHTML = '<option value="any">Any style</option>' + groups.join('');
     const fams = [['all', 'All'], ['square', 'Square'], ['portrait', 'Portrait'], ['tall', 'Tall'], ['landscape', 'Landscape'], ['wide', 'Wide']];
     $('f-shape').innerHTML = fams.map(([k, l]) => `<button type="button" class="chip" data-fam="${k}" aria-pressed="false">${l}</button>`).join('');
   }
@@ -3174,7 +3177,7 @@ if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeL
     return pref ? 'p:' + pref.i : 'custom';
   }
   function syncFilters() {
-    $('f-doc').value = st.doc; $('f-sub').value = st.sub; $('f-era').value = st.era; $('f-style').value = st.style; $('f-alt').checked = st.alt;
+    $('f-doc').value = st.doc; $('f-sub').value = st.sub; $('f-style').value = st.style; $('f-alt').checked = st.alt;
     document.querySelectorAll('#f-shape .chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.fam === st.family)));
     const T = layout ? buildTradition(layout.era, layout.style, layout.alt) : null;
     $('filter-sum').textContent = `${DOCS[st.doc].label} · ${fmtU(st.w, st.unit)} × ${fmtU(st.h, st.unit)} ${st.unit}${T ? ' · ' + T.label : ''}`;
@@ -3265,10 +3268,9 @@ if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeL
     const sub = (DOCS[st.doc].subs.find(x => x[0] === st.sub) || [])[1];
     const f = [`${DOCS[st.doc].label}${sub ? ' · ' + sub : ''}`, `${fmtU(st.w, st.unit)} × ${fmtU(st.h, st.unit)} ${st.unit}`];
     const chips = f.map(t => `<span class="fact">${esc(t)}</span>`);
-    chips.push(`<span class="fact${st.era !== 'any' ? ' on' : ''}">${st.era !== 'any' ? esc(TRADS[st.era].label) : 'Any era'}</span>`);
     chips.push(`<span class="fact${st.style !== 'any' ? ' on' : ''}">${st.style !== 'any' ? esc(TRADS[st.style].label) : 'Any style'}</span>`);
     if (st.alt) chips.push('<span class="fact on">Alternative</span>');
-    if (st.era === 'any' && st.style === 'any') chips.push(`<span class="fact">Showing ${esc(T.label)}</span>`);
+    if (st.style === 'any') chips.push(`<span class="fact">Showing ${esc(T.label)}</span>`);
     $('facts').innerHTML = chips.join('');
     if (document.activeElement !== $('q-white')) $('q-white').value = Math.round(st.white * 100);
     $('q-white-v').textContent = Math.round(st.white * 100) + '%';
@@ -3591,7 +3593,6 @@ if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeL
       applyPreset(e.target.value);
       next();
     };
-    $('f-era').onchange = e => { st.era = e.target.value; next(); };
     $('f-style').onchange = e => { st.style = e.target.value; next(); };
     $('f-alt').onchange = e => { st.alt = e.target.checked; next(); };
     for (const [id, p] of GEO) $(id).addEventListener('change', () => onGeoInput(id, p));
