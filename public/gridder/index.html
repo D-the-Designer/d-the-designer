@@ -109,7 +109,19 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 5px; border-radius
 
 /* panel */
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); min-width: 0; }
-.tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line); }
+.tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; border-bottom: 1px solid var(--line); }
+.sheet-wrap.editing { cursor: default; touch-action: none; }
+.sheet-wrap.editing svg { filter: none; }
+.guard { position: absolute; top: 12px; left: 12px; right: 12px; z-index: 5; box-shadow: 0 4px 14px rgba(0,0,0,.3); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--surface); color: var(--ink); border-radius: 4px; padding: 8px 10px; font-size: 13px; }
+.guard b { margin-right: auto; }
+.edit-on { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.palette { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+.palette .btn { justify-content: center; font-size: 12px; padding: 6px 8px; }
+.sel-h { font-family: var(--display); font-weight: 800; font-size: 14px; }
+.nudge { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.nudge .btn { justify-content: center; padding: 6px 4px; font-size: 12px; }
+.btn.danger { color: var(--danger); }
+.tick { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; cursor: pointer; }
 .tab { border: 0; background: transparent; padding: 12px; cursor: pointer; font-family: var(--display); font-stretch: 100%; font-weight: 700; font-size: 14px; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
 .pane { padding: 6px 16px 18px; }
@@ -163,7 +175,7 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
   .filter-grid { padding: 0 12px 12px; }
   .filter-grid .field { flex: 1 1 140px; }
   .work { grid-template-columns: minmax(0,1fr); }
-  .stage { position: static; height: auto; padding: 14px; }
+  .stage { position: relative; height: auto; padding: 14px; }
   .sheet-wrap { height: 58vh; }
   .app { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); }
   .dock { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 10px); background: var(--surface); border-top: 1px solid var(--line); z-index: 20; }
@@ -203,6 +215,12 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
 
   <main class="work">
     <section class="stage" aria-label="Layout preview">
+      <div class="guard" id="guard" hidden>
+        <b>This direction has your edits.</b>
+        <button class="btn" type="button" id="g-keep">Keep edits, new geometry</button>
+        <button class="btn" type="button" id="g-fresh">New direction</button>
+        <button class="btn" type="button" id="g-cancel">Cancel</button>
+      </div>
       <div class="sheet-wrap" id="sheet" draggable="true" title="Drag to hand off the layout specification"></div>
       <div class="readout">
         <div class="what" id="readout"></div>
@@ -222,6 +240,7 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
     <aside class="panel" id="panel">
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" id="tab-geo" aria-selected="true" aria-controls="pane-geo" type="button">Geometry</button>
+        <button class="tab" role="tab" id="tab-edit" aria-selected="false" aria-controls="pane-edit" type="button">Edit</button>
         <button class="tab" role="tab" id="tab-hand" aria-selected="false" aria-controls="pane-hand" type="button">Handoff</button>
       </div>
 
@@ -278,6 +297,80 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
           <label class="num"><span>Distribution</span><select id="g-dist"><option value="none">As composed</option><option value="balanced">Balanced top and bottom</option><option value="top">Space at top</option><option value="bottom">Space at bottom</option></select></label>
         </div>
         <p class="warn" id="geo-warn" hidden>The margins and gutters leave no room for the columns or rows. Reduce them, or use fewer columns or rows.</p>
+      </div>
+
+      <div class="pane" id="pane-edit" role="tabpanel" aria-labelledby="tab-edit" hidden>
+        <div class="grp">
+          <div class="edit-on">
+            <label class="switch"><input type="checkbox" id="e-on"> Edit on the grid</label>
+            <div class="btns">
+              <button class="btn" id="e-undo" type="button" disabled title="Undo (Ctrl or ⌘ Z)">Undo</button>
+              <button class="btn" id="e-redo" type="button" disabled title="Redo (Shift Ctrl or ⌘ Z)">Redo</button>
+            </div>
+          </div>
+          <p class="hint">Click a zone in the preview to select it. Drag to move it, drag a handle to resize it. Everything snaps to whole columns and rows. On a keyboard, arrows move the selection and Shift with arrows resizes it.</p>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3>Add to the page</h3></div>
+          <div class="palette" id="e-palette">
+            <button class="btn" type="button" data-add="image">Image</button>
+            <button class="btn" type="button" data-add="head">Headline</button>
+            <button class="btn" type="button" data-add="body">Body copy</button>
+            <button class="btn" type="button" data-add="deck">Pull quote</button>
+            <button class="btn" type="button" data-add="caption">Caption</button>
+            <button class="btn" type="button" data-add="cta">Button</button>
+            <button class="btn" type="button" data-add="logo">Logo</button>
+            <button class="btn" type="button" data-add="card">Card</button>
+            <button class="btn" type="button" data-add="list">List</button>
+            <button class="btn" type="button" data-add="nav">Nav bar</button>
+            <button class="btn" type="button" data-add="folio">Folio</button>
+            <button class="btn" type="button" data-add="marker">Section marker</button>
+            <button class="btn" type="button" data-add="arrow">Arrow</button>
+            <button class="btn" type="button" data-add="legend">Legend</button>
+            <button class="btn" type="button" data-add="tabbar">Tab bar</button>
+            <button class="btn" type="button" data-add="shape">Accent shape</button>
+          </div>
+        </div>
+        <div class="grp" id="e-sel">
+          <div class="grp-h"><h3 class="sel-h" id="e-sel-h">Nothing selected</h3><span class="kind" id="e-sel-layer"></span></div>
+          <div id="e-sel-body">
+            <div class="row">
+              <label class="num"><span>First column</span><input type="number" id="e-c0" min="1" step="1"></label>
+              <label class="num"><span>Columns</span><input type="number" id="e-cs" min="1" step="1"></label>
+              <label class="num"><span>First row</span><input type="number" id="e-r0" min="1" step="1"></label>
+              <label class="num"><span>Rows</span><input type="number" id="e-rs" min="1" step="1"></label>
+            </div>
+            <div class="nudge" role="group" aria-label="Move and resize by one module">
+              <button class="btn" type="button" data-mv="-1,0" title="Move left">← Move</button>
+              <button class="btn" type="button" data-mv="1,0" title="Move right">Move →</button>
+              <button class="btn" type="button" data-mv="0,-1" title="Move up">↑ Move</button>
+              <button class="btn" type="button" data-mv="0,1" title="Move down">Move ↓</button>
+              <button class="btn" type="button" data-sz="-1,0" title="One column narrower">Narrower</button>
+              <button class="btn" type="button" data-sz="1,0" title="One column wider">Wider</button>
+              <button class="btn" type="button" data-sz="0,-1" title="One row shorter">Shorter</button>
+              <button class="btn" type="button" data-sz="0,1" title="One row taller">Taller</button>
+            </div>
+            <div class="nudge" role="group" aria-label="Layer order">
+              <button class="btn" type="button" data-ly="back" title="Send to the back">To back</button>
+              <button class="btn" type="button" data-ly="down" title="Send backward one layer">Backward</button>
+              <button class="btn" type="button" data-ly="up" title="Bring forward one layer">Forward</button>
+              <button class="btn" type="button" data-ly="front" title="Bring to the front">To front</button>
+            </div>
+            <div class="btns">
+              <label class="tick"><input type="checkbox" id="e-bleed"> Bleed off the page where it touches an edge</label>
+              <label class="tick" id="e-wrap-l"><input type="checkbox" id="e-wrap"> Text flows around images</label>
+            </div>
+            <div class="btns">
+              <button class="btn" id="e-straight" type="button">Straighten and snap</button>
+              <button class="btn" id="e-dup" type="button">Duplicate</button>
+              <button class="btn danger" id="e-del" type="button">Delete</button>
+            </div>
+          </div>
+        </div>
+        <div class="grp">
+          <button class="btn" id="e-revert" type="button" disabled>Revert to the generated layout</button>
+          <p class="hint">Edits stay with this direction while you change geometry. Next direction asks before replacing them, and Back returns to them.</p>
+        </div>
       </div>
 
       <div class="pane" id="pane-hand" role="tabpanel" aria-labelledby="tab-hand" hidden>
@@ -1397,9 +1490,56 @@ function chooseArch(st, T, rng, recent) {
 function generateZones(st, layout) {
   const T = buildTradition(layout.era, layout.style, layout.alt);
   const D = derive(st);
+  if (layout.zones) return { zones: frozenZones(st, layout, D), T, D };
+  return { zones: buildZones(st, layout, T, D), T, D };
+}
+/* Hand-edited layouts: zones are stored as data. Order in the array is the stacking order. */
+function frozenZones(st, layout, D) {
+  const zones = JSON.parse(JSON.stringify(layout.zones));
+  const sx = D.C / (layout.zC || D.C), sy = D.R / (layout.zR || D.R);
+  zones.forEach((z, i) => {
+    z.stack = i + 1; z.layerGroup = layerGroupOf(z);
+    if (z.edge) return;
+    if (sx !== 1) { const a = Math.round(z.c[0] * sx), b = Math.round((z.c[0] + z.c[1]) * sx); z.c = [a, Math.max(1, b - a)]; }
+    if (sy !== 1) { const a = Math.round(z.r[0] * sy), b = Math.round((z.r[0] + z.r[1]) * sy); z.r = [a, Math.max(1, b - a)]; }
+    z.c[0] = clamp(z.c[0], 0, D.C - 1); z.c[1] = clamp(z.c[1], 1, D.C - z.c[0]);
+    z.r[0] = clamp(z.r[0], 0, D.R - 1); z.r[1] = clamp(z.r[1], 1, D.R - z.r[0]);
+    // A bleed side only applies while the zone touches that edge of the grid.
+    if (z.bleed) z.bleed = z.bleed.split('').filter(c => (c === 'l' && z.c[0] === 0) || (c === 'r' && z.c[0] + z.c[1] === D.C) || (c === 't' && z.r[0] === 0) || (c === 'b' && z.r[0] + z.r[1] === D.R)).join('');
+    if (z.role === 'body' && z.wrap == null) z.wrap = true;
+  });
+  return zones;
+}
+function freezeLayout(st, layout) {
+  if (layout.zones) return layout;
+  const D = derive(st);
+  const zones = generateZones(st, layout).zones.map((z, i) => { const c = Object.assign({}, z); delete c.stack; delete c.layerGroup; c.uid = 'z' + (i + 1); return c; });
+  return Object.assign({}, layout, { zones, zC: D.C, zR: D.R, edited: true, nextUid: zones.length + 1 });
+}
+const ADD_DEFAULTS = {
+  image: [0.5, 0.33], body: [0.5, 0.33], head: [0.75, 0.15], deck: [0.34, 0.2], caption: [0.34, 0.08], cta: [0.25, 0.08], button: [0.25, 0.08],
+  logo: [0.22, 0.08], nav: [1, 0.08], folio: [1, 0.08], marker: [0.08, 0.08], arrow: [0.17, 0.08], legend: [0.25, 0.2], list: [0.5, 0.33], card: [0.34, 0.33], tabbar: [1, 0.08], shape: [0.25, 0.2]
+};
+function addZone(st, layout, role) {
+  const L = freezeLayout(st, layout), D = derive(st), T = buildTradition(L.era, L.style, L.alt);
+  const [fc, fr] = ADD_DEFAULTS[role] || [0.4, 0.2];
+  const cs = clamp(Math.round(D.C * fc), 1, D.C), rs = clamp(Math.round(D.R * fr), 1, D.R);
+  const z = Z(role, Math.floor((D.C - cs) / 2), cs, Math.floor((D.R - rs) / 2), rs, role === 'head' ? { words: 3 } : role === 'shape' ? { under: 1 } : role === 'body' ? { wrap: true } : {});
+  const uid = 'z' + (L.nextUid || L.zones.length + 1);
+  dressZone(z, T, L.seed ^ 0x5bd1e995, (L.nextUid || 1) + 50, { n: L.nextUid || 0 });
+  z.uid = uid;
+  // rescale stored grid to the current grid before adding
+  const zones = frozenZones(st, L, D).map(q => { const c = Object.assign({}, q); delete c.stack; delete c.layerGroup; return c; });
+  // images and accents go behind text; everything else on top
+  const insertAt = layerGroupOf(z) < 2 ? zones.filter(q => layerGroupOf(q) < 2).length : zones.length;
+  zones.splice(insertAt, 0, z);
+  return { layout: Object.assign({}, L, { zones, zC: D.C, zR: D.R, nextUid: (L.nextUid || zones.length) + 1 }), uid };
+}
+function buildZones(st, layout, T, D) {
   const rng = mulberry32(layout.seed);
   const ctx = { C: D.C, R: D.R, w: st.white, align: T.align, ratio: st.w / st.h, doc: st.doc, sub: st.sub, T, edges: uxEdges(st) };
   const g = makeG(ctx, rng);
+  void g;
   let zones = (A[layout.arch] || A.stack)(g);
   // clamp to grid
   zones = zones.filter(z => {
@@ -1451,15 +1591,25 @@ function generateZones(st, layout) {
     }
   }
   // assign shapes and text deterministically
-  let si = 0;
-  zones.forEach((z, i) => {
-    const zr = mulberry32(layout.seed + i * 7919);
-    z.seed = (layout.seed + i * 104729) >>> 0;
+  const siRef = { n: 0 };
+  zones.forEach((z, i) => dressZone(z, T, layout.seed, i, siRef));
+  return finishZones(zones);
+}
+function finishZones(zones) {
+  // Stacking order: base imagery, then decorative accents, then everything else; ties keep generation order.
+  zones = zones.map((z, i) => ({ z, i })).sort((a, b) => layerGroupOf(a.z) - layerGroupOf(b.z) || a.i - b.i).map(o => o.z);
+  zones.forEach((z, i) => { z.stack = i + 1; z.layerGroup = layerGroupOf(z); if (z.rot) z.rot = Math.round(z.rot * 10) / 10; if (Math.abs(z.rot || 0) < 0.05) delete z.rot; });
+  return zones;
+}
+const layerGroupOf = z => (z.role === 'image' || z.role === 'sidebar' || z.role === 'footer') ? 0 : (z.under || z.role === 'shape') ? 1 : 2;
+function dressZone(z, T, seedBase, i, siRef) {
+    const zr = mulberry32(seedBase + i * 7919);
+    z.seed = (seedBase + i * 104729) >>> 0;
     if (z.role === 'shape') {
       const kinds = { bauhaus: ['circle', 'square', 'triangle', 'bar'], memphis: ['squiggle', 'dots', 'triangle', 'circle'], destijl: ['plane', 'bars'], mid: ['circle', 'blob', 'circle'], bars: ['bar', 'bar', 'circle'], grid: ['gridlet', 'bar'],
         psych: ['psych', 'psych', 'whiplash', 'wave'], whiplash: ['whiplash'], rays: ['rays'], orbit: ['orbit', 'orbit', 'stars'], hud: ['hud', 'hud', 'gridlet'], glitch: ['glitch'], badge: ['badge'], rainbow: ['rainbow', 'rainbow', 'stars'], stars: ['stars', 'rays', 'circle'],
         bubbles: ['bubbles', 'bubbles', 'swoosh'], gvc: ['spiral', 'leafy', 'dotline', 'spiral'], blobs: ['blob2', 'blob2', 'circle', 'plant'], none: ['circle'] }[T.shapes] || ['circle', 'bar'];
-      z.shape = pick(zr, kinds); z.color = T.pal.shapes[si++ % T.pal.shapes.length];
+      z.shape = pick(zr, kinds); z.color = T.pal.shapes[(siRef ? siRef.n++ : 0) % T.pal.shapes.length];
     }
     if (z.role === 'head') {
       const n = z.words || (z.big ? 1 + Math.floor(zr() * 3) : 2 + Math.floor(zr() * 5));
@@ -1470,12 +1620,7 @@ function generateZones(st, layout) {
     if (z.role === 'deck') z.dt = applyCase(loremWords(zr, 10 + Math.floor(zr() * 8)).join(' '), 'sentence');
     if (z.role === 'masthead') { const long = LOREM.filter(w => w.length >= 5 && w.length <= 9); z.text = pick(zr, long).toUpperCase(); }
     if (z.role === 'title') z.text = applyCase(loremWords(zr, 1 + Math.floor(zr() * 2)).join(' '), 'title');
-  });
-  // Stacking order: base imagery, then decorative accents, then everything else; ties keep generation order.
-  const grp = z => (z.role === 'image' || z.role === 'sidebar' || z.role === 'footer') ? 0 : (z.under || z.role === 'shape') ? 1 : 2;
-  zones = zones.map((z, i) => ({ z, i })).sort((a, b) => grp(a.z) - grp(b.z) || a.i - b.i).map(o => o.z);
-  zones.forEach((z, i) => { z.stack = i + 1; z.layerGroup = grp(z); if (z.rot) z.rot = Math.round(z.rot * 10) / 10; if (Math.abs(z.rot || 0) < 0.05) delete z.rot; });
-  return { zones, T, D };
+    return z;
 }
 
 /* ---------- zone rectangles ---------- */
@@ -1575,7 +1720,15 @@ function bodyBlock(x, y, w, h, R, ctx, o) {
     if (paraLeft === 0) { paraLeft = 4 + Math.floor(R() * 5); continue; }
     const last = paraLeft === 1 || i === n - 1;
     const ind = dcW && i < 3 ? dcW : 0;
-    const lx = x + ind, lw = w - ind;
+    let lx = x + ind, lw = w - ind;
+    if (o.excl && o.excl.length) {
+      const yb = base0 + i * lead, top = yb - size * 0.85, bot = yb + size * 0.3;
+      let segs = [[lx, lx + lw]];
+      for (const e of o.excl) if (e.y < bot && e.y + e.h > top) segs = segs.flatMap(([a, b]) => { const ea = e.x, eb = e.x + e.w; if (eb <= a || ea >= b) return [[a, b]]; const rr = []; if (ea > a) rr.push([a, ea]); if (eb < b) rr.push([eb, b]); return rr; });
+      const best = segs.reduce((m, sg) => (!m || sg[1] - sg[0] > m[1] - m[0]) ? sg : m, null);
+      if (!best || best[1] - best[0] < size * 5) continue;
+      lx = best[0]; lw = best[1] - best[0];
+    }
     const target = last ? lw * (0.25 + 0.45 * R()) : align === 'justify' ? lw : lw * (0.84 + 0.16 * R());
     const words = [];
     for (let k = 0; k < 40; k++) {
@@ -1729,14 +1882,15 @@ function renderZone(z, r, ctx) {
       let cols = Math.max(1, Math.round(w / tw));
       if (z.c) cols = clamp(cols, 1, z.c[1]);
       if (z.edge || z.box || z.rot) cols = 1;
-      if (cols === 1) out += bodyBlock(x, y, w, h, R, ctx, { align: z.align, dropcap: T.dropcap && !z.box, snap: !(z.box || z.rot || z.dx || z.dy) });
+      const excl = ctx.zones && z.wrap ? wrapTargets(z, ctx.zones, ctx.boxes, D).map(i => { const b = ctx.boxes[i]; return { x: b.x - D.g * 0.6, y: b.y - D.rg * 0.6, w: b.w + D.g * 1.2, h: b.h + D.rg * 1.2 }; }) : null;
+      if (cols === 1) out += bodyBlock(x, y, w, h, R, ctx, { align: z.align, dropcap: T.dropcap && !z.box && !(excl && excl.length), snap: !(z.box || z.rot || z.dx || z.dy), excl });
       else {
         const per = Math.floor(z.c[1] / cols);
         for (let i = 0; i < cols; i++) {
           const span = i === cols - 1 ? z.c[1] - per * (cols - 1) : per;
           const cx = x + i * per * (D.colW + D.g);
           const cw = span * D.colW + (span - 1) * D.g;
-          out += bodyBlock(cx, y, cw, h, R, ctx, { dropcap: T.dropcap && i === 0 });
+          out += bodyBlock(cx, y, cw, h, R, ctx, { dropcap: T.dropcap && i === 0 && !(excl && excl.length), excl });
         }
       }
       break;
@@ -2259,7 +2413,7 @@ function renderSVG(st, layout, opts) {
   const S = Math.min(D.W, D.H) / 400;
   const screen = st.unit === 'px';
   const bodyPt = D.baseline / 1.35;
-  const ctx = { T, pal, S, D, screen, bodySize: bodyPt, lead: D.baseline, spread: isSpread(st) };
+  const ctx = { T, pal, S, D, screen, bodySize: bodyPt, lead: D.baseline, spread: isSpread(st), zones, boxes: zones.map(z => zoneGeom(z, D).box) };
   const showBleed = !opts.clean && D.bleed > 0;
   const bx = showBleed ? -D.bleed : 0, by = showBleed ? -D.bleed : 0;
   const vw = D.W + (showBleed ? D.bleed * 2 : 0);
@@ -2473,6 +2627,18 @@ function clipPoly(subject, clip) {
   }
   return out;
 }
+const WRAP_ROLES = new Set(['image', 'card', 'panel', 'chart', 'deck', 'legend', 'marker', 'logo', 'cta', 'button', 'list', 'stat']);
+function wrapTargets(z, zones, boxes, D) {
+  if (z.role !== 'body' || !z.wrap) return [];
+  const r = zoneRect(z, D);
+  const out = [];
+  zones.forEach((o, i) => {
+    if (o === z || !WRAP_ROLES.has(o.role)) return;
+    const b = boxes[i];
+    if (b.x < r.x + r.w && b.x + b.w > r.x && b.y < r.y + r.h && b.y + b.h > r.y) out.push(i);
+  });
+  return out;
+}
 function analyzeZones(zones, D, T, arch) {
   const geo = zones.map(z => zoneGeom(z, D));
   const warnings = [];
@@ -2526,7 +2692,9 @@ function analyzeZones(zones, D, T, arch) {
     const pct = Math.round(area / small * 100);
     let reason = null;
     const nonText = !at ? a : !bt ? b : null, text = at ? a : b;
-    if (nonText && nonText.role === 'shape') reason = 'accent shape set behind text';
+    const wrapper = a.role === 'body' && a.wrap && WRAP_ROLES.has(b.role) ? a : b.role === 'body' && b.wrap && WRAP_ROLES.has(a.role) ? b : null;
+    if (wrapper) reason = 'body text flows around it';
+    else if (nonText && nonText.role === 'shape') reason = 'accent shape set behind text';
     else if (nonText && nonText.role === 'image' && (text.onImage || nonText.scene)) reason = nonText.scene ? 'interface overlaid on the camera view' : 'text set over the image';
     else if (nonText && nonText.role === 'image' && nonText.bleed && nonText.bleed.length >= 3) reason = 'text set over a full-bleed image';
     else if (collageArch) reason = arch === 'hud' ? 'interface elements layered by design' : 'collage layering by design';
@@ -2583,6 +2751,11 @@ function zoneSpecs(zones, D, u, A2) {
     o.clearance = { basis: z.rot ? 'rotated bounding box' : 'bounds', trim: cl(g.clearTrim) };
     if (D.safe > 0) o.clearance.safeArea = cl(g.clearSafe);
     o.clearance.note = 'Distance inside each edge; negative means the object crosses it.';
+    if (z.role === 'body') {
+      const t = wrapTargets(z, zones, A2.geo.map(g3 => g3.box), D);
+      o.textFlow = z.wrap ? { wrapsAround: t.map(k => zones[k].stack), rule: t.length ? 'Lines shorten or skip to clear these zones plus one gutter, staying on the baseline grid.' : 'Wrap is on; nothing overlaps this zone.' } : { wrapsAround: [], rule: 'Text runs straight through; nothing wraps.' };
+    }
+    if (z.uid) o.uid = z.uid;
     const ws = A2.warnings.filter(w => w.zones.includes(z.stack));
     if (ws.length) o.checks = ws.map(w => ({ severity: w.severity, type: w.type, message: w.message }));
     if (z.role === 'image' || z.role === 'card' || z.role === 'panel') {
@@ -2648,12 +2821,13 @@ function specObject(st, layout) {
       'Image frames are filled (cover). Crop amounts assume the suggested source ratio.'
     ],
     whitespace: { amount: st.white, distribution: st.dist },
+    edited: !!layout.zones,
     composition: { archetype: layout.arch, label: ARCH_SHORT[layout.arch], description: ARCH_INFO[layout.arch], alignment: T.align, hierarchy: hierarchyOf(zones) },
     layering: { rule: 'Zone numbers are the stacking order: 1 is the back-most layer and higher numbers are in front.', count: zones.length,
-      pageOrnament: (T.frame !== 'none' && !['website', 'ux', 'comic'].includes(st.doc) && !(st.doc === 'ad' && st.sub === 'display')) ? { type: T.frame, sitsAbove: zones.filter(z => z.layerGroup < 2).length, note: 'The page frame ornament is not a zone; it sits above that layer and below the next.' } : null },
+      pageOrnament: (T.frame !== 'none' && !['website', 'ux', 'comic'].includes(st.doc) && !(st.doc === 'ad' && st.sub === 'display')) ? { type: T.frame, sitsAbove: (() => { const k = zones.findIndex(z => z.layerGroup === 2); return k < 0 ? zones.length : k; })(), note: 'The page frame ornament is not a zone; it sits above that layer and below the next.' } : null },
     zones: zoneSpecs(zones, D, u, AN),
     checks: AN.warnings.map(w => ({ severity: w.severity, type: w.type, zones: w.zones, edges: w.edges || null, amount: w.type === 'overlap' ? w.amount + '%' : roundU(w.amount / UNIT_PT[u], u), message: w.message })),
-    direction: directionText(st, layout, T, zones, D),
+    direction: directionText(st, layout, T, zones, D) + (layout.zones ? ' Arrangement adjusted by hand on the grid.' : ''),
     seed: layout.seed
   };
 }
@@ -2676,7 +2850,7 @@ function specReadable(spec) {
   L.push(`Baseline     ${G.baseline.increment} increment, from the top margin; first baseline at y ${G.baseline.firstBaseline}${G.baseline.rowsAlignToBaseline ? '; rows align to it' : '; row modules do not land on whole baselines'}`);
   L.push(`White space  ${Math.round(spec.whitespace.amount * 100)}%${spec.whitespace.distribution !== 'none' ? ', ' + spec.whitespace.distribution : ''}`);
   L.push('');
-  L.push(`Composition  ${spec.composition.description}`);
+  L.push(`Composition  ${spec.composition.description}${spec.edited ? ' (arranged by hand on the grid)' : ''}`);
   L.push(`Hierarchy    ${spec.composition.hierarchy.join(' → ')}`);
   L.push('');
   L.push('Layer order  ' + spec.layering.rule + (spec.layering.pageOrnament ? ` The ${spec.layering.pageOrnament.type} page frame sits above layer ${spec.layering.pageOrnament.sitsAbove}.` : ''));
@@ -2688,6 +2862,7 @@ function specReadable(spec) {
     if (z.grid) L.push(`     Grid area  ${z.grid.column.span === 1 ? 'col' : 'cols'} ${rng2(z.grid.column.start, z.grid.column.span)}, ${z.grid.row.span === 1 ? 'row' : 'rows'} ${rng2(z.grid.row.start, z.grid.row.span)} · x ${z.grid.x}, y ${z.grid.y}, ${z.grid.width} × ${z.grid.height}`);
     L.push(`     Bounds     x ${z.bounds.x}, y ${z.bounds.y}, ${z.bounds.width} × ${z.bounds.height}${z.matchesGrid ? ' (same as grid area)' : ''}`);
     if (z.boundsNote) L.push(`     Why        ${z.boundsNote}`);
+    if (z.textFlow && z.textFlow.wrapsAround.length) L.push(`     Text flow  wraps around layer${z.textFlow.wrapsAround.length > 1 ? 's' : ''} ${z.textFlow.wrapsAround.join(', ')}; ${z.textFlow.rule}`);
     if (z.rotation) {
       const R2 = z.rotation, c = R2.corners;
       L.push(`     Rotation   ${R2.degrees}° ${R2.direction} about the center of the bounds (${R2.origin.x}, ${R2.origin.y})`);
@@ -2758,7 +2933,7 @@ function guideScaffoldSVG(st, layout) {
   return s;
 }
 
-if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf, DOCS, DOC_ORDER, TRADS, ERA_IDS, STYLE_IDS, ALT_IDS, rollGeometry, derive, generateZones, renderSVG, specObject, specReadable, guideScaffoldSVG, resolveTradition, buildTradition, chooseArch, archWeights, mulberry32, toPt, fromPt, fmtU, roundU, UNIT_PT, UNIT_PREC, shapeFamily, RATIOS, ARCH_SHORT, ARCH_INFO, setMeasure: f => { measureWord = f; } };
+if (typeof module !== 'undefined') module.exports = { freezeLayout, addZone, zoneGeom, ADD_DEFAULTS, STYLE_GROUPS, styleGroupOf, DOCS, DOC_ORDER, TRADS, ERA_IDS, STYLE_IDS, ALT_IDS, rollGeometry, derive, generateZones, renderSVG, specObject, specReadable, guideScaffoldSVG, resolveTradition, buildTradition, chooseArch, archWeights, mulberry32, toPt, fromPt, fmtU, roundU, UNIT_PT, UNIT_PREC, shapeFamily, RATIOS, ARCH_SHORT, ARCH_INFO, setMeasure: f => { measureWord = f; } };
 </script>
 <script>
 /* ============ Gridder UI ============ */
@@ -2833,7 +3008,10 @@ if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf
 
   /* ---------- directions ---------- */
   function snapshot() { return JSON.stringify({ st, layout }); }
-  function next() {
+  function next(force) {
+    if (layout && layout.zones && force !== true) { $('guard').hidden = false; return; }
+    $('guard').hidden = true;
+    ed.sel = null; ed.undo.length = 0; ed.redo.length = 0;
     if (layout) { past.push(snapshot()); if (past.length > 40) past.shift(); }
     const seed = (Math.random() * 4294967296) >>> 0;
     const rng = mulberry32(seed);
@@ -2854,6 +3032,7 @@ if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf
     if (!past.length) return;
     const s = JSON.parse(past.pop());
     Object.assign(st, s.st); layout = s.layout;
+    $('guard').hidden = true; ed.sel = null; ed.undo.length = 0; ed.redo.length = 0;
     buildSub(); buildSize(); refresh(true);
   }
 
@@ -2907,13 +3086,18 @@ if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf
     $('chk').onclick = () => { $('tab-hand').click(); $('h-checks').scrollIntoView({ block: 'center' }); };
   }
   function refresh(full) {
-    const svg = renderSVG(st, layout, { guides: view.guides || view.labels, baseline: view.baseline, labels: view.labels, measure: view.labels });
-    $('sheet').innerHTML = svg;
+    drawPreview();
     readout(); syncGeo(); syncFilters();
     $('btn-back').disabled = $('d-back').disabled = past.length === 0;
     updateHandoff();
     clearTimeout(pngTimer);
     pngTimer = setTimeout(makePng, full ? 120 : 400);
+  }
+  function drawPreview() {
+    const svg = renderSVG(st, layout, { guides: view.guides || view.labels || ed.on, baseline: view.baseline, labels: view.labels, measure: view.labels });
+    $('sheet').innerHTML = svg;
+    drawSelection();
+    syncEdit();
   }
   let spec = null, specTxt = '', specJson = '';
   function updateHandoff() {
@@ -2993,6 +3177,187 @@ if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf
     }
   }
 
+  /* ---------- editing on the grid ---------- */
+  const ed = { on: false, sel: null, undo: [], redo: [], drag: null };
+  const uidOf = z => z.uid || ('z' + z.stack);
+  function currentZones() { return generateZones(st, layout).zones; }
+  function selectedZone() { return ed.sel ? currentZones().find(z => uidOf(z) === ed.sel) || null : null; }
+  function pushUndo() { ed.undo.push(JSON.stringify(layout)); if (ed.undo.length > 80) ed.undo.shift(); ed.redo.length = 0; }
+  function undo() { if (!ed.undo.length) return; ed.redo.push(JSON.stringify(layout)); layout = JSON.parse(ed.undo.pop()); if (ed.sel && !selectedZone()) ed.sel = null; refresh(false); }
+  function redo() { if (!ed.redo.length) return; ed.undo.push(JSON.stringify(layout)); layout = JSON.parse(ed.redo.pop()); if (ed.sel && !selectedZone()) ed.sel = null; refresh(false); }
+  // Bring stored zones onto the current grid and return them as editable data (array order = stacking order).
+  function editable() {
+    layout = freezeLayout(st, layout);
+    const D = derive(st);
+    const zs = generateZones(st, layout).zones.map(z => { const c = Object.assign({}, z); delete c.stack; delete c.layerGroup; return c; });
+    layout = Object.assign({}, layout, { zones: zs, zC: D.C, zR: D.R });
+    return { zs, D };
+  }
+  function mutate(fn, opts) {
+    if (!(opts && opts.noUndo)) pushUndo();
+    const { zs, D } = editable();
+    const i = zs.findIndex(z => z.uid === ed.sel);
+    fn(zs, i, D);
+    layout = Object.assign({}, layout, { zones: zs });
+    if (opts && opts.light) drawPreview(); else refresh(false);
+  }
+  const clampZone = (z, D) => { z.c[1] = clamp(z.c[1], 1, D.C); z.c[0] = clamp(z.c[0], 0, D.C - z.c[1]); z.r[1] = clamp(z.r[1], 1, D.R); z.r[0] = clamp(z.r[0], 0, D.R - z.r[1]); };
+  function moveSel(dc, dr) { mutate((zs, i, D) => { const z = zs[i]; if (!z || z.edge) return; z.c[0] += dc; z.r[0] += dr; clampZone(z, D); }); }
+  function sizeSel(dc, dr) { mutate((zs, i, D) => { const z = zs[i]; if (!z || z.edge) return; z.c[1] += dc; z.r[1] += dr; clampZone(z, D); }); }
+  function layerSel(how) {
+    mutate((zs, i) => {
+      if (i < 0) return;
+      const [z] = zs.splice(i, 1);
+      const to = how === 'front' ? zs.length : how === 'back' ? 0 : how === 'up' ? Math.min(zs.length, i + 1) : Math.max(0, i - 1);
+      zs.splice(to, 0, z);
+    });
+  }
+  function svgPoint(evt) {
+    const svg = $('sheet').querySelector('svg'); if (!svg) return null;
+    const m = svg.getScreenCTM ? svg.getScreenCTM() : null; if (!m) return null;
+    const p = svg.createSVGPoint(); p.x = evt.clientX; p.y = evt.clientY;
+    return p.matrixTransform(m.inverse());
+  }
+  function inPoly(x, y, P) { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; }
+  function hitZone(x, y) {
+    const D = derive(st), zs = currentZones();
+    for (let i = zs.length - 1; i >= 0; i--) { if (inPoly(x, y, zoneGeom(zs[i], D).poly)) return zs[i]; }
+    return null;
+  }
+  function drawSelection() {
+    if (!ed.on) return;
+    const z = selectedZone(); const svg = $('sheet').querySelector('svg');
+    if (!z || !svg) return;
+    const D = derive(st), g = zoneGeom(z, D), r = g.r;
+    const m = svg.getScreenCTM ? svg.getScreenCTM() : null; const k = m && m.a ? 1 / m.a : Math.min(D.W, D.H) / 400;
+    const hs = 11 * k, sw = 2 * k;
+    let o = `<g id="edit-overlay">`;
+    if (z.rot) o += `<polygon points="${g.poly.map(p => p[0] + ',' + p[1]).join(' ')}" fill="none" stroke="#F2C230" stroke-width="${sw}" stroke-dasharray="${4 * k} ${3 * k}"/>`;
+    o += `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="rgba(242,194,48,0.12)" stroke="#F2C230" stroke-width="${sw * 1.4}"/>`;
+    if (!z.edge) {
+      const H = { nw: [r.x, r.y], n: [r.x + r.w / 2, r.y], ne: [r.x + r.w, r.y], e: [r.x + r.w, r.y + r.h / 2], se: [r.x + r.w, r.y + r.h], s: [r.x + r.w / 2, r.y + r.h], sw: [r.x, r.y + r.h], w: [r.x, r.y + r.h / 2] };
+      const cur = { nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize', n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize' };
+      for (const h in H) o += `<rect data-h="${h}" x="${H[h][0] - hs / 2}" y="${H[h][1] - hs / 2}" width="${hs}" height="${hs}" fill="#ffffff" stroke="#1B1A10" stroke-width="${sw * 0.8}" style="cursor:${cur[h]}"/>`;
+    }
+    o += '</g>';
+    svg.insertAdjacentHTML('beforeend', o);
+  }
+  function syncEdit() {
+    $('e-on').checked = ed.on;
+    $('sheet').classList.toggle('editing', ed.on);
+    $('sheet').draggable = !ed.on;
+    $('e-undo').disabled = !ed.undo.length; $('e-redo').disabled = !ed.redo.length;
+    $('e-revert').disabled = !(layout && layout.zones);
+    const z = selectedZone();
+    $('e-sel-body').hidden = !z;
+    if (!z) { $('e-sel-h').textContent = ed.on ? 'Select a zone in the preview' : 'Turn on editing to select zones'; $('e-sel-layer').textContent = ''; return; }
+    const n = currentZones().length;
+    $('e-sel-h').textContent = (ROLE_LABEL[z.role] || z.role) + (z.edge ? ' (anchored to the screen edge)' : '');
+    $('e-sel-layer').textContent = `Layer ${z.stack} of ${n}`;
+    const act = document.activeElement;
+    if (!z.edge) { const v = { 'e-c0': z.c[0] + 1, 'e-cs': z.c[1], 'e-r0': z.r[0] + 1, 'e-rs': z.r[1] }; for (const id in v) if (act !== $(id)) $(id).value = v[id]; }
+    ['e-c0', 'e-cs', 'e-r0', 'e-rs'].forEach(id => { $(id).disabled = !!z.edge; });
+    document.querySelectorAll('[data-mv],[data-sz]').forEach(b => { b.disabled = !!z.edge; });
+    $('e-bleed').checked = !!(z.bleed && z.bleed.length); $('e-bleed').disabled = !!z.edge;
+    $('e-wrap-l').hidden = z.role !== 'body'; $('e-wrap').checked = z.wrap !== false && (z.wrap || !!layout.zones);
+    $('e-straight').disabled = !(z.rot || z.dx || z.dy || z.grow);
+  }
+  function setEditing(on) { ed.on = on; if (!on) ed.sel = null; drawPreview(); }
+  function wireEditor() {
+    $('e-on').onchange = e => setEditing(e.target.checked);
+    $('e-undo').onclick = undo; $('e-redo').onclick = redo;
+    $('e-palette').onclick = e => {
+      const b = e.target.closest('[data-add]'); if (!b) return;
+      pushUndo();
+      const res = addZone(st, layout, b.dataset.add);
+      layout = res.layout; ed.sel = res.uid; ed.on = true;
+      refresh(false);
+      toast(`${ROLE_LABEL[b.dataset.add] || b.dataset.add} added. Drag it into place.`);
+    };
+    document.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { const [x, y] = b.dataset.mv.split(',').map(Number); moveSel(x, y); });
+    document.querySelectorAll('[data-sz]').forEach(b => b.onclick = () => { const [x, y] = b.dataset.sz.split(',').map(Number); sizeSel(x, y); });
+    document.querySelectorAll('[data-ly]').forEach(b => b.onclick = () => layerSel(b.dataset.ly));
+    const setSpan = () => mutate((zs, i, D) => {
+      const z = zs[i]; if (!z || z.edge) return;
+      const c0 = parseInt($('e-c0').value, 10) - 1, cs = parseInt($('e-cs').value, 10), r0 = parseInt($('e-r0').value, 10) - 1, rs = parseInt($('e-rs').value, 10);
+      if ([c0, cs, r0, rs].some(v => !isFinite(v))) return;
+      z.c = [c0, cs]; z.r = [r0, rs]; clampZone(z, D);
+    });
+    ['e-c0', 'e-cs', 'e-r0', 'e-rs'].forEach(id => $(id).addEventListener('change', setSpan));
+    $('e-bleed').onchange = e => mutate((zs, i, D) => {
+      const z = zs[i]; if (!z) return;
+      if (!e.target.checked) { z.bleed = ''; return; }
+      let b = ''; if (z.r[0] === 0) b += 't'; if (z.c[0] + z.c[1] === D.C) b += 'r'; if (z.r[0] + z.r[1] === D.R) b += 'b'; if (z.c[0] === 0) b += 'l';
+      z.bleed = b;
+      if (!b) toast('Move it to an edge of the grid first; it bleeds on the sides it touches.');
+    });
+    $('e-wrap').onchange = e => mutate((zs, i) => { if (zs[i]) zs[i].wrap = e.target.checked; });
+    $('e-straight').onclick = () => mutate((zs, i) => { const z = zs[i]; if (z) { delete z.rot; delete z.dx; delete z.dy; delete z.grow; } });
+    $('e-dup').onclick = () => mutate((zs, i, D) => {
+      const z = zs[i]; if (!z || z.edge) return;
+      const c = JSON.parse(JSON.stringify(z)); c.uid = 'z' + (layout.nextUid || zs.length + 1); layout.nextUid = (layout.nextUid || zs.length + 1) + 1;
+      c.seed = (c.seed + 7919) >>> 0;
+      if (c.c[0] + c.c[1] < D.C) c.c[0] += 1; else if (c.r[0] + c.r[1] < D.R) c.r[0] += 1;
+      zs.splice(i + 1, 0, c); ed.sel = c.uid;
+    });
+    $('e-del').onclick = () => mutate((zs, i) => { if (i >= 0) { zs.splice(i, 1); ed.sel = null; } });
+    $('e-revert').onclick = () => {
+      pushUndo();
+      const L = Object.assign({}, layout); delete L.zones; delete L.zC; delete L.zR; delete L.edited; delete L.nextUid;
+      layout = L; ed.sel = null; refresh(false); toast('Back to the generated layout. Undo restores your edits.');
+    };
+    $('g-keep').onclick = () => {
+      $('guard').hidden = true;
+      past.push(snapshot()); if (past.length > 40) past.shift();
+      const rng = mulberry32((Math.random() * 4294967296) >>> 0);
+      rollGeometry(st, buildTradition(layout.era, layout.style, layout.alt), rng);
+      refresh(true);
+    };
+    $('g-fresh').onclick = () => next(true);
+    $('g-cancel').onclick = () => { $('guard').hidden = true; };
+
+    // pointer editing on the preview
+    const sheet = $('sheet');
+    sheet.addEventListener('pointerdown', e => {
+      if (!ed.on || e.button > 0) return;
+      const p = svgPoint(e); if (!p) return;
+      const h = e.target && e.target.getAttribute && e.target.getAttribute('data-h');
+      let z = h ? selectedZone() : hitZone(p.x, p.y);
+      if (!z) { ed.sel = null; drawPreview(); return; }
+      ed.sel = uidOf(z);
+      e.preventDefault();
+      if (z.edge) { drawPreview(); return; }
+      ed.drag = { mode: h || 'move', x0: p.x, y0: p.y, c: z.c.slice(), r: z.r.slice(), before: JSON.stringify(layout), changed: false, pid: e.pointerId };
+      try { sheet.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      drawPreview();
+    });
+    sheet.addEventListener('pointermove', e => {
+      const d = ed.drag; if (!d || e.pointerId !== d.pid) return;
+      const p = svgPoint(e); if (!p) return;
+      const D = derive(st);
+      const dc = Math.round((p.x - d.x0) / (D.colW + D.g)), dr = Math.round((p.y - d.y0) / (D.rowH + D.rg));
+      let c0 = d.c[0], cs = d.c[1], r0 = d.r[0], rs = d.r[1];
+      const m = d.mode;
+      if (m === 'move') { c0 += dc; r0 += dr; }
+      if (m.includes('e')) cs = d.c[1] + dc;
+      if (m.includes('s')) rs = d.r[1] + dr;
+      if (m.includes('w')) { c0 = clamp(d.c[0] + dc, 0, d.c[0] + d.c[1] - 1); cs = d.c[0] + d.c[1] - c0; }
+      if (m.includes('n')) { r0 = clamp(d.r[0] + dr, 0, d.r[0] + d.r[1] - 1); rs = d.r[0] + d.r[1] - r0; }
+      const key = [c0, cs, r0, rs].join();
+      if (key === d.last) return;
+      d.last = key;
+      mutate((zs, i, D2) => { const z = zs[i]; if (!z) return; z.c = [c0, cs]; z.r = [r0, rs]; clampZone(z, D2); }, { noUndo: true, light: true });
+      d.changed = true;
+    });
+    const end = e => {
+      const d = ed.drag; if (!d || (e && e.pointerId !== d.pid)) return;
+      ed.drag = null;
+      if (d.changed) { ed.undo.push(d.before); if (ed.undo.length > 80) ed.undo.shift(); ed.redo.length = 0; refresh(false); }
+    };
+    sheet.addEventListener('pointerup', end);
+    sheet.addEventListener('pointercancel', end);
+  }
+
   /* ---------- events ---------- */
   function wire() {
     $('btn-next').onclick = next; $('d-next').onclick = next;
@@ -3041,6 +3406,8 @@ if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf
     $('v-labels').onchange = e => { view.labels = e.target.checked; refresh(false); };
     $('tab-geo').onclick = () => selectTab('geo');
     $('tab-hand').onclick = () => selectTab('hand');
+    $('tab-edit').onclick = () => selectTab('edit');
+    wireEditor();
     $('h-annot').onchange = e => { view.annot = e.target.checked; makePng(); };
     $('s-read').onclick = () => { view.specFmt = 'read'; $('s-read').setAttribute('aria-pressed', 'true'); $('s-json').setAttribute('aria-pressed', 'false'); updateHandoff(); };
     $('s-json').onclick = () => { view.specFmt = 'json'; $('s-json').setAttribute('aria-pressed', 'true'); $('s-read').setAttribute('aria-pressed', 'false'); updateHandoff(); };
@@ -3066,7 +3433,15 @@ if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf
     $('h-spec').addEventListener('dragstart', e => { e.dataTransfer.effectAllowed = 'copy'; e.dataTransfer.setData('text/plain', view.specFmt === 'read' ? specTxt : specJson); });
     document.addEventListener('keydown', e => {
       const tag = (e.target.tagName || '').toLowerCase();
-      if (['input', 'select', 'textarea'].includes(tag) || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (['input', 'select', 'textarea'].includes(tag)) return;
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'z' || e.key === 'Z') && (ed.undo.length || ed.redo.length)) { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (ed.on && ed.sel) {
+        const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+        if (arrows[e.key]) { e.preventDefault(); const [x, y] = arrows[e.key]; if (e.shiftKey) sizeSel(x, y); else moveSel(x, y); return; }
+        if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); $('e-del').click(); return; }
+        if (e.key === 'Escape') { ed.sel = null; drawPreview(); return; }
+      }
       if (e.key === 'n' || e.key === 'N' || e.key === 'ArrowRight' || (e.key === ' ' && tag !== 'button')) { e.preventDefault(); next(); }
       else if (e.key === 'b' || e.key === 'B' || e.key === 'ArrowLeft') { e.preventDefault(); back(); }
     });
@@ -3076,10 +3451,9 @@ if (typeof module !== 'undefined') module.exports = { STYLE_GROUPS, styleGroupOf
     syncOpen();
   }
   function selectTab(which) {
-    const geo = which === 'geo';
-    $('tab-geo').setAttribute('aria-selected', String(geo)); $('tab-hand').setAttribute('aria-selected', String(!geo));
-    $('pane-geo').hidden = !geo; $('pane-hand').hidden = geo;
-    if (!geo && !pngBlob) makePng();
+    for (const t of ['geo', 'edit', 'hand']) { $('tab-' + t).setAttribute('aria-selected', String(t === which)); $('pane-' + t).hidden = t !== which; }
+    if (which === 'edit' && !ed.on) setEditing(true);
+    if (which === 'hand' && !pngBlob) makePng();
   }
 
   buildDoc(); buildSub();
