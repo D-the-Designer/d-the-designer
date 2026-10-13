@@ -52,6 +52,7 @@
   --mat-ink: #D3E3DC; --mat-muted: #8FAAA0; --danger: #F2B8B5; color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.45; }
 .app { max-width: 1680px; margin: 0 auto; padding-inline: 16px; padding-block: 0 24px; }
 button, select, input { font: inherit; color: inherit; }
@@ -95,8 +96,17 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 5px; border-radius
     linear-gradient(var(--mat-line-strong) 1px, transparent 1px), linear-gradient(90deg, var(--mat-line-strong) 1px, transparent 1px),
     linear-gradient(var(--mat-line) 1px, transparent 1px), linear-gradient(90deg, var(--mat-line) 1px, transparent 1px);
   background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
-  border-radius: var(--r); padding: 20px; display: grid; grid-template-rows: minmax(0,1fr) auto; gap: 14px;
+  border-radius: var(--r); padding: 20px; display: grid; grid-template-rows: auto minmax(0,1fr) auto; row-gap: 0;
   height: clamp(460px, calc(100vh - 140px), 1180px); position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); color: var(--mat-ink); min-width: 0; }
+.bpbar { grid-row: 1; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 12px; }
+.bpbar .chips { background: rgba(0,0,0,.22); border-color: var(--mat-line-strong); }
+.bpbar .chip { color: var(--mat-ink); }
+.bpbar .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: none; }
+.bp-note { font-size: 12px; color: var(--mat-muted); }
+.readout { grid-row: 3; margin-top: 14px; }
+.sheet-wrap { grid-row: 2; }
+.sheet-wrap.tall { overflow-y: auto; align-items: flex-start; overscroll-behavior: contain; padding-bottom: 8px; }
+.sheet-wrap.tall svg { height: auto; flex: none; }
 .sheet-wrap { min-height: 0; min-width: 0; display: flex; align-items: center; justify-content: center; cursor: grab; }
 .sheet-wrap:active { cursor: grabbing; }
 .sheet-wrap svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 6px 18px rgba(0,0,0,.35)); }
@@ -199,6 +209,9 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
   .filters > summary .sum { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   .filter-grid { padding: 0 12px 12px; }
   .filter-grid .field { flex: 1 1 140px; }
+  .filter-grid .field select { width: 100%; }
+  .bpbar { gap: 6px 8px; }
+  .bp-note { flex-basis: 100%; }
   .work { grid-template-columns: minmax(0,1fr); }
   .stage { position: relative; height: auto; padding: 14px; }
   .sheet-wrap { height: 58vh; }
@@ -227,6 +240,7 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
         <label class="field"><span>Format</span><select id="f-sub"></select></label>
         <div class="field"><span id="shape-lbl">Shape</span><div class="chips" id="f-shape" role="group" aria-labelledby="shape-lbl"></div></div>
         <label class="field"><span>Size</span><select id="f-size"></select></label>
+        <label class="field" id="f-sys-l" hidden title="Framework or platform guidelines that set breakpoints, columns, margins and gutters"><span>System</span><select id="f-sys"></select></label>
         <label class="field"><span>Style</span><select id="f-style"></select></label>
         <label class="switch" title="Pick from alternative, DIY and countercultural approaches"><input type="checkbox" id="f-alt"> Alternative</label>
       </div>
@@ -244,6 +258,11 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
         <button class="btn" type="button" id="g-keep">Keep edits, new geometry</button>
         <button class="btn" type="button" id="g-fresh">New direction</button>
         <button class="btn" type="button" id="g-cancel">Cancel</button>
+      </div>
+      <div class="bpbar" id="bpbar" hidden>
+        <div class="chips" id="bp-chips" role="group" aria-label="Breakpoint"></div>
+        <div class="chips" id="pg-chips" role="group" aria-label="Page length"><button type="button" class="chip" data-pg="screen" aria-pressed="false" title="Only what shows before scrolling">First screen</button><button type="button" class="chip" data-pg="full" aria-pressed="false" title="The whole scrolling page, with fold lines">Full page</button></div>
+        <span class="bp-note" id="bp-note"></span>
       </div>
       <div class="sheet-wrap" id="sheet" draggable="true" title="Drag to hand off the layout specification"></div>
       <div class="readout">
@@ -372,6 +391,16 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
             <button class="btn" type="button" data-add="legend">Legend</button>
             <button class="btn" type="button" data-add="tabbar">Tab bar</button>
             <button class="btn" type="button" data-add="shape">Accent shape</button>
+            <button class="btn scr" type="button" data-add="chips" hidden>Chips</button>
+            <button class="btn scr" type="button" data-add="input" hidden>Text field</button>
+            <button class="btn scr" type="button" data-add="feature" hidden>Feature</button>
+            <button class="btn scr" type="button" data-add="quote" hidden>Testimonial</button>
+            <button class="btn scr" type="button" data-add="price" hidden>Plan card</button>
+            <button class="btn scr" type="button" data-add="faq" hidden>FAQ item</button>
+            <button class="btn scr" type="button" data-add="banner" hidden>CTA band</button>
+            <button class="btn scr" type="button" data-add="toc" hidden>Contents</button>
+            <button class="btn scr" type="button" data-add="table" hidden>Table</button>
+            <button class="btn scr" type="button" data-add="code" hidden>Code</button>
           </div>
         </div>
         <div class="grp" id="e-sel">
@@ -448,6 +477,15 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
             <button class="btn save" id="h-save-spec" type="button">Save file</button>
           </div>
         </div>
+        <div class="grp" id="h-css-grp" hidden>
+          <div class="grp-h"><h3>Responsive CSS</h3><span class="kind" id="h-css-kind">CSS grid</span></div>
+          <p class="hint">This direction at every breakpoint as a mobile-first CSS grid: columns, gaps, container and padding per media query, each zone placed by column and row, hidden where it drops out, and full-bleed break-outs. Framework class hints follow. Breakpoints you edited by hand use your edits.</p>
+          <details class="more"><summary>Preview the CSS</summary><pre class="spec" id="h-css" tabindex="0"></pre></details>
+          <div class="btns">
+            <button class="btn btn-primary" id="h-copy-css" type="button">Copy CSS</button>
+            <button class="btn save" id="h-save-css" type="button">Save CSS</button>
+          </div>
+        </div>
         <div class="grp">
           <div class="grp-h"><h3>Claude Design</h3><span class="kind">Design brief</span></div>
           <p class="hint">A ready-to-paste brief for building this direction in Claude Design: exact canvas, grid, layers back to front in pixels, type, colors and checks. Paste it into a Claude chat, ask for a Claude Design, and attach the reference image above.</p>
@@ -468,7 +506,7 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
       </div>
     </aside>
   </main>
-  <p class="foot">Gridder keeps nothing: there is no account and no saved library. Take a direction out when you like it. Era and style labels describe visual inspiration, not documented historical references. Platform sizes are common presets; confirm current specs before production.</p>
+  <p class="foot">Gridder keeps nothing: there is no account and no saved library. Take a direction out when you like it. Era and style labels describe visual inspiration, not documented historical references. Platform sizes are common presets; screen breakpoints follow Bootstrap 5.3, Tailwind CSS v4, Material 3 and Apple HIG, and system bar sizes are approximate. Confirm current specs before production.</p>
   <p class="credit">Made by <a href="https://d-the-designer.com" target="_blank" rel="noopener">D THE DESIGNER</a></p>
 </div>
 
@@ -632,7 +670,7 @@ const DOCS = {
   },
   website: {
     label: 'Website',
-    subs: [['landing', 'Landing page'], ['article', 'Article'], ['portfolio', 'Portfolio']],
+    subs: [['landing', 'Landing page'], ['article', 'Article'], ['portfolio', 'Portfolio'], ['pricing', 'Pricing'], ['product', 'Product page'], ['docs', 'Documentation'], ['app', 'Web app']],
     presets: [
       { n: 'Desktop', w: 1440, h: 900, u: 'px' },
       { n: 'Laptop', w: 1280, h: 800, u: 'px' },
@@ -640,19 +678,21 @@ const DOCS = {
       { n: 'Mobile', w: 390, h: 844, u: 'px' }
     ],
     cols: [4, 12], rows: [8, 12],
-    arch: { landing: { webLanding: 5 }, article: { webArticle: 5 }, portfolio: { webGrid: 5 } }
+    arch: { landing: { webLanding: 5 }, article: { webArticle: 5 }, portfolio: { webGrid: 5 }, pricing: { webPricing: 5 }, product: { webProduct: 5 }, docs: { webDocs: 5 }, app: { webApp: 5 } }
   },
   ux: {
     label: 'UX screen',
-    subs: [['list', 'List / feed'], ['detail', 'Detail'], ['onboarding', 'Onboarding'], ['dashboard', 'Dashboard']],
+    subs: [['list', 'List / feed'], ['detail', 'Detail'], ['onboarding', 'Onboarding'], ['dashboard', 'Dashboard'], ['settings', 'Settings'], ['form', 'Form'], ['messages', 'Messages']],
     presets: [
-      { n: 'Phone', w: 393, h: 852, u: 'px' },
-      { n: 'Small phone', w: 375, h: 667, u: 'px' },
-      { n: 'Tablet', w: 1024, h: 1366, u: 'px' },
-      { n: 'Desktop app', w: 1280, h: 800, u: 'px' }
+      { n: 'iPhone', w: 393, h: 852, u: 'px', sys: 'hig' },
+      { n: 'Android phone', w: 412, h: 915, u: 'px', sys: 'material' },
+      { n: 'Small iPhone', w: 375, h: 667, u: 'px', sys: 'hig' },
+      { n: 'iPad Pro 13 in', w: 1032, h: 1376, u: 'px', sys: 'hig' },
+      { n: 'Android tablet', w: 800, h: 1280, u: 'px', sys: 'material' },
+      { n: 'Mac app', w: 1280, h: 800, u: 'px', sys: 'hig' }
     ],
     cols: [4, 12], rows: [8, 11],
-    arch: { list: { uxList: 5 }, detail: { uxDetail: 5 }, onboarding: { uxOnboard: 5 }, dashboard: { uxDash: 5 } }
+    arch: { list: { uxList: 5 }, detail: { uxDetail: 5 }, onboarding: { uxOnboard: 5 }, dashboard: { uxDash: 5 }, settings: { uxSettings: 5 }, form: { uxForm: 5 }, messages: { uxChat: 5 } }
   },
   album: {
     label: 'Album cover',
@@ -850,11 +890,12 @@ const MORE_PRESETS = {
     { n: 'Email newsletter', w: 600, h: 1400, u: 'px' }
   ],
   ux: [
-    { n: 'Large phone', w: 430, h: 932, u: 'px' },
-    { n: 'Android phone', w: 412, h: 915, u: 'px' },
-    { n: 'Tablet landscape', w: 1366, h: 1024, u: 'px' },
-    { n: 'Small tablet', w: 744, h: 1133, u: 'px' },
-    { n: 'Large desktop app', w: 1440, h: 900, u: 'px' }
+    { n: 'iPhone Pro Max', w: 440, h: 956, u: 'px', sys: 'hig' },
+    { n: 'Compact Android', w: 360, h: 800, u: 'px', sys: 'material' },
+    { n: 'iPad landscape', w: 1194, h: 834, u: 'px', sys: 'hig' },
+    { n: 'iPad mini', w: 744, h: 1133, u: 'px', sys: 'hig' },
+    { n: 'Android foldable (open)', w: 673, h: 841, u: 'px', sys: 'material' },
+    { n: 'Large desktop app', w: 1440, h: 900, u: 'px', sys: 'material' }
   ],
   album: [
     { n: '7-inch single sleeve', w: 7.25, h: 7.25, u: 'in', b: 0.125, sa: 0.25 },
@@ -1115,7 +1156,8 @@ const TRADS = {
 const ERA_IDS = ['victorian', 'e1900', 'e1910', 'e1920', 'e1930', 'e1940', 'e1950', 'e1960', 'e1970', 'e1980', 'e1990', 'e2000'];
 const STYLE_IDS = ['bauhaus', 'swiss', 'constructivist', 'destijl', 'artnouveau', 'artdeco', 'midcentury', 'psychedelic', 'punk', 'comix', 'memphis', 'newwave', 'grunge', 'brutalist',
   'pulp', 'spaceage', 'cyberpunk', 'hud', 'illuminated', 'fantasypb', 'darkfantasy', 'jazz', 'gigposter', 'rave', 'hiphop', 'metal', 'disco',
-  'frutigeraero', 'gvc', 'corpmemphis', 'experimental', 'institutional'];
+  'frutigeraero', 'gvc', 'corpmemphis', 'experimental'];
+// 'institutional' (Institutional Futurism) is parked: defined in TRADS but not offered until it is reworked.
 const STYLE_GROUPS = [['', 'Movements and styles'], ['scifi', 'Sci-fi'], ['fantasy', 'Fantasy'], ['music', 'Music'], ['digital', 'Internet and digital aesthetics'], ['alt', 'Alternative and countercultural']];
 const styleGroupOf = k => TRADS[k].group || (TRADS[k].alt ? 'alt' : '');
 const ALT_IDS = STYLE_IDS.filter(k => TRADS[k].alt);
@@ -1158,16 +1200,215 @@ function resolveTradition(st, rng) {
 
 /* ---------- geometry ---------- */
 function isSpread(st) { return (st.doc === 'magazine' || st.doc === 'zine') && st.w / st.h > 1.25; }
-function uxEdges(st) {
-  if (st.doc !== 'ux') return { top: 0, bottom: 0 };
-  const wpx = toPt(st.w, st.unit) / 0.75;
-  const tab = st.sub === 'list' || st.sub === 'dashboard';
-  if (wpx < 600) return { top: 54, bottom: tab ? 83 : 0, kind: 'phone' };
-  if (wpx < 1100 && st.h > st.w) return { top: 24, bottom: tab ? 66 : 0, kind: 'tablet' };
-  return { top: 38, bottom: 0, kind: 'desktop' };
+/* ---------- screen systems: frameworks, breakpoints, platform chrome ----------
+   Values are px (CSS px / iOS pt / Android dp treated 1:1). Sources: Bootstrap 5.3 grid docs, Tailwind CSS v4 docs,
+   Android window size classes (Material 3), Apple Human Interface Guidelines, WCAG 2.2. Chrome sizes are approximate. */
+const SCREEN_SYS = {
+  tailwind: {
+    label: 'Tailwind CSS', short: 'Tailwind', docs: ['website'], target: 24,
+    note: 'Breakpoints sm 640, md 768, lg 1024, xl 1280, 2xl 1536 (min-width, mobile first). The container caps at the current breakpoint. Columns, gaps and padding follow common Tailwind practice (grid-cols-4/8/12, px-4 sm:px-6 lg:px-8); Tailwind itself does not prescribe a column count.',
+    bps: [
+      { id: 'base', label: 'Base', min: 0, rep: [390, 844], cols: 4, pad: 16, gutter: 16, container: 0, prefix: '' },
+      { id: 'sm', label: 'sm', min: 640, rep: [720, 1024], cols: 4, pad: 24, gutter: 24, container: 640, prefix: 'sm:' },
+      { id: 'md', label: 'md', min: 768, rep: [834, 1194], cols: 8, pad: 24, gutter: 24, container: 768, prefix: 'md:' },
+      { id: 'lg', label: 'lg', min: 1024, rep: [1024, 768], cols: 12, pad: 32, gutter: 32, container: 1024, prefix: 'lg:' },
+      { id: 'xl', label: 'xl', min: 1280, rep: [1280, 800], cols: 12, pad: 32, gutter: 32, container: 1280, prefix: 'xl:' },
+      { id: '2xl', label: '2xl', min: 1536, rep: [1536, 960], cols: 12, pad: 32, gutter: 32, container: 1536, prefix: '2xl:' }
+    ]
+  },
+  bootstrap: {
+    label: 'Bootstrap 5.3', short: 'Bootstrap', docs: ['website'], target: 24,
+    note: 'Breakpoints sm 576, md 768, lg 992, xl 1200, xxl 1400. Container max-widths 540/720/960/1140/1320 with a 1.5rem (24 px) gutter split as 12 px padding. Bootstrap is always 12 columns; on narrow screens the design grid shows 4 or 6 columns, each one a group of 3 or 2 Bootstrap columns.',
+    bps: [
+      { id: 'xs', label: 'xs', min: 0, rep: [390, 844], cols: 4, per: 3, pad: 12, gutter: 24, container: 0, prefix: '' },
+      { id: 'sm', label: 'sm', min: 576, rep: [640, 960], cols: 6, per: 2, pad: 12, gutter: 24, container: 540, prefix: 'sm-' },
+      { id: 'md', label: 'md', min: 768, rep: [834, 1194], cols: 12, per: 1, pad: 12, gutter: 24, container: 720, prefix: 'md-' },
+      { id: 'lg', label: 'lg', min: 992, rep: [1024, 768], cols: 12, per: 1, pad: 12, gutter: 24, container: 960, prefix: 'lg-' },
+      { id: 'xl', label: 'xl', min: 1200, rep: [1280, 800], cols: 12, per: 1, pad: 12, gutter: 24, container: 1140, prefix: 'xl-' },
+      { id: 'xxl', label: 'xxl', min: 1400, rep: [1440, 900], cols: 12, per: 1, pad: 12, gutter: 24, container: 1320, prefix: 'xxl-' }
+    ]
+  },
+  material: {
+    label: 'Material 3', short: 'Material 3', docs: ['website', 'ux'], target: 48,
+    note: 'Window size classes by width: compact under 600, medium 600–839, expanded 840–1199, large 1200–1599, extra-large 1600 and up. Margins 16 dp on compact and 24 dp above. Navigation bar on compact, navigation rail on medium and expanded, navigation drawer on large and up. Touch targets at least 48 × 48 dp.',
+    bps: [
+      { id: 'compact', label: 'Compact', min: 0, rep: [412, 915], cols: 4, pad: 16, gutter: 16, container: 0 },
+      { id: 'medium', label: 'Medium', min: 600, rep: [768, 1024], cols: 8, pad: 24, gutter: 24, container: 0 },
+      { id: 'expanded', label: 'Expanded', min: 840, rep: [1024, 768], cols: 12, pad: 24, gutter: 24, container: 0 },
+      { id: 'large', label: 'Large', min: 1200, rep: [1280, 800], cols: 12, pad: 24, gutter: 24, container: 0 },
+      { id: 'xlarge', label: 'Extra-large', min: 1600, rep: [1920, 1080], cols: 12, pad: 24, gutter: 24, container: 0 }
+    ]
+  },
+  hig: {
+    label: 'Apple HIG', short: 'Apple', docs: ['ux'], target: 44,
+    note: 'iPhone, iPad and Mac layouts from the Human Interface Guidelines: 16 pt side margins on iPhone (20 pt on larger phones and iPad), 44 pt navigation bar, 49 pt tab bar plus the home indicator, and hit targets of at least 44 × 44 pt. Apple does not prescribe a column grid; the columns here are a design aid.',
+    bps: [
+      { id: 'iphone', label: 'iPhone', min: 0, rep: [393, 852], cols: 4, pad: 16, gutter: 16, container: 0 },
+      { id: 'ipad', label: 'iPad', min: 600, rep: [834, 1194], cols: 8, pad: 20, gutter: 20, container: 0 },
+      { id: 'ipadl', label: 'iPad landscape', min: 1024, rep: [1194, 834], cols: 12, pad: 20, gutter: 20, container: 0 },
+      { id: 'mac', label: 'Mac', min: 1280, rep: [1280, 800], cols: 12, pad: 20, gutter: 20, container: 0 }
+    ]
+  },
+  fluid: {
+    label: 'Fluid (no framework)', short: 'Fluid', docs: ['website'], target: 24,
+    note: 'No framework: margins, gutters and the 4/8/12 column count are picked per direction and scale with width.',
+    bps: [
+      { id: 'mobile', label: 'Mobile', min: 0, rep: [390, 844], cols: 4 },
+      { id: 'tablet', label: 'Tablet', min: 600, rep: [834, 1194], cols: 8 },
+      { id: 'laptop', label: 'Laptop', min: 1100, rep: [1280, 800], cols: 12 },
+      { id: 'desktop', label: 'Desktop', min: 1400, rep: [1440, 900], cols: 12 },
+      { id: 'wide', label: 'Wide', min: 1680, rep: [1920, 1080], cols: 12 }
+    ]
+  }
+};
+const SYS_FOR = { website: ['tailwind', 'bootstrap', 'material', 'fluid'], ux: ['hig', 'material'] };
+const WCAG_TARGET = 'WCAG 2.2 SC 2.5.8 Target Size (Minimum), level AA: pointer targets at least 24 × 24 CSS px, or spaced so a 24 px circle around each does not touch another target.';
+const isScreenDoc = st => st.doc === 'website' || st.doc === 'ux';
+function screenSysId(st) {
+  if (!isScreenDoc(st)) return null;
+  const ok = SYS_FOR[st.doc];
+  return ok.includes(st.sys) ? st.sys : ok[0];
+}
+function screenWpx(st) { return toPt(st.w, st.unit) / 0.75; }
+function screenBp(st) {
+  const sys = SCREEN_SYS[screenSysId(st)];
+  const wpx = screenWpx(st);
+  let bp = sys.bps[0];
+  for (const b of sys.bps) if (wpx >= b.min) bp = b;
+  return bp;
+}
+// Size class used by the archetypes: small (one column of content), medium, large.
+function screenCls(st) { const w = screenWpx(st); return w < 600 ? 'sm' : w < 1024 ? 'md' : 'lg'; }
+function viewportH(st) {
+  if (st.vh) return st.vh;
+  const w = screenWpx(st);
+  return w < 600 ? 844 : w < 1024 ? 1194 : Math.round(w * 0.625);
+}
+// Pages that scroll: website directions other than the web app, laid out section by section.
+const SEQ_ARCH = new Set(['webLanding', 'webArticle', 'webGrid', 'webPricing', 'webProduct', 'webDocs']);
+function isScrollPage(st, arch) { return st.doc === 'website' && st.page === 'full' && (!arch || SEQ_ARCH.has(arch)); }
+
+/* Platform chrome for UX screens: status bar, tab / navigation bar, rail, home indicator. */
+const NAV_SUBS = new Set(['list', 'dashboard', 'settings']);
+function uxChrome(st) {
+  const none = { status: 0, bottom: 0, left: 0, bar: 0, home: 0, nav: 'none', kind: 'none', sys: null };
+  if (st.doc !== 'ux') return none;
+  const sysId = screenSysId(st), bp = screenBp(st);
+  const wpx = screenWpx(st), hpx = toPt(st.h, st.unit) / 0.75;
+  const wantsNav = NAV_SUBS.has(st.sub), chat = st.sub === 'messages';
+  const c = { status: 0, bottom: 0, left: 0, bar: 0, home: 0, rail: 0, nav: 'none', kind: 'phone', sys: sysId, bp: bp.id };
+  if (sysId === 'hig') {
+    if (bp.id === 'iphone') {
+      const modern = hpx / wpx > 1.9;
+      c.status = modern ? 59 : 20; c.home = modern ? 34 : 0;
+      if (wantsNav) { c.nav = 'bar'; c.bar = 49; }
+      if (chat) { c.nav = 'composer'; c.bar = 52; }
+    } else if (bp.id === 'mac') {
+      c.kind = 'desktop'; c.status = 52;
+      if (wantsNav || chat) c.nav = 'sidebar';
+    } else {
+      c.kind = 'tablet'; c.status = 24; c.home = 20;
+      if (wantsNav) { if (bp.id === 'ipadl') c.nav = 'sidebar'; else { c.nav = 'bar'; c.bar = 50; } }
+      if (chat) { c.nav = 'composer'; c.bar = 52; }
+    }
+  } else {
+    c.status = wpx < 1200 ? 24 : 0;
+    if (bp.id === 'compact') {
+      c.home = 24;
+      if (wantsNav) { c.nav = 'bar'; c.bar = 80; }
+      if (chat) { c.nav = 'composer'; c.bar = 72; }
+    } else {
+      c.kind = wpx >= 1200 ? 'desktop' : 'tablet';
+      if (wpx >= 1200) c.status = 38;
+      if (wantsNav) { if (bp.id === 'large' || bp.id === 'xlarge') { c.nav = 'drawer'; c.rail = 300; } else { c.nav = 'rail'; c.rail = 80; } }
+      if (chat) { c.nav = 'composer'; c.bar = 72; }
+    }
+  }
+  c.bottom = c.bar + c.home;
+  c.left = c.rail;
+  return c;
+}
+// Row module (px) for screens: a web section row, or a list-row height on apps.
+function screenRowPx(st) {
+  const cls = screenCls(st), sys = screenSysId(st);
+  if (st.doc === 'website') return cls === 'sm' ? 64 : cls === 'md' ? 72 : 80;
+  if (sys === 'hig') return screenBp(st).id === 'iphone' ? 60 : 64;
+  return 72;
+}
+function screenType(st) {
+  const cls = screenCls(st), sys = screenSysId(st);
+  // max heading sizes in px for h1 / h2 / h3
+  if (st.doc === 'ux') return sys === 'hig' ? { h1: cls === 'sm' ? 34 : 40, h2: 22, h3: 17, body: 17 } : { h1: cls === 'sm' ? 32 : 45, h2: 24, h3: 16, body: 16 };
+  return { h1: cls === 'sm' ? 40 : cls === 'md' ? 52 : 64, h2: cls === 'sm' ? 28 : cls === 'md' ? 32 : 40, h3: cls === 'sm' ? 20 : 24, body: cls === 'lg' ? 18 : 16 };
+}
+function screenInfo(st) {
+  if (!isScreenDoc(st)) return null;
+  const id = screenSysId(st), sys = SCREEN_SYS[id], bp = screenBp(st);
+  return { id, sys, bp, cls: screenCls(st), chrome: uxChrome(st), rowPx: screenRowPx(st), type: screenType(st), target: sys.target, vh: viewportH(st) };
+}
+// Height a scrolling page needs so every section fits at the row module.
+function settleScreenPage(st, layout) {
+  if (!isScreenDoc(st) || st.locks && (st.locks.rows || st.locks.size) || layout.zones) return false;
+  const u = st.unit, rowPt = screenRowPx(st) * 0.75, rg = toPt(st.rowGap, u);
+  const mt = toPt(st.m.t, u), mb = toPt(st.m.b, u);
+  const fit = rows => fromPt(mt + mb + rows * rowPt + (rows - 1) * rg, u);
+  if (!isScrollPage(st, layout.arch)) {
+    if (st.doc === 'website') st.h = fromPt(viewportH(st) * 0.75, u);
+    st.rows = Math.max(4, Math.round((toPt(st.h, u) - mt - mb + rg) / (rowPt + rg)));
+    return true;
+  }
+  st.rows = 160; st.h = fit(160);
+  const zs = buildZones(st, layout, buildTradition(layout.era, layout.style, layout.alt), derive(st));
+  let used = 1;
+  for (const z of zs) if (!z.edge && z.role !== 'shape') used = Math.max(used, z.r[0] + z.r[1]);
+  st.rows = used; st.h = fit(used);
+  return true;
+}
+function rollScreenGeometry(st, T, rng) {
+  const L = st.locks || {}, u = st.unit;
+  const I = screenInfo(st), bp = I.bp, ch = I.chrome, fluid = I.id === 'fluid';
+  const wpx = screenWpx(st), P = v => v * 0.75;
+  if (!L.size && st.doc === 'website' && !st.vh) st.vh = Math.round(toPt(st.h, u) / 0.75);
+  if (!L.margins) {
+    let side;
+    if (fluid) side = wpx >= 1200 ? pick(rng, [64, 80, 96, 120]) : wpx >= 700 ? pick(rng, [32, 40, 48]) : pick(rng, [16, 20, 24]);
+    else {
+      side = bp.pad;
+      if (I.id === 'hig' && bp.id === 'iphone' && wpx >= 414) side = 20;
+      if (bp.container) side = Math.max(side, (wpx - bp.container) / 2 + bp.pad);
+    }
+    const m = { t: ch.status, b: ch.bottom, l: side + ch.left, r: side };
+    if (st.doc === 'ux' && !ch.bottom) m.b = 16;
+    st.m = { t: fromPt(P(m.t), u), r: fromPt(P(m.r), u), b: fromPt(P(m.b), u), l: fromPt(P(m.l), u) };
+  }
+  if (!L.cols) {
+    st.cols = bp.cols;
+    const g = fluid ? (wpx >= 1100 ? pick(rng, [24, 32]) : 16) : bp.gutter;
+    st.gutter = fromPt(P(g), u);
+  }
+  if (!L.baseline) {
+    let bl = st.doc === 'ux' ? (I.id === 'hig' ? 22 : 24) : I.cls === 'lg' ? 28 : 24;
+    if (fluid) bl = pick(rng, I.cls === 'lg' ? [28, 32] : [24, 28]);
+    st.baseline = fromPt(P(bl), u);
+  }
+  if (!L.rows) {
+    st.rowGap = st.doc === 'ux' ? fromPt(P(8), u) : st.gutter;
+    const mt = toPt(st.m.t, u), mb = toPt(st.m.b, u), rg = toPt(st.rowGap, u), rowPt = P(I.rowPx);
+    st.rows = Math.max(4, Math.round((toPt(st.h, u) - mt - mb + rg) / (rowPt + rg)));
+  }
+  // keep cells usable if someone set an unusual width
+  {
+    const W = toPt(st.w, u), lw = W - toPt(st.m.l, u) - toPt(st.m.r, u), g0 = toPt(st.gutter, u);
+    if (!L.cols) while (st.cols > 1 && (lw - (st.cols - 1) * g0) / st.cols < Math.max(6, g0 * 1.1)) st.cols--;
+  }
+  if (!L.white) {
+    st.white = Math.round((T.white[0] + (T.white[1] - T.white[0]) * rng()) * 100) / 100;
+    st.dist = 'none';
+  }
 }
 
 function rollGeometry(st, T, rng) {
+  if (isScreenDoc(st)) return rollScreenGeometry(st, T, rng);
   const d = DOCS[st.doc], L = st.locks, u = st.unit;
   const W = toPt(st.w, u), H = toPt(st.h, u), short = Math.min(W, H);
   const screen = u === 'px';
@@ -1290,20 +1531,27 @@ const ARCH_INFO = {
   banner: 'Linear banner: logo, message and call to action in one reading line',
   contents: 'Contents page: numbered list with page references',
   mastheadCover: 'Cover with masthead, dominant image and cover lines',
-  webLanding: 'Landing page: navigation, hero, card row, footer',
-  webGrid: 'Portfolio grid of image tiles with captions',
-  webArticle: 'Article page: reading column with a sidebar',
-  uxList: 'List screen with search field and tab bar',
+  webLanding: 'Landing page in sections: navigation, hero, logos, features, media rows, testimonial, call-to-action band, footer',
+  webGrid: 'Portfolio: intro, filter chips and a masonry grid of project tiles',
+  webArticle: 'Article: headline and byline, lead image, a reading column held to about 45–75 characters, table of contents, related reads',
+  webPricing: 'Pricing: plan toggle, plan cards with a featured tier, comparison table and FAQ',
+  webProduct: 'Product page: gallery, title and price, options, add to cart, details, reviews and related products',
+  webDocs: 'Documentation: section navigation, content column with code and callouts, on-this-page links',
+  webApp: 'Web app: navigation, search, KPI tiles, chart, activity and data table in one viewport',
+  uxList: 'List screen with search and navigation; list and detail side by side on wide screens',
   uxDetail: 'Detail screen with hero image and a primary action',
-  uxOnboard: 'Onboarding screen with illustration, message and pager',
+  uxOnboard: 'Onboarding screen with illustration, message, pager and primary action',
   uxDash: 'Dashboard with stat tiles, chart and list',
+  uxSettings: 'Settings: grouped rows with switches, values and disclosure',
+  uxForm: 'Form: labelled fields, a segmented choice and a primary action',
+  uxChat: 'Messages: conversation with incoming and outgoing bubbles and a composer',
   hud: 'Heads-up display: a full-bleed view framed by a reticle, heading tape, side ladders, radar, gauges and readouts in the corners'
 };
 const ARCH_SHORT = {
   stack: 'Image-led stack', swissAsym: 'Asymmetric modular', centered: 'Centered axis', fullbleed: 'Full-bleed image', split: 'Split field',
   editorialCols: 'Editorial columns', diagonal: 'Diagonal', collage: 'Collage', panels: 'Panel grid', typeOnly: 'Type only', banner: 'Banner line',
-  contents: 'Contents list', mastheadCover: 'Masthead cover', webLanding: 'Landing page', webGrid: 'Portfolio grid', webArticle: 'Article page',
-  uxList: 'List screen', uxDetail: 'Detail screen', uxOnboard: 'Onboarding', uxDash: 'Dashboard', hud: 'Heads-up display'
+  contents: 'Contents list', mastheadCover: 'Masthead cover', webLanding: 'Landing page', webGrid: 'Portfolio grid', webArticle: 'Article page', webPricing: 'Pricing page', webProduct: 'Product page', webDocs: 'Docs page', webApp: 'Web app',
+  uxList: 'List screen', uxDetail: 'Detail screen', uxOnboard: 'Onboarding', uxDash: 'Dashboard', uxSettings: 'Settings', uxForm: 'Form', uxChat: 'Messages', hud: 'Heads-up display'
 };
 const Z = (role, c0, cs, r0, rs, extra) => Object.assign({ role, c: [c0, cs], r: [r0, rs] }, extra || {});
 
@@ -1550,64 +1798,297 @@ A.mastheadCover = g => {
   z.push(Z('barcode', C - g.span(0.2), g.span(0.2), R - 1, 1, { pin: 1 }));
   return z;
 };
-A.webLanding = g => {
-  const { C, R } = g, z = [];
-  z.push(Z('nav', 0, C, 0, 1, { pin: 1 }));
-  const heroR = clamp(Math.round(R * g.f(0.4, 0.55)), 2, R - 3);
-  const v = C >= 8 ? g.pick(['split', 'centered', 'bleed']) : g.pick(['centered', 'bleed', 'stacked']);
+/* ---------- website archetypes: section by section, mobile first ----------
+   Rows are a fixed module (64–80 px), so a scrolling page simply keeps adding sections and a first-screen
+   view cuts the same sequence at the fold. Spans are worked out from the column count of the breakpoint. */
+function webKit(g) {
+  const { C } = g, cls = g.cls;
+  const k = {
+    z: [], r: 0, C, cls,
+    gap: g.w >= 0.65 ? 1 : 0, // extra rows between sections from the white-space setting
+    add(z) { k.z.push(z); return z; },
+    space(n) { k.r += (n == null ? 1 : n) + k.gap; },
+    // n items per row by size class, each spanning an equal share of the columns
+    per(sm, md, lg) { return Math.max(1, Math.min(C, cls === 'sm' ? sm : cls === 'md' ? md : lg)); },
+    cols(n) { const s = Math.max(1, Math.floor(C / n)); return { s, off: Math.floor((C - s * n) / 2) }; },
+    center(frac) { const s = clamp(Math.round(C * frac), 1, C); return [Math.floor((C - s) / 2), s]; },
+    // widest span whose line length stays near a comfortable reading measure (about 45–75 characters)
+    measure(maxCh) {
+      maxCh = maxCh || 72;
+      let s = C;
+      while (s > 1 && (s * g.colPx + (s - 1) * g.gPx) / (g.bodyPx * 0.5) > maxCh) s--;
+      return s;
+    }
+  };
+  return k;
+}
+function webNav(k) { k.add(Z('nav', 0, k.C, 0, 1, { pin: 1 })); k.r = 1; }
+function webFooter(k) { k.space(0); k.add(Z('footer', 0, k.C, k.r, k.cls === 'sm' ? 3 : 2)); k.r += k.cls === 'sm' ? 3 : 2; }
+function webSectionHead(k, g, opts) {
+  const [c0, s] = k.cls === 'sm' ? [0, k.C] : k.center(opts && opts.wide ? 0.75 : 0.6);
+  k.add(Z('head', c0, s, k.r, opts && opts.rows || 1, { words: g.int(2, 5), align: k.cls === 'sm' ? 'left' : 'center', hs: 2, kicker: !!(opts && opts.kicker), deck: !!(opts && opts.deck) }));
+  k.r += opts && opts.rows || 1;
+}
+function webCardRow(k, g, n, rows, extra) {
+  const { s, off } = k.cols(n);
+  for (let i = 0; i < n; i++) k.add(Z('card', off + i * s, s, k.r, rows, extra || {}));
+  k.r += rows;
+}
+function webBanner(k, g) {
+  k.space(1);
+  k.add(Z('banner', 0, k.C, k.r, 2, { bleed: 'lr', words: g.int(3, 6) }));
+  k.r += 2;
+}
+function webHero(k, g) {
+  const C = k.C, sm = k.cls === 'sm';
+  const v = sm ? g.pick(['stacked', 'bleed', 'centered']) : g.pick(['split', 'split', 'centered', 'bleed']);
   if (v === 'split') {
-    const h = C / 2;
-    z.push(Z('head', 0, h, 1, heroR - 1, { kicker: g.chance(0.5), deck: true }));
-    z.push(Z('button', 0, Math.max(1, Math.round(C / 4)), heroR, 1));
-    z.push(Z('image', h, C - h, 1, heroR));
+    const hr = k.cls === 'lg' ? 6 : 5, h = k.cls === 'lg' ? g.pick([Math.round(C / 2), Math.round(C * 5 / 12)]) : Math.round(C / 2);
+    k.add(Z('head', 0, h, k.r, hr - 1, { kicker: g.chance(0.5), deck: true, vcenter: 1, hs: 1 }));
+    k.add(Z('button', 0, Math.max(1, Math.round(C / (k.cls === 'lg' ? 4 : 3))), k.r + hr - 1, 1));
+    k.add(Z('image', h, C - h, k.r, hr, { bleed: g.chance(0.35) ? 'r' : '' }));
+    k.r += hr;
   } else if (v === 'centered') {
-    const hs = g.span(0.75);
-    z.push(Z('head', g.mid(hs), hs, 1, heroR - 1, { deck: true, align: 'center' }));
-    z.push(Z('button', g.mid(g.span(0.25)), g.span(0.25), heroR, 1));
+    const [c0, s] = sm ? [0, C] : k.center(0.75);
+    k.add(Z('head', c0, s, k.r, sm ? 4 : 3, { kicker: g.chance(0.5), deck: true, align: sm ? 'left' : 'center', hs: 1 }));
+    k.r += sm ? 4 : 3;
+    const [b0, bs] = sm ? [0, C] : k.center(0.25);
+    k.add(Z('button', b0, bs, k.r, 1)); k.r += 1;
+    if (g.chance(0.7)) { k.space(0); const [i0, is] = sm ? [0, C] : k.center(g.pick([0.84, 1])); k.add(Z('image', i0, is, k.r, sm ? 3 : 5, { ui: 1 })); k.r += sm ? 3 : 5; }
   } else if (v === 'bleed') {
-    z.push(Z('image', 0, C, 1, heroR, { bleed: 'lr', dark: true }));
-    z.push(Z('head', 0, g.span(0.66), 1, heroR, { deck: true, onImage: 1, vcenter: 1 }));
+    const hr = sm ? 7 : 6;
+    k.add(Z('image', 0, C, k.r, hr, { bleed: 'lr', dark: true }));
+    const s = sm ? C : Math.max(1, Math.round(C * 0.6));
+    k.add(Z('head', 0, s, k.r + 1, hr - 3, { deck: true, onImage: 1, vcenter: 1, hs: 1 }));
+    k.add(Z('button', 0, sm ? C : Math.max(1, Math.round(C / 4)), k.r + hr - 2, 1));
+    k.r += hr;
   } else {
-    z.push(Z('head', 0, C, 1, Math.max(1, heroR - 2), { deck: true }));
-    z.push(Z('image', 0, C, heroR - 1, 2));
+    k.add(Z('head', 0, C, k.r, 4, { kicker: g.chance(0.5), deck: true, hs: 1 })); k.r += 4;
+    k.add(Z('button', 0, C, k.r, 1)); k.r += 1;
+    k.space(0);
+    k.add(Z('image', 0, C, k.r, 4, { bleed: g.chance(0.5) ? 'lr' : '' })); k.r += 4;
   }
-  const r = 1 + heroR, cr = R - r - 1;
-  if (cr >= 1) {
-    const n = C >= 12 ? g.pick([3, 4]) : C >= 8 ? 2 : 1, cw = Math.floor(C / n);
-    for (let i = 0; i < n; i++) z.push(Z('card', i * cw, cw, r, cr));
+}
+A.webLanding = g => {
+  const k = webKit(g), C = k.C, sm = k.cls === 'sm';
+  webNav(k);
+  webHero(k, g);
+  if (g.chance(0.75)) { k.space(0); k.add(Z('logos', 0, C, k.r, 1)); k.r += 1; }
+  // features
+  k.space(1);
+  webSectionHead(k, g, { kicker: true, rows: sm ? 2 : 2 });
+  const n = k.per(1, 2, g.pick([3, 3, 4])), total = sm ? 3 : k.cls === 'md' ? 4 : n * g.pick([1, 2]);
+  const { s, off } = k.cols(n);
+  for (let i = 0; i < total; i++) {
+    if (i && i % n === 0) k.r += 2;
+    k.add(Z('feature', off + (i % n) * s, s, k.r, 2));
   }
-  z.push(Z('footer', 0, C, R - 1, 1, { pin: 1 }));
-  return z;
-};
-A.webGrid = g => {
-  const { C, R } = g, z = [];
-  z.push(Z('nav', 0, C, 0, 1, { pin: 1 }));
-  z.push(Z('head', 0, g.span(g.f(0.5, 0.8)), 1, Math.max(1, Math.round(R * 0.15)), { words: g.int(2, 5) }));
-  let r = 1 + Math.max(1, Math.round(R * 0.15));
-  const tw = C >= 12 ? g.pick([3, 4, 6]) : C >= 8 ? g.pick([2, 4]) : 2;
-  const th = Math.max(1, Math.round((R - r - 1) / 2));
-  while (r + th <= R - 1) {
-    for (let c = 0; c + tw <= C; c += tw) z.push(Z('card', c, tw, r, th, { tile: 1 }));
-    r += th;
+  k.r += 2;
+  // alternating media + text rows
+  const alt = g.int(1, 2);
+  for (let i = 0; i < alt; i++) {
+    k.space(1);
+    if (sm) {
+      k.add(Z('image', 0, C, k.r, 3)); k.r += 3;
+      k.add(Z('head', 0, C, k.r, 2, { kicker: true, deck: true, hs: 2 })); k.r += 2;
+      k.add(Z('body', 0, C, k.r, 2)); k.r += 2;
+    } else {
+      const h = Math.round(C / 2), flip = i % 2 === 1;
+      k.add(Z('image', flip ? h : 0, C - h, k.r, 4));
+      k.add(Z('head', flip ? 0 : h, h - (k.cls === 'lg' ? 1 : 0), k.r, 2, { kicker: true, deck: true, hs: 2 }));
+      k.add(Z('body', flip ? 0 : h, h - (k.cls === 'lg' ? 1 : 0), k.r + 2, 2));
+      k.r += 4;
+    }
   }
-  z.push(Z('footer', 0, C, R - 1, 1, { pin: 1 }));
-  return z;
+  if (g.chance(0.5)) {
+    k.space(1);
+    const m = k.per(2, 4, 4), { s: ss, off: so } = k.cols(m);
+    for (let i = 0; i < 4; i++) { if (i && i % m === 0) k.r += 1; k.add(Z('stat', so + (i % m) * ss, ss, k.r, 1, { flat: 1 })); }
+    k.r += 1;
+  }
+  // testimonial
+  k.space(1);
+  const [q0, qs] = sm ? [0, C] : k.center(0.67);
+  k.add(Z('quote', q0, qs, k.r, sm ? 3 : 2)); k.r += sm ? 3 : 2;
+  webBanner(k, g);
+  webFooter(k);
+  return k.z;
 };
 A.webArticle = g => {
-  const { C, R } = g, z = [];
-  z.push(Z('nav', 0, C, 0, 1, { pin: 1 }));
-  const wide = C >= 12, mc = wide ? 2 : 0, ms = wide ? 7 : C;
-  z.push(Z('head', mc, wide ? 8 : C, 1, 2, { kicker: true, deck: true }));
-  const ir = Math.max(1, Math.round(R * 0.25));
-  z.push(Z('image', 0, C, 3, ir, { bleed: g.chance(0.5) ? 'lr' : '' }));
-  const r = 3 + ir;
-  if (R - 1 - r >= 1) {
-    z.push(Z('body', mc, ms, r, R - 1 - r));
-    if (wide) z.push(Z('legend', 10, 2, r, Math.min(2, R - 1 - r)));
+  const k = webKit(g), C = k.C, lg = k.cls === 'lg';
+  webNav(k);
+  k.space(0);
+  const ms = k.measure(72);
+  const tocS = lg ? Math.max(2, Math.round(C / 4)) : 0;
+  const bs = Math.min(ms, C - tocS * (lg ? 1 : 0));
+  const b0 = lg ? Math.min(tocS + Math.floor((C - tocS - bs) / 2), C - bs) : Math.floor((C - bs) / 2);
+  const [h0, hs] = lg ? k.center(0.67) : [0, C];
+  k.add(Z('head', h0, hs, k.r, k.cls === 'sm' ? 4 : 3, { kicker: true, crumbs: 1, deck: true, hs: 1, align: 'left' })); k.r += k.cls === 'sm' ? 4 : 3;
+  k.add(Z('byline', h0, hs, k.r, 1)); k.r += 1;
+  k.space(0);
+  const ir = k.cls === 'sm' ? 3 : k.cls === 'md' ? 4 : 5;
+  k.add(Z('image', 0, C, k.r, ir, { bleed: g.chance(0.5) ? 'lr' : '' })); k.r += ir;
+  k.space(0);
+  const bodyTop = k.r;
+  if (!lg) { k.add(Z('toc', b0, bs, k.r, 1, { collapsed: 1 })); k.r += 1; }
+  const chunk = n => { k.add(Z('body', b0, bs, k.r, n, { measure: 1 })); k.r += n; };
+  chunk(g.int(3, 4));
+  const fw = lg && g.chance(0.5) ? Math.min(C - tocS, bs + 2) : bs, f0 = lg ? Math.min(b0, C - fw) : b0;
+  k.add(Z('image', f0, fw, k.r, k.cls === 'sm' ? 3 : 3, { figure: 1 })); k.r += 3;
+  chunk(g.int(3, 4));
+  if (g.chance(0.6)) { k.add(Z('deck', b0, bs, k.r, 2)); k.r += 2; } else { k.add(Z('note', b0, bs, k.r, 1)); k.r += 1; }
+  chunk(g.int(2, 4));
+  if (lg) k.add(Z('toc', 0, tocS - 1 || 1, bodyTop, Math.min(6, k.r - bodyTop), { pin: 1 }));
+  k.space(1);
+  webSectionHead(k, g, {});
+  k.space(0);
+  webCardRow(k, g, k.per(1, 2, 3), 3);
+  if (k.cls === 'sm') webCardRow(k, g, 1, 3);
+  webBanner(k, g);
+  webFooter(k);
+  return k.z;
+};
+A.webGrid = g => {
+  const k = webKit(g), C = k.C;
+  webNav(k);
+  k.space(0);
+  const [h0, hs] = k.cls === 'sm' ? [0, C] : [0, Math.round(C * g.f(0.6, 0.75))];
+  k.add(Z('head', h0, hs, k.r, k.cls === 'sm' ? 3 : 2, { deck: true, hs: 1, words: g.int(2, 5) })); k.r += k.cls === 'sm' ? 3 : 2;
+  k.add(Z('chips', 0, C, k.r, 1)); k.r += 1;
+  k.space(0);
+  // masonry: columns fill with tiles of mixed heights
+  const n = k.per(1, 2, g.pick([3, 3, 4])), { s, off } = k.cols(n);
+  const depth = k.cls === 'sm' ? 12 : 10, top = k.r;
+  let deepest = top;
+  for (let c = 0; c < n; c++) {
+    let r = top + (c % 2 ? g.int(0, 1) : 0);
+    while (r < top + depth) { const h = Math.min(g.pick([2, 3, 3, 4]), top + depth - r); if (h < 2) break; k.add(Z('card', off + c * s, s, r, h, { tile: 1 })); r += h; }
+    deepest = Math.max(deepest, r);
   }
-  z.push(Z('footer', 0, C, R - 1, 1, { pin: 1 }));
+  k.r = deepest;
+  webBanner(k, g);
+  webFooter(k);
+  return k.z;
+};
+A.webPricing = g => {
+  const k = webKit(g), C = k.C, sm = k.cls === 'sm';
+  webNav(k);
+  k.space(0);
+  webSectionHead(k, g, { rows: sm ? 3 : 2, deck: true, wide: true });
+  const [t0, ts] = sm ? [0, C] : k.center(0.34);
+  k.add(Z('chips', t0, ts, k.r, 1, { seg: 1 })); k.r += 1;
+  k.space(0);
+  const plans = k.cls === 'lg' ? g.pick([3, 3, 4]) : 3, per = k.per(1, 2, plans), { s, off } = k.cols(per), pr = sm ? 5 : 6;
+  for (let i = 0; i < plans; i++) {
+    const row = Math.floor(i / per), col = i % per, inRow = Math.min(per, plans - row * per);
+    const o = inRow < per ? Math.floor((C - inRow * s) / 2) : off;
+    k.add(Z('price', o + col * s, s, k.r + row * pr, pr, { featured: i === Math.floor(plans / 2) ? 1 : 0, tier: i }));
+  }
+  k.r += Math.ceil(plans / per) * pr;
+  if (!sm) { k.space(1); webSectionHead(k, g, {}); k.add(Z('table', 0, C, k.r, 4, { cmp: 1 })); k.r += 4; }
+  k.space(1);
+  webSectionHead(k, g, {});
+  const [f0, fs] = sm ? [0, C] : k.center(0.67);
+  for (let i = 0, nf = g.int(4, 6); i < nf; i++) { k.add(Z('faq', f0, fs, k.r, 1, { open: i === 0 ? 1 : 0 })); k.r += 1; }
+  webBanner(k, g);
+  webFooter(k);
+  return k.z;
+};
+A.webProduct = g => {
+  const k = webKit(g), C = k.C, cls = k.cls;
+  webNav(k);
+  k.space(0);
+  const top = k.r;
+  if (cls === 'sm') {
+    k.add(Z('image', 0, C, k.r, 5, { bleed: 'lr' })); k.r += 5;
+    k.add(Z('dots', 0, C, k.r, 1)); k.r += 1;
+    k.add(Z('head', 0, C, k.r, 2, { kicker: true, price: 1, hs: 2, words: g.int(2, 4) })); k.r += 2;
+    k.add(Z('chips', 0, C, k.r, 1, { label: 'Size' })); k.r += 1;
+    k.add(Z('chips', 0, C, k.r, 1, { swatch: 1, label: 'Colour' })); k.r += 1;
+    k.add(Z('button', 0, C, k.r, 1)); k.r += 1;
+    k.add(Z('body', 0, C, k.r, 2)); k.r += 2;
+    for (let i = 0; i < 3; i++) { k.add(Z('faq', 0, C, k.r, 1)); k.r += 1; }
+  } else {
+    const thumbs = cls === 'lg' ? 1 : 0, iw = cls === 'lg' ? Math.round(C * 7 / 12) - thumbs : Math.round(C / 2);
+    const ir = cls === 'lg' ? 7 : 6;
+    if (thumbs) k.add(Z('thumbs', 0, 1, top, ir));
+    k.add(Z('image', thumbs, iw, top, ir));
+    const i0 = thumbs + iw, is = C - i0;
+    let r = top;
+    k.add(Z('head', i0, is, r, 2, { kicker: true, price: 1, hs: 2, words: g.int(2, 4) })); r += 2;
+    k.add(Z('chips', i0, is, r, 1, { label: 'Size' })); r += 1;
+    k.add(Z('chips', i0, is, r, 1, { swatch: 1, label: 'Colour' })); r += 1;
+    k.add(Z('button', i0, is, r, 1)); r += 1;
+    k.add(Z('body', i0, is, r, 2)); r += 2;
+    for (let i = 0; i < 3; i++) { k.add(Z('faq', i0, is, r, 1)); r += 1; }
+    k.r = Math.max(r, top + ir);
+  }
+  k.space(1);
+  webSectionHead(k, g, {});
+  const qn = k.per(1, 2, 3), { s, off } = k.cols(qn);
+  for (let i = 0; i < qn; i++) k.add(Z('quote', off + i * s, s, k.r, 2, { small: 1 }));
+  k.r += 2;
+  k.space(1);
+  webSectionHead(k, g, {});
+  webCardRow(k, g, k.per(2, 3, 4), 3, { tile: 1 });
+  webFooter(k);
+  return k.z;
+};
+A.webDocs = g => {
+  const k = webKit(g), C = k.C, lg = k.cls === 'lg';
+  webNav(k);
+  const side = lg ? Math.max(2, Math.round(C / 4)) : 0, toc = lg && C >= 12 ? 2 : 0;
+  const cs = Math.min(k.measure(85), C - side - toc), c0 = side + Math.floor((C - side - toc - cs) / 2);
+  const top = k.r;
+  k.r += 0;
+  const add = (role, n, ex) => { k.add(Z(role, c0, cs, k.r, n, ex || {})); k.r += n; };
+  add('head', k.cls === 'sm' ? 3 : 2, { crumbs: 1, kicker: true, deck: true, hs: 1, words: g.int(2, 4), align: 'left' });
+  if (!lg) add('toc', 1, { collapsed: 1 });
+  add('body', 2);
+  add('code', g.int(2, 3));
+  add('body', 2);
+  add('note', 1);
+  add('head', 1, { hs: 2, words: g.int(2, 4), align: 'left' });
+  add('body', g.int(2, 3));
+  add('code', 2);
+  add('body', 2);
+  add('pager', 1);
+  if (side) k.add(Z('sidenav', 0, side, top, k.r - top, { pin: 1 }));
+  if (toc) k.add(Z('toc', C - toc, toc, top, Math.min(5, k.r - top), { pin: 1 }));
+  webFooter(k);
+  return k.z;
+};
+A.webApp = g => {
+  const { C, R } = g, z = [], cls = g.cls;
+  let c0 = 0;
+  if (cls === 'lg') { const s = C >= 12 ? 2 : 1; z.push(Z('sidebar', 0, s, 0, R, { pin: 1 })); c0 = s; }
+  else if (cls === 'md') { z.push(Z('sidebar', 0, 1, 0, R, { pin: 1, rail: 1 })); c0 = 1; }
+  const cw = C - c0;
+  if (cls === 'sm') z.push(Z('nav', 0, C, 0, 1, { pin: 1, app: 1 }));
+  else {
+    const fs = Math.max(1, Math.round(cw / 3));
+    z.push(Z('title', c0, cw - fs, 0, 1, { pin: 1 }));
+    z.push(Z('field', C - fs, fs, 0, 1, { pin: 1 }));
+  }
+  const n = cls === 'sm' ? 2 : [5, 4, 3, 2].find(v => cw % v === 0 && cw / v >= (cls === 'lg' ? 2 : 1)) || 2;
+  const sw = Math.floor(cw / n);
+  const sRows = cls === 'sm' ? 2 : 1;
+  for (let i = 0; i < (cls === 'sm' ? 4 : n); i++) z.push(Z('stat', c0 + (i % n) * sw, sw, 1 + Math.floor(i / n), 1));
+  let r = 1 + sRows;
+  const chR = clamp(Math.round(R * 0.32), 2, Math.max(2, R - r - 2));
+  if (cls === 'sm') {
+    z.push(Z('chart', 0, C, r, chR)); r += chR;
+    for (; r < R; r++) z.push(Z('item', 0, C, r, 1, { compact: 1 }));
+  } else {
+    const chS = Math.round(cw * 2 / 3);
+    z.push(Z('chart', c0, chS, r, chR));
+    z.push(Z('list', c0 + chS, cw - chS, r, chR, { feed: 1 }));
+    r += chR;
+    if (R - r >= 2) z.push(Z('table', c0, cw, r, R - r));
+  }
   return z;
 };
+
 A.hud = g => {
   const { C, R } = g, z = [];
   z.push(Z('image', 0, C, 0, R, { bleed: 'tlrb', scene: 1 }));
@@ -1632,64 +2113,164 @@ A.hud = g => {
   z.push(Z('head', side, mid, R - Math.max(1, Math.round(R * 0.12)), Math.max(1, Math.round(R * 0.12)), { kicker: true, words: g.int(2, 4), align: 'center', hudTitle: 1, pin: 1 }));
   return z;
 };
+/* ---------- UX screen archetypes: platform chrome first, then content ---------- */
+function uxChromeZones(g) {
+  const c = g.chrome, z = [], P = v => v * 0.75;
+  if (c.status) z.push({ role: 'status', edge: 'top', size: P(c.status), kind: c.kind, sys: c.sys });
+  if (c.nav === 'bar') z.push({ role: 'tabbar', edge: 'bottom', size: P(c.bar + c.home), home: P(c.home), sys: c.sys });
+  else if (c.nav === 'composer') z.push({ role: 'composer', edge: 'bottom', size: P(c.bar + c.home), home: P(c.home), sys: c.sys });
+  else if (c.home) z.push({ role: 'home', edge: 'bottom', size: P(c.home), sys: c.sys });
+  if (c.nav === 'rail' || c.nav === 'drawer') z.push({ role: 'rail', edge: 'left', size: P(c.rail), top: P(c.status), drawer: c.nav === 'drawer' ? 1 : 0, sys: c.sys });
+  return z;
+}
+// Top bar: iOS large title or centred navigation bar; Material top app bar with a leading title.
+function uxTopBar(g, z, c0, cs, r, opts) {
+  const hig = g.chrome.sys === 'hig';
+  if (opts && opts.large && hig) z.push(Z('title', c0, cs, r, 1, { pin: 1, large: 1 }));
+  else z.push(Z('appbar', c0, cs, r, 1, { pin: 1, sys: g.chrome.sys, back: !!(opts && opts.back), chat: !!(opts && opts.chat), action: opts && opts.action }));
+}
+function uxSidebarCols(g) { return g.chrome.nav === 'sidebar' ? Math.max(2, Math.round(g.C / 4)) : 0; }
+function uxFab(g, z) {
+  if (g.chrome.sys !== 'material' || g.chrome.nav === 'rail' || g.chrome.nav === 'drawer') return;
+  const s = 56 * 0.75, pad = 16 * 0.75;
+  z.push({ role: 'fab', edge: 'float', abs: { x: g.W - g.mr - s, y: g.H - g.mb - s - pad, w: s, h: s }, sys: 'material' });
+}
+// Detail pane used by list–detail layouts on wide screens.
+function uxDetailPane(g, z, c0, cs, r0, R) {
+  const ir = clamp(Math.round((R - r0) * 0.4), 1, Math.max(1, R - r0 - 3));
+  z.push(Z('image', c0, cs, r0, ir));
+  z.push(Z('head', c0, cs, r0 + ir, 1, { words: g.int(2, 4), hs: 2 }));
+  z.push(Z('meta', c0, cs, r0 + ir + 1, 1));
+  if (R - r0 - ir - 3 >= 1) z.push(Z('body', c0, cs, r0 + ir + 2, R - r0 - ir - 3));
+  z.push(Z('button', c0 + cs - Math.max(1, Math.round(cs / 3)), Math.max(1, Math.round(cs / 3)), R - 1, 1));
+}
 A.uxList = g => {
-  const { C, R } = g, z = [];
-  if (g.edges.top) z.push({ role: 'status', edge: 'top', size: g.edges.top * 0.75, kind: g.edges.kind });
-  z.push(Z('title', 0, C, 0, 1, { pin: 1 }));
-  z.push(Z('field', 0, C, 1, 1));
-  for (let r = 2; r < R; r++) z.push(Z('item', 0, C, r, 1));
-  if (g.edges.bottom) z.push({ role: 'tabbar', edge: 'bottom', size: g.edges.bottom * 0.75 });
+  const { C, R } = g, z = uxChromeZones(g);
+  const sb = uxSidebarCols(g);
+  if (sb) z.push(Z('sidebar', 0, sb, 0, R, { pin: 1 }));
+  const avail = C - sb;
+  const twoPane = avail >= 8 && g.wpx >= 840;
+  const ls = twoPane ? Math.max(3, Math.round(avail * 5 / 12)) : avail, l0 = sb;
+  uxTopBar(g, z, l0, ls, 0, { large: true });
+  z.push(Z('field', l0, ls, 1, 1, { sys: g.chrome.sys }));
+  for (let r = 2; r < R; r++) z.push(Z('item', l0, ls, r, 1, { div: 1 }));
+  if (twoPane) uxDetailPane(g, z, l0 + ls, C - l0 - ls, 0, R);
+  uxFab(g, z);
   return z;
 };
 A.uxDetail = g => {
-  const { C, R } = g, z = [];
-  if (g.edges.top) z.push({ role: 'status', edge: 'top', size: g.edges.top * 0.75, kind: g.edges.kind });
-  z.push(Z('appbar', 0, C, 0, 1, { pin: 1 }));
-  const ir = clamp(Math.round(R * g.f(0.3, 0.45)), 1, R - 4);
+  const { C, R } = g, z = uxChromeZones(g);
+  uxTopBar(g, z, 0, C, 0, { back: true, action: 'share' });
+  if (C >= 8) {
+    const h = Math.round(C / 2), ir = R - 2;
+    z.push(Z('image', 0, h, 1, ir));
+    z.push(Z('head', h, C - h, 1, 2, { words: g.int(2, 4), kicker: g.chance(0.5), hs: 1 }));
+    z.push(Z('meta', h, C - h, 3, 1));
+    if (R - 5 >= 1) z.push(Z('body', h, C - h, 4, R - 5));
+    z.push(Z('button', h, C - h, R - 1, 1, { pin: 1 }));
+    return z;
+  }
+  const ir = clamp(Math.round(R * g.f(0.32, 0.42)), 1, R - 4);
   z.push(Z('image', 0, C, 1, ir, { bleed: g.chance(0.6) ? 'lr' : '' }));
-  z.push(Z('head', 0, C, 1 + ir, 1, { words: g.int(2, 4), kicker: g.chance(0.5) }));
+  z.push(Z('head', 0, C, 1 + ir, 1, { words: g.int(2, 4), kicker: g.chance(0.5), hs: 2 }));
   z.push(Z('meta', 0, C, 2 + ir, 1));
   if (R - 3 - ir - 1 >= 1) z.push(Z('body', 0, C, 3 + ir, R - 4 - ir));
   z.push(Z('button', 0, C, R - 1, 1, { pin: 1 }));
   return z;
 };
 A.uxOnboard = g => {
-  const { C, R } = g, z = [];
-  if (g.edges.top) z.push({ role: 'status', edge: 'top', size: g.edges.top * 0.75, kind: g.edges.kind });
+  const { C, R } = g, z = uxChromeZones(g);
   const ir = clamp(Math.round(R * g.f(0.38, 0.5)), 1, R - 4);
   const is = C >= 8 ? g.span(0.6) : C;
   z.push(Z('image', g.mid(is), is, 0, ir, { oval: g.chance(0.4) }));
-  z.push(Z('head', 0, C, ir, 1, { words: g.int(2, 5), align: 'center' }));
-  z.push(Z('body', g.mid(g.span(0.85)), g.span(0.85), ir + 1, Math.max(1, R - ir - 3), { align: 'center' }));
+  const ts = C >= 8 ? g.span(0.67) : C;
+  z.push(Z('head', g.mid(ts), ts, ir, 1, { words: g.int(2, 5), align: 'center', hs: 1 }));
+  z.push(Z('body', g.mid(ts), ts, ir + 1, Math.max(1, R - ir - 3), { align: 'center' }));
   z.push(Z('dots', 0, C, R - 2, 1));
-  z.push(Z('button', 0, C, R - 1, 1, { pin: 1 }));
+  const bs = C >= 8 ? g.span(0.5) : C;
+  z.push(Z('button', g.mid(bs), bs, R - 1, 1, { pin: 1 }));
   return z;
 };
 A.uxDash = g => {
-  const { C, R } = g, z = [];
-  const wide = C >= 8;
-  if (g.edges.top) z.push({ role: 'status', edge: 'top', size: g.edges.top * 0.75, kind: g.edges.kind });
-  let c0 = 0;
-  if (wide && g.ratio > 1.2) { z.push(Z('sidebar', 0, 2, 0, R, { pin: 1 })); c0 = 2; }
-  const cw = C - c0;
-  z.push(Z('title', c0, cw, 0, 1, { pin: 1 }));
-  const n = wide ? g.pick([3, 4]) : 2, sw = Math.floor(cw / n);
+  const { C, R } = g, z = uxChromeZones(g);
+  const sb = uxSidebarCols(g);
+  if (sb) z.push(Z('sidebar', 0, sb, 0, R, { pin: 1 }));
+  const c0 = sb, cw = C - sb, wide = cw >= 8;
+  uxTopBar(g, z, c0, cw, 0, { large: true });
+  const n = wide ? ([4, 3, 2].find(v => cw % v === 0) || 2) : 2, sw = Math.floor(cw / n);
   for (let i = 0; i < n; i++) z.push(Z('stat', c0 + i * sw, sw, 1, 1));
-  const chR = clamp(Math.round(R * 0.35), 1, R - 3);
+  const chR = clamp(Math.round(R * 0.35), 1, Math.max(1, R - 3));
   if (wide) {
     const chS = Math.round(cw * 2 / 3);
     z.push(Z('chart', c0, chS, 2, chR));
-    for (let r = 2; r < Math.min(R, 2 + chR); r++) z.push(Z('item', c0 + chS, cw - chS, r, 1, { compact: 1 }));
-    for (let r = 2 + chR; r < R; r++) z.push(Z('item', c0, cw, r, 1));
+    for (let r = 2; r < Math.min(R, 2 + chR); r++) z.push(Z('item', c0 + chS, cw - chS, r, 1, { compact: 1, div: 1 }));
+    for (let r = 2 + chR; r < R; r++) z.push(Z('item', c0, cw, r, 1, { div: 1 }));
   } else {
     z.push(Z('chart', c0, cw, 2, chR));
-    for (let r = 2 + chR; r < R; r++) z.push(Z('item', c0, cw, r, 1));
+    for (let r = 2 + chR; r < R; r++) z.push(Z('item', c0, cw, r, 1, { div: 1 }));
   }
-  if (g.edges.bottom) z.push({ role: 'tabbar', edge: 'bottom', size: g.edges.bottom * 0.75 });
+  uxFab(g, z);
+  return z;
+};
+A.uxSettings = g => {
+  const { C, R } = g, z = uxChromeZones(g), hig = g.chrome.sys === 'hig';
+  const sb = uxSidebarCols(g);
+  if (sb) z.push(Z('sidebar', 0, sb, 0, R, { pin: 1 }));
+  const c0 = sb + (C - sb >= 8 ? Math.round((C - sb) / 8) : 0), cs = C - sb - (c0 - sb) * 2;
+  uxTopBar(g, z, c0, cs, 0, { large: true });
+  let r = 1;
+  if (g.chance(0.5) && hig) { z.push(Z('field', c0, cs, r, 1, { sys: g.chrome.sys })); r++; }
+  const ctl = ['switch', 'chev', 'value', 'chev', 'switch'];
+  while (r < R - 1) {
+    z.push(Z('meta', c0, cs, r, 1, { section: 1 })); r++;
+    const n = Math.min(g.int(2, 4), R - r);
+    for (let i = 0; i < n; i++) z.push(Z('item', c0, cs, r + i, 1, { plain: 1, icon: 1, ctl: g.pick(ctl), gpos: n === 1 ? 'only' : i === 0 ? 'first' : i === n - 1 ? 'last' : 'mid', grouped: hig ? 1 : 0, div: hig ? 0 : 1 }));
+    r += n;
+  }
+  return z;
+};
+A.uxForm = g => {
+  const { C, R } = g, z = uxChromeZones(g);
+  const cs = C >= 8 ? Math.round(C * 0.75) : C, c0 = Math.floor((C - cs) / 2);
+  uxTopBar(g, z, 0, C, 0, { back: true, action: 'save' });
+  let r = 1;
+  z.push(Z('head', c0, cs, r, 1, { words: g.int(2, 4), hs: 2 })); r++;
+  const fields = Math.max(2, R - r - 3);
+  for (let i = 0; i < fields; i++) {
+    if (i === Math.floor(fields / 2) && g.chance(0.6)) z.push(Z('chips', c0, cs, r + i, 1, { seg: 1, label: 1 }));
+    else z.push(Z('input', c0, cs, r + i, 1, { sys: g.chrome.sys }));
+  }
+  r += fields;
+  if (r < R - 1) { z.push(Z('item', c0, cs, r, 1, { plain: 1, ctl: 'switch' })); r++; }
+  z.push(Z('button', c0, cs, R - 1, 1, { pin: 1 }));
+  return z;
+};
+A.uxChat = g => {
+  const { C, R } = g, z = uxChromeZones(g);
+  const sb = uxSidebarCols(g);
+  const twoPane = C >= 8 && g.wpx >= 840;
+  let c0 = 0;
+  if (sb) { z.push(Z('sidebar', 0, sb, 0, R, { pin: 1 })); c0 = sb; }
+  else if (twoPane) {
+    const ls = Math.round(C * 5 / 12);
+    uxTopBar(g, z, 0, ls, 0, { large: true });
+    for (let r = 1; r < R; r++) z.push(Z('item', 0, ls, r, 1, { avatar: 1, div: 1 }));
+    c0 = ls;
+  }
+  const cw = C - c0;
+  uxTopBar(g, z, c0, cw, 0, { back: !twoPane && !sb, chat: true });
+  z.push(Z('meta', c0, cw, 1, 1, { align: 'center', stamp: 1 }));
+  const bw = Math.max(1, Math.round(cw * (cw >= 8 ? 0.6 : 0.75)));
+  let r = 2, side = g.chance(0.5) ? 'in' : 'out';
+  while (r < R) {
+    const h = r + 1 < R && g.chance(0.3) ? 2 : 1;
+    z.push(Z('bubble', side === 'in' ? c0 : C - bw, bw, r, h, { side }));
+    r += h;
+    if (g.chance(0.65)) side = side === 'in' ? 'out' : 'in';
+  }
   return z;
 };
 
-/* ---------- lorem ---------- */
 const LOREM = 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum'.split(' ');
 function loremWords(rng, n) { const s = Math.floor(rng() * LOREM.length); const out = []; for (let i = 0; i < n; i++) out.push(LOREM[(s + i) % LOREM.length]); return out; }
 function applyCase(str, c) {
@@ -1755,7 +2336,8 @@ function freezeLayout(st, layout) {
 }
 const ADD_DEFAULTS = {
   image: [0.5, 0.33], body: [0.5, 0.33], head: [0.75, 0.15], deck: [0.34, 0.2], caption: [0.34, 0.08], cta: [0.25, 0.08], button: [0.25, 0.08],
-  logo: [0.22, 0.08], nav: [1, 0.08], folio: [1, 0.08], marker: [0.08, 0.08], arrow: [0.17, 0.08], legend: [0.25, 0.2], list: [0.5, 0.33], card: [0.34, 0.33], tabbar: [1, 0.08], shape: [0.25, 0.2]
+  logo: [0.22, 0.08], nav: [1, 0.08], folio: [1, 0.08], marker: [0.08, 0.08], arrow: [0.17, 0.08], legend: [0.25, 0.2], list: [0.5, 0.33], card: [0.34, 0.33], tabbar: [1, 0.08], shape: [0.25, 0.2],
+  chips: [1, 0.08], input: [0.5, 0.08], feature: [0.34, 0.2], quote: [0.5, 0.2], price: [0.34, 0.5], faq: [0.67, 0.08], banner: [1, 0.16], toc: [0.25, 0.33], table: [1, 0.33], code: [0.67, 0.2]
 };
 function addZone(st, layout, role) {
   const L = freezeLayout(st, layout), D = derive(st), T = buildTradition(L.era, L.style, L.alt);
@@ -1774,19 +2356,24 @@ function addZone(st, layout, role) {
 }
 function buildZones(st, layout, T, D) {
   const rng = mulberry32(layout.seed);
-  const ctx = { C: D.C, R: D.R, w: st.white, align: T.align, ratio: st.w / st.h, doc: st.doc, sub: st.sub, T, edges: uxEdges(st) };
+  const SI = screenInfo(st);
+  const ctx = { C: D.C, R: D.R, w: st.white, align: T.align, ratio: st.w / st.h, doc: st.doc, sub: st.sub, T,
+    W: D.W, H: D.H, mr: D.m.r, mb: D.m.b, wpx: D.W / 0.75, cls: SI ? SI.cls : null, chrome: SI ? SI.chrome : uxChrome(st),
+    colPx: D.colW / 0.75, gPx: D.g / 0.75, bodyPx: D.baseline / 1.35 / 0.75 };
   const g = makeG(ctx, rng);
   void g;
   let zones = (A[layout.arch] || A.stack)(g);
   // clamp to grid
   zones = zones.filter(z => {
     if (z.edge) return true;
+    if (isScreenDoc(st) && z.r[0] >= D.R) return false; // below the fold in a first-screen view
     z.c[0] = clamp(Math.round(z.c[0]), 0, D.C - 1); z.c[1] = clamp(Math.round(z.c[1]), 1, D.C - z.c[0]);
     z.r[0] = clamp(Math.round(z.r[0]), 0, D.R - 1); z.r[1] = clamp(Math.round(z.r[1]), 1, D.R - z.r[0]);
     return true;
   });
   // white-space distribution
   const movable = zones.filter(z => !z.edge && !z.pin);
+  if (isScrollPage(st, layout.arch)) st = Object.assign({}, st, { dist: 'none' });
   let distStatus = st.dist === 'none' ? 'as composed' : !movable.length ? 'nothing to move' : movable.some(z => z.bleed || z.rot) ? 'blocked' : 'full';
   if (st.dist !== 'none' && movable.length && !movable.some(z => z.bleed || z.rot)) {
     let lo = 0, hi = D.R;
@@ -1901,6 +2488,8 @@ function applySampleCopy(zones, st, T) {
 function zoneRect(z, D) {
   if (z.edge === 'top') return { x: 0, y: 0, w: D.W, h: z.size };
   if (z.edge === 'bottom') return { x: 0, y: D.H - z.size, w: D.W, h: z.size };
+  if (z.edge === 'left') return { x: 0, y: z.top || 0, w: z.size, h: D.H - (z.top || 0) };
+  if (z.edge === 'float') return Object.assign({}, z.abs);
   const [c0, cs] = z.c, [r0, rs] = z.r;
   let x = D.m.l + c0 * (D.colW + D.g), w = cs * D.colW + (cs - 1) * D.g;
   let y = D.m.t + r0 * (D.rowH + D.rg), h = rs * D.rowH + (rs - 1) * D.rg;
@@ -2102,6 +2691,7 @@ function renderZone(z, r, ctx) {
       let top = y, bot = y + h;
       const bs = ctx.bodySize;
       if (z.role === 'title') {
+        if (z.large) { const s = Math.min(h * 0.6, ctx.ST ? ctx.ST.h1 * 0.75 : bs * 2.2); out += svgText(x, y + h * 0.5 + s * 0.4, z.text, { face, size: s, weight: 800, fill: ink }); break; }
         const s = Math.min(h * 0.42, ctx.bodySize * 1.7);
         out += svgText(x, y + h / 2 + s * 0.35, z.text, { face, size: s, weight: 700, fill: ink });
         break;
@@ -2114,7 +2704,8 @@ function renderZone(z, r, ctx) {
       if (z.kicker && h > bs * 4) {
         const ks = Math.min(bs * 0.9, h * 0.12);
         if (z.hudTitle) z.kt = 'OBJECTIVE · ' + z.kt;
-        out += svgText(align === 'center' ? x + w / 2 : x, top + ks, z.kt, { face: FACES[T.metaFace || 'sans'], size: ks, weight: 700, fill: z.onImage ? pal.paper : pal.accent, ls: 0.12, anchor: align === 'center' ? 'middle' : null });
+        const crumbs = z.crumbs ? 'Home  /  ' + applyCase(loremWords(mulberry32(z.seed + 3), 1)[0], 'title') + '  /  ' + applyCase(loremWords(mulberry32(z.seed + 5), 2).join(' '), 'sentence') : null;
+        out += svgText(align === 'center' ? x + w / 2 : x, top + ks, crumbs || z.kt, { face: FACES[T.metaFace || 'sans'], size: crumbs ? ks * 0.95 : ks, weight: crumbs ? 500 : 700, fill: z.onImage ? pal.paper : crumbs ? pal.ink : pal.accent, op: crumbs ? 0.6 : null, ls: crumbs ? 0 : 0.12, anchor: align === 'center' ? 'middle' : null });
         top += ks * 2.1;
       }
       if (z.deck && bot - top > bs * 5) {
@@ -2123,8 +2714,15 @@ function renderZone(z, r, ctx) {
         out += textLines(fit.lines, x, bot - dh, w, fit.s, 1.25, { face: FACES[T.face === 'mono' ? 'mono' : 'serif'], weight: 400, fill: ink, op: 0.8, align: align === 'center' ? 'center' : 'left' });
         bot -= dh + bs * 0.6;
       }
+      if (z.price && bot - top > bs * 4) {
+        const ps = bs * 1.5;
+        out += svgText(x, bot - ps * 0.25, '$' + (20 + Math.floor(R() * 180)) + '.00', { face: FACES.sans, size: ps, weight: 700, fill: ink });
+        for (let i = 0; i < 5; i++) out += `<path d="${starPath(x + ps * 4.6 + i * bs * 1.1, bot - ps * 0.6, bs * 0.45)}" fill="${pal.accent}" fill-opacity="${i < 4 ? 1 : 0.3}"/>`;
+        bot -= ps * 1.6;
+      }
       const lh = T.lh || 1;
-      const fit = fitText(z.text, w, Math.max(4, bot - top), face, T.weight, lh, T.ls || 0, z.big ? 5 : 6);
+      const cap = z.hs && ctx.ST ? ctx.ST['h' + z.hs] * 0.75 : undefined;
+      const fit = fitText(z.text, w, Math.max(4, bot - top), face, T.weight, lh, T.ls || 0, z.big ? 5 : z.hs === 2 ? 3 : 6, cap);
       let ty = top;
       if (z.vcenter) ty = top + (bot - top - fit.lines.length * fit.s * lh) / 2;
       if (z.band) {
@@ -2179,6 +2777,8 @@ function renderZone(z, r, ctx) {
     }
     case 'caption': case 'meta': {
       const s = ctx.bodySize * 0.82;
+      if (z.section) { out += svgText(x + (ctx.sys === 'hig' ? s : 0), y + h - s * 0.8, loremWords(R, 1 + Math.floor(R() * 2)).join(' ').toUpperCase(), { face: FACES.sans, size: s * 0.9, weight: ctx.sys === 'hig' ? 400 : 700, fill: ctx.sys === 'hig' ? pal.ink : pal.accent, op: ctx.sys === 'hig' ? 0.55 : 1, ls: 0.04 }); break; }
+      if (z.stamp) { out += svgText(x + w / 2, y + h / 2 + s * 0.35, 'Today 9:41', { face: FACES.sans, size: s, weight: 600, fill: pal.ink, op: 0.5, anchor: 'middle' }); break; }
       const lines = Math.max(1, Math.min(3, Math.floor(h / (s * 1.35))));
       for (let i = 0; i < lines; i++) {
         const wds = loremWords(R, 3 + Math.floor(R() * 4)).join(' ');
@@ -2207,6 +2807,277 @@ function renderZone(z, r, ctx) {
       break;
     }
     case 'shape': out = drawShape(z, r, ctx); break;
+    case 'home': {
+      const bw = Math.min(w * 0.36, 134 * 0.75), bh = Math.max(S * 1.2, 5 * 0.75 * (z.sys === 'hig' ? 1 : 0.8));
+      out += `<rect x="${n2(x + (w - bw) / 2)}" y="${n2(y + h - Math.min(h * 0.5, 8 * 0.75) - bh)}" width="${n2(bw)}" height="${n2(bh)}" rx="${n2(bh / 2)}" fill="${pal.ink}" fill-opacity="0.85"/>`;
+      break;
+    }
+    case 'fab': {
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(w * 0.29)}" fill="${mix(pal.paper, pal.accent, 0.35)}"/>`;
+      const c = w * 0.18;
+      out += `<path d="M${n2(x + w / 2 - c)} ${n2(y + h / 2)}H${n2(x + w / 2 + c)}M${n2(x + w / 2)} ${n2(y + h / 2 - c)}V${n2(y + h / 2 + c)}" stroke="${pal.ink}" stroke-width="${n2(Math.max(S * 1.4, w * 0.04))}" stroke-linecap="round"/>`;
+      break;
+    }
+    case 'rail': {
+      const s = ctx.bodySize;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="${mix(pal.paper, pal.ink, 0.05)}"/>`;
+      if (z.drawer) {
+        const p = 12 * 0.75;
+        out += svgText(x + p * 2, y + s * 2.4, applyCase(loremWords(R, 1)[0], 'title'), { face: FACES.sans, size: s * 1.05, weight: 700, fill: pal.ink });
+        for (let i = 0; i < 7; i++) {
+          const yy = y + s * 4 + i * 56 * 0.75; if (yy + 56 * 0.75 > y + h) break;
+          if (i === 0) out += `<rect x="${n2(x + p)}" y="${n2(yy)}" width="${n2(w - p * 2)}" height="${n2(56 * 0.75)}" rx="${n2(28 * 0.75)}" fill="${mix(pal.paper, pal.accent, 0.3)}"/>`;
+          out += `<rect x="${n2(x + p * 2.4)}" y="${n2(yy + 28 * 0.75 - s * 0.5)}" width="${n2(s)}" height="${n2(s)}" rx="${n2(s * 0.25)}" fill="${pal.ink}" fill-opacity="${i === 0 ? 0.9 : 0.45}"/>`;
+          out += svgText(x + p * 2.4 + s * 2, yy + 28 * 0.75 + s * 0.35, applyCase(loremWords(R, 1 + (i % 2)).join(' '), 'sentence'), { face: FACES.sans, size: s * 0.9, weight: i === 0 ? 700 : 500, fill: pal.ink, op: i === 0 ? 1 : 0.75 });
+        }
+      } else {
+        const fs = 56 * 0.75, cx = x + w / 2;
+        out += `<rect x="${n2(cx - fs / 2)}" y="${n2(y + 12 * 0.75)}" width="${n2(fs)}" height="${n2(fs)}" rx="${n2(fs * 0.29)}" fill="${mix(pal.paper, pal.accent, 0.35)}"/>`;
+        out += `<path d="M${n2(cx - fs * 0.18)} ${n2(y + 12 * 0.75 + fs / 2)}H${n2(cx + fs * 0.18)}M${n2(cx)} ${n2(y + 12 * 0.75 + fs * 0.32)}V${n2(y + 12 * 0.75 + fs * 0.68)}" stroke="${pal.ink}" stroke-width="${n2(S * 1.6)}" stroke-linecap="round"/>`;
+        for (let i = 0; i < 4; i++) {
+          const yy = y + 100 * 0.75 + i * 72 * 0.75; if (yy + 56 * 0.75 > y + h) break;
+          if (i === 0) out += `<rect x="${n2(cx - 28 * 0.75)}" y="${n2(yy)}" width="${n2(56 * 0.75)}" height="${n2(32 * 0.75)}" rx="${n2(16 * 0.75)}" fill="${mix(pal.paper, pal.accent, 0.3)}"/>`;
+          out += `<rect x="${n2(cx - s * 0.5)}" y="${n2(yy + 16 * 0.75 - s * 0.5)}" width="${n2(s)}" height="${n2(s)}" rx="${n2(s * 0.25)}" fill="${pal.ink}" fill-opacity="${i === 0 ? 0.9 : 0.45}"/>`;
+          out += svgText(cx, yy + 32 * 0.75 + s * 1.1, applyCase(loremWords(R, 1)[0], 'title'), { face: FACES.sans, size: s * 0.72, weight: i === 0 ? 700 : 500, fill: pal.ink, anchor: 'middle', op: 0.85 });
+        }
+      }
+      out += `<path d="M${n2(x + w)} ${n2(y)}V${n2(y + h)}" stroke="${pal.ink}" stroke-opacity="0.08"/>`;
+      break;
+    }
+    case 'composer': {
+      const s = ctx.bodySize, home = z.home || 0, bh = h - home;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="${mix(pal.paper, pal.ink, 0.04)}"/><path d="M${n2(x)} ${n2(y)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.12"/>`;
+      const ph = Math.min(bh * 0.7, 40 * 0.75), py = y + (bh - ph) / 2, pad = 16 * 0.75;
+      out += `<circle cx="${n2(x + pad + ph / 2)}" cy="${n2(py + ph / 2)}" r="${n2(ph * 0.38)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.5" stroke-width="${n2(S * 1.2)}"/>`;
+      const fx = x + pad * 2 + ph, fw = w - (fx - x) - pad * 2 - ph;
+      out += `<rect x="${n2(fx)}" y="${n2(py)}" width="${n2(fw)}" height="${n2(ph)}" rx="${n2(ph / 2)}" fill="${pal.paper}" stroke="${pal.ink}" stroke-opacity="0.2" stroke-width="${n2(S)}"/>`;
+      out += svgText(fx + ph * 0.45, py + ph / 2 + s * 0.33, 'Message', { face: FACES.sans, size: s * 0.95, fill: pal.ink, op: 0.45 });
+      out += `<circle cx="${n2(x + w - pad - ph / 2)}" cy="${n2(py + ph / 2)}" r="${n2(ph / 2)}" fill="${pal.accent}"/>`;
+      if (home) out += renderZone({ role: 'home', sys: z.sys, seed: z.seed }, { x, y: y + h - home, w, h: home }, ctx);
+      break;
+    }
+    case 'bubble': {
+      const s = ctx.bodySize, out_ = z.side === 'out';
+      const pad = s * 0.8, bh = h - S * 4;
+      const words = loremWords(R, (h > ctx.D.rowH * 1.5 ? 10 : 3) + Math.floor(R() * (h > ctx.D.rowH * 1.5 ? 12 : 5))).join(' ');
+      const fit = fitText(applyCase(words, 'sentence'), w - pad * 2, bh - pad * 2, FACES.sans, 400, 1.3, 0, 6, s);
+      const tw = Math.min(w, Math.max(...fit.lines.map(l => l.w)) + pad * 2), th = fit.lines.length * fit.s * 1.3 + pad * 1.6;
+      const bx = out_ ? x + w - tw : x, by = y + (h - th) / 2;
+      out += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(tw)}" height="${n2(th)}" rx="${n2(Math.min(th / 2, s * 1.2))}" fill="${out_ ? pal.accent : mix(pal.paper, pal.ink, 0.09)}"/>`;
+      out += textLines(fit.lines, bx + pad, by + pad * 0.8, tw - pad * 2, fit.s, 1.3, { face: FACES.sans, weight: 400, fill: out_ ? pal.paper : pal.ink });
+      break;
+    }
+    case 'input': {
+      const s = ctx.bodySize, hig = z.sys === 'hig';
+      const fh = Math.min(h * 0.62, (hig ? 44 : 56) * 0.75), fy = y + h - fh - (h - fh) * 0.2;
+      out += svgText(x + (hig ? s * 0.2 : 0), fy - s * 0.5, applyCase(loremWords(R, 1 + Math.floor(R() * 2)).join(' '), 'sentence'), { face: FACES.sans, size: s * 0.8, weight: 600, fill: pal.ink, op: 0.75 });
+      out += hig ? `<rect x="${n2(x)}" y="${n2(fy)}" width="${n2(w)}" height="${n2(fh)}" rx="${n2(10 * 0.75)}" fill="${mix(pal.paper, pal.ink, 0.07)}"/>`
+        : `<rect x="${n2(x)}" y="${n2(fy)}" width="${n2(w)}" height="${n2(fh)}" rx="${n2(4 * 0.75)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.55" stroke-width="${n2(S)}"/>`;
+      out += svgText(x + s * 0.8, fy + fh / 2 + s * 0.35, fitStr(loremWords(R, 2).join(' '), w - s * 2, s, FACES.sans, 400), { face: FACES.sans, size: s, fill: pal.ink, op: 0.45 });
+      break;
+    }
+    case 'chips': {
+      const s = ctx.bodySize, ch = Math.min(h * 0.55, 36 * 0.75), cy = y + h / 2;
+      let xx = x;
+      if (z.label && z.label !== 1) { out += svgText(x, y + s * 1.1, z.label, { face: FACES.sans, size: s * 0.8, weight: 700, fill: pal.ink, op: 0.7 }); }
+      const yy = z.label && z.label !== 1 ? Math.min(y + h - ch - S * 2, y + s * 1.7) : cy - ch / 2;
+      if (z.seg) {
+        const n = z.label === 1 ? 3 : 2, sw = Math.min(w, ch * 9) / n, sx = z.label === 1 ? x : x + (w - sw * n) / 2;
+        out += `<rect x="${n2(sx)}" y="${n2(yy)}" width="${n2(sw * n)}" height="${n2(ch)}" rx="${n2(ch / 2)}" fill="${mix(pal.paper, pal.ink, 0.07)}"/>`;
+        out += `<rect x="${n2(sx + S)}" y="${n2(yy + S)}" width="${n2(sw - S * 2)}" height="${n2(ch - S * 2)}" rx="${n2((ch - S * 2) / 2)}" fill="${pal.paper}" stroke="${pal.ink}" stroke-opacity="0.12"/>`;
+        for (let i = 0; i < n; i++) out += svgText(sx + sw * (i + 0.5), yy + ch / 2 + s * 0.3, fitStr(z.label === 1 ? applyCase(loremWords(R, 1)[0], 'title') : ['Monthly', 'Yearly'][i], sw * 0.85, s * 0.85, FACES.sans, 600), { face: FACES.sans, size: s * 0.85, weight: i === 0 ? 700 : 500, fill: pal.ink, anchor: 'middle', op: i === 0 ? 1 : 0.65 });
+        break;
+      }
+      for (let i = 0; i < 9; i++) {
+        if (z.swatch) { const d = ch; if (xx + d > x + w || i > 5) break; out += `<circle cx="${n2(xx + d / 2)}" cy="${n2(yy + d / 2)}" r="${n2(d / 2 - S)}" fill="${[pal.accent, pal.ink, mix(pal.paper, pal.ink, 0.3), (pal.shapes || [pal.accent])[0]][i % 4]}"${i === 0 ? ` stroke="${pal.ink}" stroke-width="${n2(S * 1.5)}"` : ''}/>`; xx += d + s * 0.6; continue; }
+        const t = z.label ? ['XS', 'S', 'M', 'L', 'XL', 'XXL'][i] : applyCase(loremWords(R, 1)[0], 'title');
+        if (!t) break;
+        const tw = lineWidth([t], s * 0.85, FACES.sans, 600, 0) + s * 1.8;
+        if (xx + tw > x + w) break;
+        const on = i === (z.label ? 2 : 0);
+        out += `<rect x="${n2(xx)}" y="${n2(yy)}" width="${n2(tw)}" height="${n2(ch)}" rx="${n2(z.label ? 6 * 0.75 : ch / 2)}" fill="${on ? pal.ink : 'none'}" stroke="${pal.ink}" stroke-opacity="${on ? 1 : 0.3}" stroke-width="${n2(S)}"/>`;
+        out += svgText(xx + tw / 2, yy + ch / 2 + s * 0.3, t, { face: FACES.sans, size: s * 0.85, weight: 600, fill: on ? pal.paper : pal.ink, anchor: 'middle' });
+        xx += tw + s * 0.5;
+      }
+      break;
+    }
+    case 'logos': {
+      const s = ctx.bodySize, n = w > s * 50 ? 6 : w > s * 28 ? 4 : 3, cw = w / n, lh2 = Math.min(h * 0.32, s * 1.6);
+      for (let i = 0; i < n; i++) {
+        const lw = cw * (0.5 + 0.25 * R()), lx = x + i * cw + (cw - lw) / 2, ly = y + (h - lh2) / 2;
+        out += `<rect x="${n2(lx)}" y="${n2(ly)}" width="${n2(lh2)}" height="${n2(lh2)}" rx="${n2(lh2 * (i % 2 ? 0.5 : 0.2))}" fill="${pal.ink}" fill-opacity="0.28"/>`;
+        out += svgText(lx + lh2 * 1.3, ly + lh2 * 0.78, fitStr(loremWords(R, 1)[0].toUpperCase(), lw - lh2 * 1.3, lh2 * 0.85, FACES.sans, 800), { face: FACES.sans, size: lh2 * 0.85, weight: 800, fill: pal.ink, op: 0.32, ls: 0.04 });
+      }
+      break;
+    }
+    case 'feature': {
+      const s = ctx.bodySize, ic = Math.min(48 * 0.75, h * 0.3);
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(ic)}" height="${n2(ic)}" rx="${n2(ic * 0.25)}" fill="${mix(pal.paper, pal.accent, 0.25)}"/>`;
+      out += `<rect x="${n2(x + ic * 0.3)}" y="${n2(y + ic * 0.3)}" width="${n2(ic * 0.4)}" height="${n2(ic * 0.4)}" rx="${n2(ic * 0.1)}" fill="${pal.accent}"/>`;
+      const ty = y + ic + s * 1.6;
+      out += svgText(x, ty, fitStr(applyCase(loremWords(R, 2 + Math.floor(R() * 2)).join(' '), 'title'), w, s * 1.15, face, 700), { face, size: s * 1.15, weight: 700, fill: pal.ink });
+      out += bodyBlock(x, ty + s * 0.6, w, Math.max(4, y + h - ty - s * 0.6), R, ctx, { snap: false });
+      break;
+    }
+    case 'quote': {
+      const s = ctx.bodySize, small = z.small;
+      if (small) out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(s * 0.6)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.15" stroke-width="${n2(S)}"/>`;
+      const p = small ? s : 0, center = !small && w > s * 20;
+      if (small) for (let i = 0; i < 5; i++) out += `<path d="${starPath(x + p + i * s * 1.15 + s * 0.5, y + p + s * 0.5, s * 0.5)}" fill="${pal.accent}"/>`;
+      const qy = y + p + (small ? s * 1.4 : 0), qh = h - p * 2 - s * 3 - (small ? s * 1.4 : 0);
+      const fit = fitText('“' + applyCase(loremWords(R, small ? 14 : 18).join(' '), 'sentence') + '.”', w - p * 2, Math.max(4, qh), small ? FACES.sans : FACES[T.face === 'mono' ? 'mono' : 'serif'], 400, 1.3, 0, small ? 4 : 4, small ? s : s * 1.7);
+      out += textLines(fit.lines, x + p, qy, w - p * 2, fit.s, 1.3, { face: small ? FACES.sans : FACES[T.face === 'mono' ? 'mono' : 'serif'], weight: 400, fill: pal.ink, italic: !small && T.face === 'serif', align: center ? 'center' : 'left' });
+      const ay = y + h - p - s * 1.3, av = s * 1.1;
+      const name = applyCase(loremWords(R, 2).join(' '), 'title');
+      const nw = lineWidth(name.split(' '), s * 0.85, FACES.sans, 700, 0);
+      const ax = center ? x + (w - (av * 2 + s * 0.6 + nw)) / 2 : x + p;
+      out += `<circle cx="${n2(ax + av)}" cy="${n2(ay)}" r="${n2(av)}" fill="${mix(pal.paper, pal.ink, 0.25)}"/>`;
+      out += svgText(ax + av * 2 + s * 0.6, ay + s * 0.3, name, { face: FACES.sans, size: s * 0.85, weight: 700, fill: pal.ink });
+      break;
+    }
+    case 'banner': {
+      const s = ctx.bodySize, D = ctx.D;
+      out += `<rect x="${n2(-D.bleed)}" y="${n2(y)}" width="${n2(D.W + D.bleed * 2)}" height="${n2(h)}" fill="${pal.accent}"/>`;
+      const tc = ['#ffffff', '#fff'].includes(pal.accent.toLowerCase()) ? pal.ink : pal.paper;
+      const bw = Math.min(w * 0.4, s * 10), bh = Math.min(h * 0.4, 48 * 0.75);
+      const narrow = w < s * 30;
+      const tw = narrow ? w : w - bw - s * 2;
+      const fit = fitText(applyCase(loremWords(R, z.words || 4).join(' '), T.case === 'upper' ? 'upper' : 'sentence'), tw, narrow ? h * 0.55 : h * 0.6, face, T.weight, 1.1, 0, 2, ctx.ST ? ctx.ST.h2 * 0.75 : s * 2.4);
+      const ty = narrow ? y + h * 0.12 : y + (h - fit.lines.length * fit.s * 1.1) / 2;
+      out += textLines(fit.lines, x, ty, tw, fit.s, 1.1, { face, weight: T.weight, fill: tc });
+      const bx = narrow ? x : x + w - bw, by = narrow ? y + h - bh - h * 0.12 : y + (h - bh) / 2;
+      out += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(bw)}" height="${n2(bh)}" rx="${n2(bh / 2)}" fill="${tc}"/>`;
+      out += svgText(bx + bw / 2, by + bh / 2 + s * 0.33, 'Get started', { face: FACES.sans, size: s * 0.9, weight: 700, fill: pal.accent, anchor: 'middle' });
+      break;
+    }
+    case 'price': {
+      const s = ctx.bodySize, p = s * 1.1, feat = z.featured;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(s * 0.8)}" fill="${feat ? mix(pal.paper, pal.accent, 0.08) : 'none'}" stroke="${feat ? pal.accent : pal.ink}" stroke-opacity="${feat ? 1 : 0.18}" stroke-width="${n2(feat ? S * 2 : S)}"/>`;
+      let yy = y + p + s;
+      out += svgText(x + p, yy, ['Starter', 'Team', 'Business', 'Enterprise'][z.tier % 4], { face: FACES.sans, size: s * 0.95, weight: 700, fill: pal.ink });
+      if (feat && w > s * 12) { const bt = 'Popular', bw2 = lineWidth([bt], s * 0.7, FACES.sans, 700, 0) + s; out += `<rect x="${n2(x + w - p - bw2)}" y="${n2(yy - s * 0.95)}" width="${n2(bw2)}" height="${n2(s * 1.3)}" rx="${n2(s * 0.65)}" fill="${pal.accent}"/>` + svgText(x + w - p - bw2 / 2, yy - s * 0.05, bt, { face: FACES.sans, size: s * 0.7, weight: 700, fill: pal.paper, anchor: 'middle' }); }
+      yy += s * 2.8;
+      const amt = ['$0', '$12', '$29', '$79'][z.tier % 4];
+      out += svgText(x + p, yy, amt, { face, size: s * 2.4, weight: 800, fill: pal.ink });
+      out += svgText(x + p + lineWidth([amt], s * 2.4, face, 800, 0) + s * 0.4, yy, '/ month', { face: FACES.sans, size: s * 0.8, fill: pal.ink, op: 0.6 });
+      yy += s * 1.6;
+      const bh = Math.min(48 * 0.75, s * 2.6), by = y + h - p - bh;
+      for (let i = 0; i < 6 && yy + s * 1.5 < by - s * 0.5; i++) {
+        yy += s * 1.6;
+        out += `<path d="M${n2(x + p)} ${n2(yy - s * 0.35)}l${n2(s * 0.3)} ${n2(s * 0.3)}l${n2(s * 0.55)} ${n2(-s * 0.6)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(S * 1.6)}"/>`;
+        out += svgText(x + p + s * 1.4, yy, fitStr(applyCase(loremWords(R, 3).join(' '), 'sentence'), w - p * 2 - s * 1.4, s * 0.85, FACES.sans, 400), { face: FACES.sans, size: s * 0.85, fill: pal.ink, op: 0.8 });
+      }
+      out += `<rect x="${n2(x + p)}" y="${n2(by)}" width="${n2(w - p * 2)}" height="${n2(bh)}" rx="${n2(ctx.screen ? bh / 2 : 0)}" fill="${feat ? pal.accent : 'none'}" stroke="${feat ? pal.accent : pal.ink}" stroke-width="${n2(S)}"/>`;
+      out += svgText(x + w / 2, by + bh / 2 + s * 0.32, 'Choose plan', { face: FACES.sans, size: s * 0.9, weight: 700, fill: feat ? pal.paper : pal.ink, anchor: 'middle' });
+      break;
+    }
+    case 'faq': {
+      const s = ctx.bodySize, open = z.open && h > s * 4;
+      const qy = open ? y + s * 1.6 : y + h / 2 + s * 0.35;
+      out += svgText(x, qy, fitStr(applyCase(loremWords(R, 4 + Math.floor(R() * 4)).join(' '), 'sentence') + '?', w - s * 3, s, FACES.sans, 600), { face: FACES.sans, size: s, weight: 600, fill: pal.ink });
+      const px = x + w - s * 0.7, py = qy - s * 0.35;
+      out += `<path d="M${n2(px - s * 0.45)} ${n2(py)}H${n2(px + s * 0.45)}${open ? '' : `M${n2(px)} ${n2(py - s * 0.45)}V${n2(py + s * 0.45)}`}" stroke="${pal.ink}" stroke-width="${n2(S * 1.4)}"/>`;
+      if (open) out += bodyBlock(x, qy + s * 0.4, w - s * 3, y + h - qy - s * 0.8, R, ctx, { snap: false });
+      out += `<path d="M${n2(x)} ${n2(y + h)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.15" stroke-width="${n2(S * 0.8)}"/>`;
+      break;
+    }
+    case 'toc': {
+      const s = ctx.bodySize * 0.88;
+      if (z.collapsed) {
+        const bh = Math.min(h * 0.6, 44 * 0.75), by = y + (h - bh) / 2;
+        out += `<rect x="${n2(x)}" y="${n2(by)}" width="${n2(w)}" height="${n2(bh)}" rx="${n2(6 * 0.75)}" fill="${mix(pal.paper, pal.ink, 0.05)}" stroke="${pal.ink}" stroke-opacity="0.12"/>`;
+        out += svgText(x + s, by + bh / 2 + s * 0.35, 'On this page', { face: FACES.sans, size: s, weight: 600, fill: pal.ink });
+        out += `<path d="M${n2(x + w - s * 1.6)} ${n2(by + bh / 2 - s * 0.25)}l${n2(s * 0.4)} ${n2(s * 0.4)}l${n2(s * 0.4)} ${n2(-s * 0.4)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(S * 1.3)}"/>`;
+        break;
+      }
+      out += svgText(x, y + s, 'ON THIS PAGE', { face: FACES.sans, size: s * 0.75, weight: 700, fill: pal.ink, op: 0.6, ls: 0.1 });
+      out += `<path d="M${n2(x)} ${n2(y + s * 1.8)}V${n2(y + h)}" stroke="${pal.ink}" stroke-opacity="0.12" stroke-width="${n2(S)}"/>`;
+      for (let i = 0; i < 9; i++) {
+        const yy = y + s * 3.3 + i * s * 1.9; if (yy > y + h - s * 0.2) break;
+        const sub = i % 3 === 2;
+        if (i === 1) out += `<path d="M${n2(x)} ${n2(yy - s * 1.1)}V${n2(yy + s * 0.4)}" stroke="${pal.accent}" stroke-width="${n2(S * 2)}"/>`;
+        out += svgText(x + s * (sub ? 1.8 : 0.9), yy, fitStr(applyCase(loremWords(R, 2 + (i % 2)).join(' '), 'sentence'), w - s * 2, s, FACES.sans, 400), { face: FACES.sans, size: s, weight: i === 1 ? 600 : 400, fill: i === 1 ? pal.accent : pal.ink, op: i === 1 ? 1 : 0.7 });
+      }
+      break;
+    }
+    case 'table': {
+      const s = ctx.bodySize * 0.9, rh = Math.max(s * 2.6, 44 * 0.75), nc = Math.max(2, Math.min(6, Math.floor(w / (s * 8))));
+      const cw = w / nc;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(s * 0.5)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.15" stroke-width="${n2(S)}"/>`;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(rh)}" fill="${mix(pal.paper, pal.ink, 0.05)}"/>`;
+      for (let c = 0; c < nc; c++) out += svgText(x + c * cw + s, y + rh / 2 + s * 0.35, fitStr(z.cmp && c ? ['Starter', 'Team', 'Business', 'Enterprise', 'Plus'][(c - 1) % 5] : loremWords(R, 1)[0].toUpperCase(), cw - s * 1.5, s * 0.8, FACES.sans, 700), { face: FACES.sans, size: s * 0.8, weight: 700, fill: pal.ink, op: 0.7, ls: z.cmp ? 0 : 0.06 });
+      for (let r2 = 1; y + (r2 + 1) * rh <= y + h + 0.5; r2++) {
+        const yy = y + r2 * rh;
+        out += `<path d="M${n2(x)} ${n2(yy)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.1"/>`;
+        for (let c = 0; c < nc; c++) {
+          if (z.cmp && c) { const on = R() > 0.3; out += on ? `<path d="M${n2(x + c * cw + s)} ${n2(yy + rh / 2)}l${n2(s * 0.3)} ${n2(s * 0.3)}l${n2(s * 0.55)} ${n2(-s * 0.6)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(S * 1.6)}"/>` : `<path d="M${n2(x + c * cw + s)} ${n2(yy + rh / 2)}h${n2(s * 0.8)}" stroke="${pal.ink}" stroke-opacity="0.3" stroke-width="${n2(S)}"/>`; continue; }
+          const t = c === 0 ? applyCase(loremWords(R, 2).join(' '), 'title') : c === nc - 1 && !z.cmp ? (R() > 0.5 ? 'Active' : 'Paused') : String(Math.floor(R() * 9000) + 100);
+          out += svgText(x + c * cw + s, yy + rh / 2 + s * 0.35, fitStr(t, cw - s * 1.5, s, FACES.sans, 400), { face: FACES.sans, size: s, weight: c === 0 ? 600 : 400, fill: pal.ink, op: c === 0 ? 1 : 0.75 });
+        }
+      }
+      break;
+    }
+    case 'code': {
+      const s = ctx.bodySize * 0.82, p = s * 1.2;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(s * 0.6)}" fill="${mix(pal.ink, '#000000', 0.25)}"/>`;
+      const cols = [pal.accent, mix(pal.paper, pal.ink, 0.25), '#8FD3FF', '#F5B971'];
+      for (let i = 0; p + (i + 1) * s * 1.55 < h - p * 0.4; i++) {
+        let xx = x + p + (i % 4 === 1 || i % 4 === 2 ? s * 2 : 0); const yy = y + p + i * s * 1.55 + s;
+        const toks = 2 + Math.floor(R() * 4);
+        for (let t = 0; t < toks; t++) { const tw = s * (1.5 + R() * 5); if (xx + tw > x + w - p) break; out += `<rect x="${n2(xx)}" y="${n2(yy - s * 0.75)}" width="${n2(tw)}" height="${n2(s * 0.8)}" rx="${n2(s * 0.2)}" fill="${cols[(t + i) % cols.length]}" fill-opacity="0.75"/>`; xx += tw + s * 0.6; }
+      }
+      break;
+    }
+    case 'note': {
+      const s = ctx.bodySize;
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(s * 0.4)}" fill="${mix(pal.paper, pal.accent, 0.12)}"/><rect x="${n2(x)}" y="${n2(y)}" width="${n2(S * 3)}" height="${n2(h)}" fill="${pal.accent}"/>`;
+      out += `<circle cx="${n2(x + s * 1.6)}" cy="${n2(y + h / 2)}" r="${n2(s * 0.6)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(S * 1.4)}"/>`;
+      out += bodyBlock(x + s * 3, y + Math.max(0, (h - ctx.lead * 2) / 2 - s * 0.3), w - s * 4, Math.min(h, ctx.lead * 2.2), R, ctx, { snap: false });
+      break;
+    }
+    case 'sidenav': {
+      const s = ctx.bodySize * 0.9;
+      out += `<path d="M${n2(x + w + ctx.D.g / 2)} ${n2(y)}V${n2(y + h)}" stroke="${pal.ink}" stroke-opacity="0.1" stroke-width="${n2(S)}"/>`;
+      let yy = y + s * 1.5, k2 = 0;
+      for (let grp = 0; grp < 6 && yy < y + h - s * 2; grp++) {
+        out += svgText(x, yy, loremWords(R, 1)[0].toUpperCase(), { face: FACES.sans, size: s * 0.75, weight: 700, fill: pal.ink, op: 0.55, ls: 0.1 });
+        yy += s * 2;
+        for (let i = 0, n = 3 + Math.floor(R() * 3); i < n && yy < y + h - s * 0.5; i++, k2++) {
+          if (k2 === 2) out += `<rect x="${n2(x - s * 0.5)}" y="${n2(yy - s * 1.25)}" width="${n2(w)}" height="${n2(s * 1.8)}" rx="${n2(s * 0.4)}" fill="${mix(pal.paper, pal.accent, 0.15)}"/>`;
+          out += svgText(x, yy, fitStr(applyCase(loremWords(R, 2).join(' '), 'sentence'), w - s, s, FACES.sans, 400), { face: FACES.sans, size: s, weight: k2 === 2 ? 600 : 400, fill: k2 === 2 ? pal.accent : pal.ink, op: k2 === 2 ? 1 : 0.75 });
+          yy += s * 1.9;
+        }
+        yy += s;
+      }
+      break;
+    }
+    case 'thumbs': {
+      const t = Math.min(w, h / 4.4);
+      for (let i = 0; i < 6 && i * (t * 1.12) + t <= h + 0.5; i++) {
+        out += imagePlaceholder({ x, y: y + i * t * 1.12, w: t, h: t }, Object.assign({}, z, { seed: z.seed + i }), Object.assign({}, ctx, { S: ctx.S * 0.4 }));
+        if (i === 0) out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(t)}" height="${n2(t)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(S * 1.6)}"/>`;
+      }
+      break;
+    }
+    case 'pager': {
+      const s = ctx.bodySize * 0.9, bw = (w - s) / 2, bh = Math.min(h * 0.8, s * 4.2), by = y + (h - bh) / 2;
+      for (let i = 0; i < 2; i++) {
+        const bx = x + i * (bw + s);
+        out += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(bw)}" height="${n2(bh)}" rx="${n2(s * 0.5)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.18" stroke-width="${n2(S)}"/>`;
+        const ax = i ? bx + bw - s : bx + s, an = i ? 'end' : null;
+        out += svgText(ax, by + bh * 0.42, i ? 'Next' : 'Previous', { face: FACES.sans, size: s * 0.8, fill: pal.ink, op: 0.6, anchor: an });
+        out += svgText(ax, by + bh * 0.42 + s * 1.4, fitStr((i ? '' : '← ') + applyCase(loremWords(R, 2).join(' '), 'sentence') + (i ? ' →' : ''), bw - s * 2, s, FACES.sans, 600), { face: FACES.sans, size: s, weight: 600, fill: pal.accent, anchor: an });
+      }
+      break;
+    }
+    case 'byline': {
+      const s = ctx.bodySize * 0.9, av = Math.min(h * 0.3, s * 1.4), cy = y + h / 2;
+      out += `<circle cx="${n2(x + av)}" cy="${n2(cy)}" r="${n2(av)}" fill="${mix(pal.paper, pal.ink, 0.25)}"/>`;
+      out += svgText(x + av * 2 + s * 0.7, cy - s * 0.15, applyCase(loremWords(R, 2).join(' '), 'title'), { face: FACES.sans, size: s, weight: 700, fill: pal.ink });
+      out += svgText(x + av * 2 + s * 0.7, cy + s * 1.15, `${3 + Math.floor(R() * 25)} Oct 2026 · ${4 + Math.floor(R() * 12)} min read`, { face: FACES.sans, size: s * 0.85, fill: pal.ink, op: 0.6 });
+      out += `<path d="M${n2(x)} ${n2(y + h)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.12"/>`;
+      break;
+    }
     case 'readout': case 'compass': case 'ladder': case 'reticle': case 'radar': case 'gauge': case 'alert': out = drawHud(z, r, ctx, R); break;
     case 'ornament': {
       const cy = y + h / 2;
@@ -2305,11 +3176,12 @@ function renderZone(z, r, ctx) {
       out += `<path d="M${n2(x)} ${n2(y + h)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.2" stroke-width="${n2(S * 0.6)}"/>`;
       out += `<rect x="${n2(x)}" y="${n2(cy - s)}" width="${n2(s * 5)}" height="${n2(s * 2)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(S * 0.8)}" stroke-dasharray="${n2(S * 3)} ${n2(S * 2)}"/>`;
       out += svgText(x + s * 2.5, cy + s * 0.35, 'LOGO', { face: FACES.sans, size: s * 0.8, weight: 700, fill: pal.ink, anchor: 'middle', op: 0.7 });
-      const n = w > s * 40 ? 4 : w > s * 22 ? 2 : 0;
+      const n = z.app ? 0 : w > s * 40 ? 4 : w > s * 22 ? 2 : 0;
       let xx = x + w;
+      if (z.app) { out += `<circle cx="${n2(x + w - s * 1.6)}" cy="${n2(cy)}" r="${n2(s)}" fill="${mix(pal.paper, pal.ink, 0.25)}"/>`; xx -= s * 3.5; }
       if (w > s * 22) { const bw = s * 6; out += `<rect x="${n2(xx - bw)}" y="${n2(cy - s * 1.1)}" width="${n2(bw)}" height="${n2(s * 2.2)}" rx="${n2(s * 1.1)}" fill="${pal.accent}"/>`; out += svgText(xx - bw / 2, cy + s * 0.35, 'LOREM', { face: FACES.sans, size: s * 0.85, weight: 700, fill: pal.paper, anchor: 'middle' }); xx -= bw + s * 2; }
       for (let i = 0; i < n; i++) { const t = applyCase(loremWords(R, 1)[0], 'title'); out += svgText(xx, cy + s * 0.35, t, { face: FACES.sans, size: s, fill: pal.ink, anchor: 'end', op: 0.8 }); xx -= lineWidth([t], s, FACES.sans, 400, 0) + s * 2; }
-      if (n === 0) { for (let i = 0; i < 3; i++) out += `<rect x="${n2(x + w - s * 2)}" y="${n2(cy - s * 0.7 + i * s * 0.6)}" width="${n2(s * 2)}" height="${n2(S * 1.2)}" fill="${pal.ink}"/>`; }
+      if (n === 0) { for (let i = 0; i < 3; i++) out += `<rect x="${n2(xx - s * 2)}" y="${n2(cy - s * 0.7 + i * s * 0.6)}" width="${n2(s * 2)}" height="${n2(S * 1.2)}" fill="${pal.ink}"/>`; }
       break;
     }
     case 'footer': {
@@ -2329,39 +3201,85 @@ function renderZone(z, r, ctx) {
     }
     case 'status': {
       const s = Math.min(h * 0.32, 11);
-      out += svgText(x + (z.kind === 'phone' ? h * 0.8 : s * 2), y + h * 0.62, z.kind === 'desktop' ? '' : '9:41', { face: FACES.sans, size: s, weight: 700, fill: pal.ink });
-      if (z.kind === 'desktop') { for (let i = 0; i < 3; i++) out += `<circle cx="${n2(x + s * 1.5 + i * s * 1.6)}" cy="${n2(y + h / 2)}" r="${n2(s * 0.5)}" fill="${pal.ink}" fill-opacity="0.25"/>`; out += `<path d="M0 ${n2(h)}H${n2(w)}" stroke="${pal.ink}" stroke-opacity="0.15"/>`; }
+      out += svgText(x + (z.kind === 'phone' && z.sys !== 'material' ? h * 0.8 : s * 2), y + h * (z.sys === 'material' ? 0.68 : 0.62), z.kind === 'desktop' ? '' : '9:41', { face: FACES.sans, size: s, weight: 700, fill: pal.ink });
+      if (z.kind === 'desktop' && z.sys === 'material') { for (let i = 0; i < 3; i++) out += `<rect x="${n2(x + w - s * (2 + i * 2.6))}" y="${n2(y + h / 2 - s * 0.5)}" width="${n2(s)}" height="${n2(s)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.5"/>`; out += `<path d="M0 ${n2(h)}H${n2(w)}" stroke="${pal.ink}" stroke-opacity="0.15"/>`; }
+      else if (z.kind === 'desktop') { for (let i = 0; i < 3; i++) out += `<circle cx="${n2(x + s * 1.5 + i * s * 1.6)}" cy="${n2(y + h / 2)}" r="${n2(s * 0.5)}" fill="${pal.ink}" fill-opacity="0.25"/>`; out += `<path d="M0 ${n2(h)}H${n2(w)}" stroke="${pal.ink}" stroke-opacity="0.15"/>`; }
       else { out += `<rect x="${n2(x + w - h * 0.8 - s * 2.2)}" y="${n2(y + h * 0.62 - s * 0.75)}" width="${n2(s * 2.2)}" height="${n2(s)}" rx="${n2(s * 0.25)}" fill="none" stroke="${pal.ink}" stroke-width="1"/>`; out += `<rect x="${n2(x + w - h * 0.8 - s * 6)}" y="${n2(y + h * 0.62 - s * 0.75)}" width="${n2(s * 2.8)}" height="${n2(s)}" fill="${pal.ink}" fill-opacity="0.7"/>`; }
       break;
     }
     case 'tabbar': {
-      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="${mix(pal.paper, pal.ink, 0.05)}"/><path d="M${n2(x)} ${n2(y)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.15"/>`;
-      const n = 4, cw = w / n, s = Math.min(h * 0.18, 9);
-      for (let i = 0; i < n; i++) { const cx = x + cw * (i + 0.5); out += `<rect x="${n2(cx - s)}" y="${n2(y + h * 0.15)}" width="${n2(s * 2)}" height="${n2(s * 2)}" rx="${n2(s * 0.5)}" fill="${i === 0 ? pal.accent : pal.ink}" fill-opacity="${i === 0 ? 1 : 0.35}"/>`; out += svgText(cx, y + h * 0.15 + s * 3.4, applyCase(loremWords(R, 1)[0], 'title'), { face: FACES.sans, size: s * 0.9, fill: pal.ink, anchor: 'middle', op: 0.7 }); }
+      const home = z.home || 0, bh = h - home, m3 = z.sys === 'material';
+      out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="${mix(pal.paper, pal.ink, m3 ? 0.06 : 0.04)}"/>`;
+      if (!m3) out += `<path d="M${n2(x)} ${n2(y)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.15"/>`;
+      const n = w > 600 ? 5 : 4, cw = Math.min(w / n, 168 * 0.75), x0 = x + (w - cw * n) / 2, s = Math.min(bh * 0.2, 12 * 0.75);
+      for (let i = 0; i < n; i++) {
+        const cx = x0 + cw * (i + 0.5), iy = y + (m3 ? 12 * 0.75 : 6 * 0.75);
+        if (m3 && i === 0) out += `<rect x="${n2(cx - 32 * 0.75)}" y="${n2(iy)}" width="${n2(64 * 0.75)}" height="${n2(32 * 0.75)}" rx="${n2(16 * 0.75)}" fill="${mix(pal.paper, pal.accent, 0.3)}"/>`;
+        const ic = 22 * 0.75, icy = m3 ? iy + 16 * 0.75 : iy + ic / 2 + 2;
+        out += `<rect x="${n2(cx - ic / 2)}" y="${n2(icy - ic / 2)}" width="${n2(ic)}" height="${n2(ic)}" rx="${n2(ic * 0.28)}" fill="${i === 0 && !m3 ? pal.accent : pal.ink}" fill-opacity="${i === 0 ? 1 : 0.4}"/>`;
+        out += svgText(cx, m3 ? iy + 32 * 0.75 + s * 1.25 : icy + ic / 2 + s * 1.15, applyCase(loremWords(R, 1)[0], 'title'), { face: FACES.sans, size: s, weight: i === 0 ? 700 : 500, fill: i === 0 && !m3 ? pal.accent : pal.ink, anchor: 'middle', op: i === 0 ? 1 : 0.7 });
+      }
+      if (home) out += renderZone({ role: 'home', sys: z.sys, seed: z.seed }, { x, y: y + bh, w, h: home }, ctx);
       break;
     }
     case 'appbar': {
-      const s = Math.min(h * 0.3, ctx.bodySize * 1.1), cy = y + h / 2;
-      out += `<path d="M${n2(x + s)} ${n2(cy - s * 0.7)}L${n2(x + s * 0.3)} ${n2(cy)}L${n2(x + s)} ${n2(cy + s * 0.7)}" fill="none" stroke="${pal.ink}" stroke-width="${n2(S * 1.6)}"/>`;
-      out += svgText(x + w / 2, cy + s * 0.35, applyCase(loremWords(R, 2).join(' '), 'title'), { face: FACES.sans, size: s, weight: 700, fill: pal.ink, anchor: 'middle' });
-      for (let i = 0; i < 3; i++) out += `<circle cx="${n2(x + w - s * 0.4)}" cy="${n2(cy - s * 0.5 + i * s * 0.5)}" r="${n2(S * 1.1)}" fill="${pal.ink}"/>`;
+      const s = Math.min(h * 0.3, ctx.bodySize * 1.1), cy = y + h / 2, hig = z.sys === 'hig';
+      const title = applyCase(loremWords(R, z.chat ? 2 : 2).join(' '), 'title');
+      let tx = x;
+      if (z.back) {
+        out += `<path d="M${n2(x + s * 0.8)} ${n2(cy - s * 0.7)}L${n2(x + s * 0.1)} ${n2(cy)}L${n2(x + s * 0.8)} ${n2(cy + s * 0.7)}" fill="none" stroke="${hig ? pal.accent : pal.ink}" stroke-width="${n2(S * 1.6)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+        if (hig && !z.chat) out += svgText(x + s * 1.2, cy + s * 0.35, 'Back', { face: FACES.sans, size: s, fill: pal.accent });
+        tx = x + s * 2.2;
+      } else if (!hig) {
+        for (let i = 0; i < 3; i++) out += `<rect x="${n2(x + s * 0.1)}" y="${n2(cy - s * 0.55 + i * s * 0.5)}" width="${n2(s * 1.1)}" height="${n2(S * 1.2)}" fill="${pal.ink}"/>`;
+        tx = x + s * 2.4;
+      }
+      if (z.chat) {
+        const av = s * 1.1, ax = hig ? x + w / 2 : tx + av;
+        out += `<circle cx="${n2(ax)}" cy="${n2(hig ? cy - s * 0.4 : cy)}" r="${n2(av)}" fill="${mix(pal.paper, pal.ink, 0.25)}"/>`;
+        if (hig) out += svgText(x + w / 2, cy + s * 1.35, title, { face: FACES.sans, size: s * 0.7, weight: 600, fill: pal.ink, anchor: 'middle' });
+        else out += svgText(tx + av * 2 + s * 0.6, cy + s * 0.35, title, { face: FACES.sans, size: s, weight: 600, fill: pal.ink });
+      } else if (hig) out += svgText(x + w / 2, cy + s * 0.35, title, { face: FACES.sans, size: s, weight: 700, fill: pal.ink, anchor: 'middle' });
+      else out += svgText(tx, cy + s * 0.4, title, { face: FACES.sans, size: s * 1.2, weight: 500, fill: pal.ink });
+      if (z.action === 'save') out += svgText(x + w, cy + s * 0.35, hig ? 'Done' : 'Save', { face: FACES.sans, size: s, weight: 700, fill: pal.accent, anchor: 'end' });
+      else if (hig) out += `<circle cx="${n2(x + w - s * 0.6)}" cy="${n2(cy)}" r="${n2(s * 0.6)}" fill="none" stroke="${pal.accent}" stroke-width="${n2(S * 1.4)}"/>`;
+      else for (let i = 0; i < 3; i++) out += `<circle cx="${n2(x + w - s * 0.4)}" cy="${n2(cy - s * 0.5 + i * s * 0.5)}" r="${n2(S * 1.1)}" fill="${pal.ink}"/>`;
+      if (hig && !z.chat) out += `<path d="M${n2(x)} ${n2(y + h)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.08"/>`;
       break;
     }
     case 'field': {
-      const fh = Math.min(h * 0.6, ctx.bodySize * 3), fy = y + (h - fh) / 2;
-      out += `<rect x="${n2(x)}" y="${n2(fy)}" width="${n2(w)}" height="${n2(fh)}" rx="${n2(fh * 0.3)}" fill="${mix(pal.paper, pal.ink, 0.07)}"/>`;
+      const fh = Math.min(h * 0.7, (z.sys === 'material' ? 56 : z.sys === 'hig' ? 36 : 44) * 0.75), fy = y + (h - fh) / 2;
+      out += `<rect x="${n2(x)}" y="${n2(fy)}" width="${n2(w)}" height="${n2(fh)}" rx="${n2(z.sys === 'material' ? fh / 2 : fh * 0.3)}" fill="${mix(pal.paper, pal.ink, z.sys === 'material' ? 0.09 : 0.07)}"/>`;
       out += `<circle cx="${n2(x + fh * 0.5)}" cy="${n2(fy + fh / 2)}" r="${n2(fh * 0.17)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.5" stroke-width="${n2(S * 1.2)}"/>`;
       out += svgText(x + fh * 0.9, fy + fh / 2 + ctx.bodySize * 0.35, 'Search', { face: FACES.sans, size: ctx.bodySize, fill: pal.ink, op: 0.45 });
       break;
     }
     case 'item': {
-      const th = Math.min(h * 0.72, ctx.bodySize * 4), ty = y + (h - th) / 2, s = ctx.bodySize;
-      if (!z.compact) out += imagePlaceholder({ x, y: ty, w: th, h: th }, Object.assign({}, z, { seed: z.seed + 1 }), Object.assign({}, ctx, { S: ctx.S * 0.5 }));
-      const tx = z.compact ? x : x + th + s;
-      out += svgText(tx, y + h / 2 - s * 0.15, fitStr(applyCase(loremWords(R, 2 + Math.floor(R() * 2)).join(' '), 'title'), w - (tx - x) - s * 2, s, FACES.sans, 600), { face: FACES.sans, size: s, weight: 600, fill: pal.ink });
-      out += svgText(tx, y + h / 2 + s * 1.2, fitStr(loremWords(R, 5).join(' '), w - (tx - x) - s * 2, s * 0.85, FACES.sans, 400), { face: FACES.sans, size: s * 0.85, fill: pal.ink, op: 0.55 });
-      out += `<path d="M${n2(x + w - s * 0.9)} ${n2(y + h / 2 - s * 0.45)}L${n2(x + w - s * 0.4)} ${n2(y + h / 2)}L${n2(x + w - s * 0.9)} ${n2(y + h / 2 + s * 0.45)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.4" stroke-width="${n2(S * 1.2)}"/>`;
-      out += `<path d="M${n2(tx)} ${n2(y + h)}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.12"/>`;
+      const s = ctx.bodySize;
+      if (z.grouped) {
+        const rr = s * 0.7, top = z.gpos === 'first' || z.gpos === 'only', bot = z.gpos === 'last' || z.gpos === 'only';
+        const gx = x, gy = y - (top ? 0 : ctx.D.rg), gh = h + (top ? 0 : ctx.D.rg);
+        out += `<path d="M${n2(gx)} ${n2(gy + (top ? rr : 0))}${top ? `Q${n2(gx)} ${n2(gy)} ${n2(gx + rr)} ${n2(gy)}` : ''}H${n2(gx + w - (top ? rr : 0))}${top ? `Q${n2(gx + w)} ${n2(gy)} ${n2(gx + w)} ${n2(gy + rr)}` : ''}V${n2(gy + gh - (bot ? rr : 0))}${bot ? `Q${n2(gx + w)} ${n2(gy + gh)} ${n2(gx + w - rr)} ${n2(gy + gh)}` : ''}H${n2(gx + (bot ? rr : 0))}${bot ? `Q${n2(gx)} ${n2(gy + gh)} ${n2(gx)} ${n2(gy + gh - rr)}` : ''}Z" fill="${mix(pal.paper, pal.ink, 0.05)}"/>`;
+      }
+      const pad = z.grouped ? s : 0;
+      let tx = x + pad;
+      if (z.avatar) { const av = Math.min(h * 0.32, s * 1.6); out += `<circle cx="${n2(tx + av)}" cy="${n2(y + h / 2)}" r="${n2(av)}" fill="${mix(pal.paper, pal.ink, 0.25)}"/>`; tx += av * 2 + s; }
+      else if (z.icon) { const ic = Math.min(h * 0.45, 29 * 0.75); out += `<rect x="${n2(tx)}" y="${n2(y + (h - ic) / 2)}" width="${n2(ic)}" height="${n2(ic)}" rx="${n2(ic * 0.25)}" fill="${[pal.accent, pal.ink, mix(pal.accent, pal.ink, 0.4)][z.seed % 3]}" fill-opacity="${z.seed % 3 === 1 ? 0.55 : 1}"/>`; tx += ic + s * 0.8; }
+      else if (!z.compact && !z.plain) { const th = Math.min(h * 0.72, s * 4), ty = y + (h - th) / 2; out += imagePlaceholder({ x, y: ty, w: th, h: th }, Object.assign({}, z, { seed: z.seed + 1 }), Object.assign({}, ctx, { S: ctx.S * 0.5 })); tx = x + th + s; }
+      const rw = z.ctl === 'switch' ? 51 * 0.75 : z.ctl === 'value' ? s * 5 : s * 1.5;
+      const two = !z.plain;
+      const t1 = fitStr(applyCase(loremWords(R, 2 + Math.floor(R() * 2)).join(' '), 'sentence'), x + w - pad - rw - s - tx, s, FACES.sans, two ? 600 : 400);
+      out += svgText(tx, two ? y + h / 2 - s * 0.15 : y + h / 2 + s * 0.35, t1, { face: FACES.sans, size: s, weight: two ? 600 : 400, fill: pal.ink });
+      if (two) out += svgText(tx, y + h / 2 + s * 1.2, fitStr(loremWords(R, 5).join(' '), x + w - pad - rw - s - tx, s * 0.85, FACES.sans, 400), { face: FACES.sans, size: s * 0.85, fill: pal.ink, op: 0.55 });
+      const ex = x + w - pad;
+      if (z.ctl === 'switch') {
+        const sw = 51 * 0.75, sh = 31 * 0.75, on = z.seed % 2 === 0;
+        out += `<rect x="${n2(ex - sw)}" y="${n2(y + (h - sh) / 2)}" width="${n2(sw)}" height="${n2(sh)}" rx="${n2(sh / 2)}" fill="${on ? pal.accent : mix(pal.paper, pal.ink, 0.2)}"/><circle cx="${n2(on ? ex - sh / 2 : ex - sw + sh / 2)}" cy="${n2(y + h / 2)}" r="${n2(sh / 2 - S * 1.2)}" fill="${pal.paper}"/>`;
+      } else if (z.ctl === 'value') {
+        out += svgText(ex - s * 1.3, y + h / 2 + s * 0.35, loremWords(R, 1)[0], { face: FACES.sans, size: s, fill: pal.ink, op: 0.5, anchor: 'end' });
+        out += `<path d="M${n2(ex - s * 0.6)} ${n2(y + h / 2 - s * 0.4)}L${n2(ex - s * 0.15)} ${n2(y + h / 2)}L${n2(ex - s * 0.6)} ${n2(y + h / 2 + s * 0.4)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.35" stroke-width="${n2(S * 1.2)}"/>`;
+      } else if (!z.compact) out += `<path d="M${n2(ex - s * 0.9)} ${n2(y + h / 2 - s * 0.45)}L${n2(ex - s * 0.4)} ${n2(y + h / 2)}L${n2(ex - s * 0.9)} ${n2(y + h / 2 + s * 0.45)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.4" stroke-width="${n2(S * 1.2)}"/>`;
+      if (z.div !== 0 && !(z.grouped && (z.gpos === 'last' || z.gpos === 'only'))) out += `<path d="M${n2(tx)} ${n2(y + h + (z.grouped ? ctx.D.rg / 2 : 0))}H${n2(x + w)}" stroke="${pal.ink}" stroke-opacity="0.12"/>`;
       break;
     }
     case 'dots': {
@@ -2372,11 +3290,13 @@ function renderZone(z, r, ctx) {
     case 'sidebar': {
       out += `<rect x="${n2(-ctx.D.bleed)}" y="${n2(0)}" width="${n2(x + w + ctx.D.g / 2)}" height="${n2(ctx.D.H)}" fill="${mix(pal.paper, pal.ink, 0.05)}"/>`;
       const s = ctx.bodySize;
+      if (z.rail) { for (let i = 0; i < 7; i++) { const yy = y + s * 1.5 + i * s * 3; if (yy > y + h) break; out += `<rect x="${n2(x + w / 2 - s * 0.6)}" y="${n2(yy - s * 0.6)}" width="${n2(s * 1.2)}" height="${n2(s * 1.2)}" rx="${n2(s * 0.3)}" fill="${i === 1 ? pal.accent : pal.ink}" fill-opacity="${i === 1 ? 1 : 0.3}"/>`; } break; }
       for (let i = 0; i < 7; i++) { const yy = y + s * 1.5 + i * s * 2.6; if (yy > y + h) break; out += `<rect x="${n2(x)}" y="${n2(yy - s * 0.8)}" width="${n2(s)}" height="${n2(s)}" rx="${n2(s * 0.25)}" fill="${i === 1 ? pal.accent : pal.ink}" fill-opacity="${i === 1 ? 1 : 0.3}"/>`; out += svgText(x + s * 1.8, yy, applyCase(loremWords(R, 1)[0], 'title'), { face: FACES.sans, size: s * 0.95, fill: pal.ink, op: i === 1 ? 1 : 0.7, weight: i === 1 ? 700 : 400 }); }
       break;
     }
     case 'stat': {
       const s = ctx.bodySize;
+      if (z.flat) { out += svgText(x, y + h * 0.55, String(10 + Math.floor(R() * 89)) + ['%', 'k', '×', '+'][z.seed % 4], { face, size: Math.min(h * 0.5, s * 3), weight: 800, fill: pal.accent }); out += svgText(x, y + h * 0.55 + s * 1.4, fitStr(applyCase(loremWords(R, 3).join(' '), 'sentence'), w, s * 0.85, FACES.sans, 400), { face: FACES.sans, size: s * 0.85, fill: pal.ink, op: 0.7 }); break; }
       out += `<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" rx="${n2(s * 0.5)}" fill="none" stroke="${pal.ink}" stroke-opacity="0.2" stroke-width="${n2(S)}"/>`;
       out += svgText(x + s, y + s * 1.6, loremWords(R, 1)[0].toUpperCase(), { face: FACES.sans, size: s * 0.75, weight: 700, fill: pal.ink, op: 0.6, ls: 0.08 });
       out += svgText(x + s, y + Math.min(h - s * 0.6, s * 4.2), String(10 + Math.floor(R() * 890)), { face: FACES.sans, size: Math.min(h * 0.4, s * 2.2), weight: 700, fill: pal.ink });
@@ -2398,6 +3318,7 @@ function renderZone(z, r, ctx) {
   }
   return out;
 }
+function starPath(cx, cy, r) { let d = ''; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; d += (i ? 'L' : 'M') + n2(cx + Math.cos(a) * rr) + ' ' + n2(cy + Math.sin(a) * rr); } return d + 'Z'; }
 function drawHud(z, r, ctx, R) {
   const { pal, S } = ctx; const { x, y, w, h } = r;
   const A2 = pal.accent, ink = pal.ink, mono = FACES.mono;
@@ -2797,7 +3718,7 @@ function renderSVG(st, layout, opts) {
   const S = Math.min(D.W, D.H) / 400;
   const screen = st.unit === 'px';
   const bodyPt = D.baseline / 1.35;
-  const ctx = { T, pal, S, D, screen, bodySize: bodyPt, lead: D.baseline, spread: isSpread(st), zones, boxes: zones.map(z => zoneGeom(z, D).box) };
+  const ctx = { T, pal, S, D, screen, bodySize: bodyPt, lead: D.baseline, spread: isSpread(st), zones, boxes: zones.map(z => zoneGeom(z, D).box), ST: isScreenDoc(st) ? screenType(st) : null, sys: screenSysId(st) };
   const showBleed = !opts.clean && D.bleed > 0;
   const bx = showBleed ? -D.bleed : 0, by = showBleed ? -D.bleed : 0;
   const vw = D.W + (showBleed ? D.bleed * 2 : 0);
@@ -2866,6 +3787,15 @@ function renderSVG(st, layout, opts) {
       s += `<rect x="${n2(bx)}" y="${n2(by)}" width="${n2(vw)}" height="${n2(pageH)}" fill="none" stroke="${GUIDE.bleed}" stroke-width="${n2(gw * 1.2)}"/>`;
     }
   }
+  if (opts.guides && st.doc === 'website' && !opts.clean) {
+    const vh = viewportH(st) * 0.75, fs = Math.max(S * 5, 11 * 0.75);
+    for (let k = 1; k * vh < D.H - 1; k++) {
+      const yy = k * vh;
+      s += `<path d="M0 ${n2(yy)}H${n2(D.W)}" stroke="${GUIDE.fold}" stroke-width="${n2(gw * 1.4)}" stroke-dasharray="${n2(S * 8)} ${n2(S * 4)}"/>`;
+      const t = `Fold ${k} · ${Math.round(yy / 0.75)} px`, tw = lineWidth(t.split(' '), fs, FACES.sans, 700, 0) + fs;
+      s += `<rect x="${n2(D.W - tw)}" y="${n2(yy - fs * 1.5)}" width="${n2(tw)}" height="${n2(fs * 1.5)}" fill="${GUIDE.fold}"/>` + svgText(D.W - tw / 2, yy - fs * 0.45, t, { face: FACES.sans, size: fs, weight: 700, fill: '#ffffff', anchor: 'middle' });
+    }
+  }
   if (showBleed || opts.guides) s += `<rect x="0" y="0" width="${n2(D.W)}" height="${n2(D.H)}" fill="none" stroke="#222" stroke-opacity="0.55" stroke-width="${n2(gw)}"/>`;
   if (D.platform && opts.platform !== false && !opts.clean) s += platformLayer(D, S);
   if (opts.labels) {
@@ -2887,7 +3817,7 @@ function renderSVG(st, layout, opts) {
     });
   }
   if (opts.measure) {
-    const AN = analyzeZones(zones, D, T, layout.arch);
+    const AN = analyzeAll(st, zones, D, T, layout.arch);
     const flagged = new Set(AN.warnings.filter(w => w.severity === 'warning').flatMap(w => w.zones));
     zones.forEach((z, i) => {
       const g2 = AN.geo[i];
@@ -3022,7 +3952,7 @@ function annotationLines(st, layout, T, D) {
 }
 
 /* ---------- geometry checks ---------- */
-const TEXT_ROLES = new Set(['head', 'title', 'deck', 'body', 'caption', 'meta', 'cta', 'button', 'folio', 'masthead', 'coverline', 'list', 'legend', 'item', 'readout', 'alert', 'appbar', 'field', 'stat', 'logo']);
+const TEXT_ROLES = new Set(['head', 'title', 'deck', 'body', 'caption', 'meta', 'cta', 'button', 'folio', 'masthead', 'coverline', 'list', 'legend', 'item', 'readout', 'alert', 'appbar', 'field', 'stat', 'logo', 'input', 'chips', 'feature', 'quote', 'banner', 'price', 'faq', 'toc', 'table', 'code', 'note', 'sidenav', 'pager', 'byline', 'bubble']);
 function zoneGeom(z, D) {
   const r = zoneRect(z, D);
   let poly = [[r.x, r.y], [r.x + r.w, r.y], [r.x + r.w, r.y + r.h], [r.x, r.y + r.h]];
@@ -3146,6 +4076,7 @@ function analyzeZones(zones, D, T, arch) {
     const wrapper = a.role === 'body' && a.wrap && WRAP_ROLES.has(b.role) ? a : b.role === 'body' && b.wrap && WRAP_ROLES.has(a.role) ? b : null;
     if (wrapper) reason = 'body text flows around it';
     else if (nonText && nonText.role === 'shape') reason = 'accent shape set behind text';
+    else if (nonText && nonText.role === 'fab') reason = 'floating action button sits above the content by design';
     else if (nonText && nonText.role === 'image' && (text.onImage || nonText.scene)) reason = nonText.scene ? 'interface overlaid on the camera view' : 'text set over the image';
     else if (nonText && nonText.role === 'image' && nonText.bleed && nonText.bleed.length >= 3) reason = 'text set over a full-bleed image';
     else if (collageArch) reason = arch === 'hud' ? 'interface elements layered by design' : 'collage layering by design';
@@ -3163,9 +4094,12 @@ const ROLE_LABEL = {
   folio: 'Folio', marker: 'Section marker', arrow: 'Arrow', legend: 'Legend', cta: 'Call to action', button: 'Primary button', logo: 'Logo',
   panel: 'Panel', shape: 'Accent shape', list: 'Contents list', card: 'Card', tabbar: 'Tab bar', status: 'Status bar', field: 'Search field',
   masthead: 'Masthead', coverline: 'Cover lines', barcode: 'Barcode / price', stat: 'Stat tile', chart: 'Chart', dots: 'Page indicator',
-  meta: 'Info line', footer: 'Footer', readout: 'Data readout', compass: 'Heading tape', ladder: 'Ladder scale', reticle: 'Reticle', radar: 'Radar / minimap', gauge: 'Gauges', alert: 'Alert banner', ornament: 'Ornamental rule', appbar: 'App bar', item: 'List item', sidebar: 'Sidebar'
+  meta: 'Info line', footer: 'Footer', readout: 'Data readout', compass: 'Heading tape', ladder: 'Ladder scale', reticle: 'Reticle', radar: 'Radar / minimap', gauge: 'Gauges', alert: 'Alert banner', ornament: 'Ornamental rule', appbar: 'App bar', item: 'List item', sidebar: 'Sidebar',
+  home: 'Home indicator', fab: 'Floating action button', rail: 'Navigation rail', composer: 'Message composer', bubble: 'Message bubble', input: 'Text field', chips: 'Chips / options',
+  logos: 'Logo strip', feature: 'Feature', quote: 'Testimonial', banner: 'Call-to-action band', price: 'Plan card', faq: 'FAQ item', toc: 'Table of contents', table: 'Data table',
+  code: 'Code block', note: 'Callout', sidenav: 'Section navigation', thumbs: 'Thumbnails', pager: 'Previous / next', byline: 'Byline'
 };
-const ROLE_RANK = { reticle: 1.5, readout: 6, compass: 6, gauge: 6, radar: 6, alert: 2.5, ladder: 7, masthead: 0, head: 1, title: 1, image: 2, panel: 2, deck: 3, coverline: 3, list: 3, body: 4, card: 4, stat: 4, chart: 4, item: 5, cta: 5, button: 5, caption: 6, meta: 7, logo: 7, nav: 0.5, appbar: 0.5 };
+const ROLE_RANK = { reticle: 1.5, readout: 6, compass: 6, gauge: 6, radar: 6, alert: 2.5, ladder: 7, masthead: 0, head: 1, title: 1, image: 2, panel: 2, deck: 3, coverline: 3, list: 3, body: 4, card: 4, stat: 4, chart: 4, item: 5, cta: 5, button: 5, caption: 6, meta: 7, logo: 7, nav: 0.5, appbar: 0.5, banner: 3, price: 4, feature: 4, quote: 4, table: 4, code: 4, faq: 5, toc: 6, sidenav: 6, chips: 5, input: 5, bubble: 4, byline: 7, logos: 7, note: 5, pager: 6, thumbs: 6 };
 
 function zoneSpecs(zones, D, u, A2) {
   const f = v => roundU(v / UNIT_PT[u], u);
@@ -3241,7 +4175,7 @@ function directionText(st, layout, T, zones, D) {
 function specObject(st, layout) {
   const GZ = generateZones(st, layout);
   const { zones, T, D } = GZ;
-  const AN = analyzeZones(zones, D, T, layout.arch);
+  const AN = analyzeAll(st, zones, D, T, layout.arch);
   const u = st.unit, f = v => roundU(v, u);
   const d = DOCS[st.doc];
   return {
@@ -3262,6 +4196,7 @@ function specObject(st, layout) {
       crops: D.platform.crops.map(c => c.type === 'circle' ? { label: c.n, shape: 'circle', centerX: roundU(c.cx / UNIT_PT[u], u), centerY: roundU(c.cy / UNIT_PT[u], u), radius: roundU(c.r / UNIT_PT[u], u) } : { label: c.n, shape: 'rectangle', x: roundU(c.x / UNIT_PT[u], u), y: roundU(c.y / UNIT_PT[u], u), width: roundU(c.w / UNIT_PT[u], u), height: roundU(c.h / UNIT_PT[u], u) }),
       note: 'Approximate interface positions, checked October 2026. Apps change these often; confirm in the app before publishing. Margins keep the grid clear of them.'
     } : null,
+    screen: screenSpec(st, layout, D),
     tradition: { label: T.label, era: layout.era, style: layout.style, alternative: !!layout.alt, period: T.years || null, basis: 'visual inspiration, not a documented historical reference' },
     grid: {
       margins: { top: f(st.m.t), right: f(st.m.r), bottom: f(st.m.b), left: f(st.m.l) },
@@ -3320,6 +4255,7 @@ function specReadable(spec) {
   }
   L.push(`Inspiration  ${spec.tradition.label}${spec.tradition.period ? ' (' + spec.tradition.period + ')' : ''}, as visual inspiration`);
   L.push('');
+  if (spec.screen) { L.push(...screenReadable(spec.screen)); L.push(''); }
   L.push(`Margins      top ${G.margins.top} · right ${G.margins.right} · bottom ${G.margins.bottom} · left ${G.margins.left}`);
   L.push(`Live area    ${G.liveArea.width} × ${G.liveArea.height}`);
   L.push(`Columns      ${G.columns.count} × ${G.columns.width}, gutter ${G.columns.gutter}`);
@@ -3372,6 +4308,156 @@ function specReadable(spec) {
 }
 /* Claude Design handoff: a self-contained brief in pixels, built from the same spec. */
 const MOTIF = { hexgrid: 'honeycomb hexagon field', titleblock: 'engineering title block', stripes: 'livery stripes', pictogram: 'pictogram tile', refcode: 'document code and registration mark', brutal: 'brutalist concrete massing', bubbles: 'glossy bubbles', aurora: 'aurora bands', bokeh: 'bokeh lights', globe: 'glossy globe', grass: 'grass horizon', swoosh: 'ribbon swooshes', psych: 'concentric wavy rings', wave: 'ribbon waves', whiplash: 'whiplash curves', rays: 'sunburst', orbit: 'orbits', hud: 'reticle', glitch: 'glitch bars', badge: 'sticker badge', rainbow: 'rainbow arcs', stars: 'sparkle stars', spiral: 'sun spiral', leafy: 'leafy vine', dotline: 'dotted wave', blob2: 'flat blob', plant: 'potted plant', circle: 'circle', square: 'square', triangle: 'triangle', bar: 'bar', blob: 'organic blob', plane: 'color plane', bars: 'black bars', squiggle: 'squiggle', dots: 'dot pattern', gridlet: 'grid fragment' };
+/* ---------- screen handoff: target checks, screen spec, responsive CSS ---------- */
+const TARGET_ROLES = new Set(['button', 'cta', 'nav', 'field', 'input', 'chips', 'faq', 'item', 'pager', 'appbar']);
+function screenChecks(st, zones, D) {
+  const I = screenInfo(st); if (!I) return [];
+  const out = [], min = I.target, unit = I.id === 'hig' ? 'pt' : I.id === 'material' && st.doc === 'ux' ? 'dp' : 'px';
+  zones.forEach(z => {
+    if (z.edge || !TARGET_ROLES.has(z.role)) return;
+    const hp = zoneRect(z, D).h / 0.75;
+    if (hp + 0.5 >= min) return;
+    const wcag = hp + 0.5 < 24;
+    out.push({ severity: wcag || st.doc === 'ux' ? 'warning' : 'note', type: 'target', zones: [z.stack], edges: null, amount: min * 0.75 - zoneRect(z, D).h,
+      message: `${ROLE_LABEL[z.role] || z.role} row is ${Math.round(hp)} ${unit} tall; ${I.sys.short} asks for touch targets of at least ${min} × ${min} ${unit}${wcag ? ' and WCAG 2.5.8 needs 24 × 24 px' : ''}` });
+  });
+  const bodyPx = D.baseline / 1.35 / 0.75;
+  zones.forEach(z => {
+    if (z.role !== 'body' || z.edge) return;
+    const r = zoneRect(z, D), cols = clamp(Math.max(1, Math.round(r.w / (30 * D.baseline / 1.35))), 1, z.c ? z.c[1] : 1);
+    const cpl = Math.round((r.w / cols - (cols > 1 ? D.g : 0)) / 0.75 / (bodyPx * 0.5));
+    if (cpl > 90) out.push({ severity: 'note', type: 'measure', zones: [z.stack], edges: null, amount: 0, message: `body lines run about ${cpl} characters; aim for 45–75 so the text stays easy to read` });
+  });
+  return out;
+}
+function analyzeAll(st, zones, D, T, arch) {
+  const AN = analyzeZones(zones, D, T, arch);
+  AN.warnings.push(...screenChecks(st, zones, D));
+  return AN;
+}
+const NAV_LABEL = { bar: 'bottom tab / navigation bar', rail: 'navigation rail', drawer: 'navigation drawer', sidebar: 'sidebar', composer: 'message composer at the bottom', none: 'none on this screen' };
+function screenSpec(st, layout, D) {
+  const I = screenInfo(st); if (!I) return null;
+  const c = I.chrome, unit = st.doc === 'ux' ? (I.id === 'hig' ? 'pt' : 'dp') : 'px';
+  const scroll = isScrollPage(st, layout.arch), vh = viewportH(st), Hpx = Math.round(D.H / 0.75);
+  const bps = I.sys.bps, k = bps.indexOf(I.bp), next = bps[k + 1];
+  return {
+    system: I.sys.label, systemId: I.id, unitNote: unit === 'px' ? 'CSS px' : `${unit} (1 ${unit} = 1 px at 1×)`,
+    breakpoint: { id: I.bp.id, label: I.bp.label, range: `${I.bp.min}${next ? '–' + (next.min - 1) : '+'} px wide` },
+    breakpoints: bps.map(b => ({ id: b.id, label: b.label, minWidth: b.min, columns: b.cols, gutter: b.gutter != null ? b.gutter : null, margin: b.pad != null ? b.pad : null, container: b.container || null, preview: b.rep[0] + ' × ' + b.rep[1] })),
+    viewport: { width: Math.round(D.W / 0.75), height: vh },
+    page: scroll ? { mode: 'full page', height: Hpx, screens: Math.round(Hpx / vh * 10) / 10, folds: Array.from({ length: Math.max(0, Math.ceil(Hpx / vh) - 1) }, (_, i) => (i + 1) * vh) } : { mode: 'first screen', height: Hpx },
+    rowModule: I.rowPx,
+    navigation: st.doc === 'website' ? (layout.arch === 'webApp' ? 'app sidebar on large screens, rail on medium, menu button on small' : 'site header with links; a menu button on small screens') : NAV_LABEL[c.nav] || c.nav,
+    chrome: st.doc === 'ux' ? { statusBar: c.status || null, bottomBar: c.bar || null, homeIndicator: c.home || null, sideNavigation: c.rail || null, note: 'Approximate system sizes; confirm against the current platform kit.' } : null,
+    touchTarget: { minimum: I.target, unit, accessibility: WCAG_TARGET },
+    typeScale: { unit: unit === 'px' ? 'px' : unit, headline: I.type.h1, sectionHeading: I.type.h2, smallHeading: I.type.h3, body: I.type.body, note: 'Maximum sizes the preview allows at this breakpoint.' },
+    source: I.sys.note
+  };
+}
+function screenReadable(S) {
+  const L = [];
+  L.push('SCREEN');
+  L.push(`  System       ${S.system} · ${S.breakpoint.label} (${S.breakpoint.range})`);
+  L.push(`  Viewport     ${S.viewport.width} × ${S.viewport.height} ${S.unitNote}`);
+  L.push(`  Page         ${S.page.mode}${S.page.mode === 'full page' ? `, ${S.page.height} tall (${S.page.screens} screens); folds at ${S.page.folds.join(', ') || 'none'}` : ''}`);
+  L.push(`  Row module   ${S.rowModule}; navigation: ${S.navigation}`);
+  if (S.chrome) L.push(`  Chrome       status ${S.chrome.statusBar || 0}, bottom bar ${S.chrome.bottomBar || 0}, home indicator ${S.chrome.homeIndicator || 0}, side nav ${S.chrome.sideNavigation || 0} (approximate)`);
+  L.push(`  Targets      at least ${S.touchTarget.minimum} × ${S.touchTarget.minimum} ${S.touchTarget.unit}. ${S.touchTarget.accessibility}`);
+  L.push(`  Type         headline up to ${S.typeScale.headline}, section ${S.typeScale.sectionHeading}, small ${S.typeScale.smallHeading}, body ${S.typeScale.body}`);
+  L.push('  Breakpoints  ' + S.breakpoints.map(b => `${b.label} ≥${b.minWidth}: ${b.columns} col${b.container ? ', container ' + b.container : ''}${b.margin != null ? ', margin ' + b.margin : ''}${b.gutter != null ? ', gutter ' + b.gutter : ''}`).join('\n               '));
+  L.push(`  Source       ${S.source}`);
+  return L;
+}
+// Generate the same direction at every breakpoint of the system (hand edits per breakpoint when present).
+function screenAtBreakpoints(st, layout) {
+  const I = screenInfo(st); if (!I) return [];
+  const T = buildTradition(layout.era, layout.style, layout.alt);
+  return I.sys.bps.map(b => {
+    let st2, L2;
+    if (b.id === I.bp.id) { st2 = st; L2 = layout; }
+    else {
+      st2 = JSON.parse(JSON.stringify(st));
+      st2.w = b.rep[0]; st2.h = b.rep[1]; st2.vh = b.rep[1]; st2.unit = 'px'; st2.locks = {};
+      st2.m = { t: 0, r: 0, b: 0, l: 0 };
+      rollScreenGeometry(st2, T, mulberry32(layout.seed));
+      st2.white = st.white; st2.dist = 'none';
+      const saved = layout.byBp && layout.byBp[b.id];
+      L2 = Object.assign({}, layout, { zones: undefined, zC: undefined, zR: undefined });
+      if (saved) { Object.assign(st2, saved.geo || {}); L2 = Object.assign({}, layout, { zones: saved.zones, zC: saved.zC, zR: saved.zR }); }
+      else settleScreenPage(st2, L2);
+    }
+    const GZ = generateZones(st2, L2);
+    return { bp: b, st: st2, D: GZ.D, zones: GZ.zones.filter(z => !z.edge && z.role !== 'shape').sort((a, b2) => a.r[0] - b2.r[0] || a.c[0] - b2.c[0]), current: b.id === I.bp.id, edited: !!L2.zones };
+  });
+}
+function cssScaffold(st, layout) {
+  if (st.doc !== 'website') return '';
+  const I = screenInfo(st), sets = screenAtBreakpoints(st, layout);
+  const names = zs => { const n = {}; return zs.map(z => { n[z.role] = (n[z.role] || 0) + 1; return `z-${z.role}-${n[z.role]}`; }); };
+  const all = [];
+  sets.forEach(S => { S.names = names(S.zones); S.names.forEach(nm => { if (!all.includes(nm)) all.push(nm); }); });
+  const px = v => Math.round(v / 0.75);
+  const L = [];
+  L.push(`/* Gridder · responsive grid scaffold`);
+  L.push(`   ${I.sys.label} · ${ARCH_SHORT[layout.arch] || layout.arch} · ${layout.seed}`);
+  L.push(`   Mobile first: base styles are the smallest breakpoint; each @media block takes over from its min-width.`);
+  L.push(`   Rows use the ${px(sets[0].D.rowH)}–${px(sets[sets.length - 1].D.rowH)} px row module as a minimum; content sets the real height.`);
+  L.push(`   Class names follow the zone role and its order on the page. Layout direction, not production code. */`);
+  L.push('');
+  const block = (S, indent) => {
+    const D = S.D, b = S.bp, pad = px(D.m.r), ind = indent ? '  ' : '';
+    const cont = b.container ? b.container : 0;
+    const out = [];
+    out.push(`${ind}.page {`);
+    if (!indent) out.push(`${ind}  display: grid;`);
+    out.push(`${ind}  grid-template-columns: repeat(${D.C}, minmax(0, 1fr));`);
+    out.push(`${ind}  column-gap: ${px(D.g)}px;`);
+    out.push(`${ind}  row-gap: ${px(D.rg)}px;`);
+    out.push(`${ind}  grid-auto-rows: minmax(${px(D.rowH)}px, auto);`);
+    out.push(`${ind}  padding-inline: ${b.pad != null ? b.pad : pad}px;`);
+    out.push(`${ind}  max-width: ${cont ? cont + 'px' : 'none'};`);
+    out.push(`${ind}  --inset: ${cont ? `max(${b.pad}px, (100vw - ${cont}px) / 2 + ${b.pad}px)` : (b.pad != null ? b.pad : pad) + 'px'};`);
+    if (!indent) out.push(`${ind}  margin-inline: auto;`);
+    out.push(`${ind}}`);
+    all.forEach(nm => {
+      const k = S.names.indexOf(nm);
+      if (k < 0) { out.push(`${ind}.${nm} { display: none; }`); return; }
+      const z = S.zones[k], bl = z.bleed || '';
+      let rule = `display: block; grid-column: ${z.c[0] + 1} / span ${z.c[1]}; grid-row: ${z.r[0] + 1} / span ${z.r[1]};`;
+      if (bl.includes('l') && bl.includes('r')) rule += ' margin-inline: calc(-1 * var(--inset));';
+      else if (bl.includes('l')) rule += ' margin-left: calc(-1 * var(--inset));';
+      else if (bl.includes('r')) rule += ' margin-right: calc(-1 * var(--inset));';
+      out.push(`${ind}.${nm} { ${rule} }`);
+    });
+    return out;
+  };
+  sets.forEach((S, i) => {
+    const head = `/* ${S.bp.label}${S.bp.min ? ' · ' + S.bp.min + ' px and up' : ' · base'} · previewed at ${S.bp.rep[0]} px · ${S.D.C} columns${S.current ? ' · current view' : ''}${S.edited ? ' · hand-edited' : ''} */`;
+    L.push(head);
+    if (i === 0) L.push(...block(S, false));
+    else { L.push(`@media (min-width: ${S.bp.min}px) {`); L.push(...block(S, true)); L.push('}'); }
+    L.push('');
+  });
+  if (I.id === 'bootstrap' || I.id === 'tailwind') {
+    L.push(I.id === 'bootstrap' ? '/* Bootstrap column classes (inside .container > .row). Offsets and row order follow the grid above. */' : '/* Tailwind classes for the same grid (parent: grid gap-* with the grid-cols-* per breakpoint). */');
+    if (I.id === 'tailwind') L.push(`/* .page → ${sets.map((S, i) => (S.bp.prefix || '') + 'grid-cols-' + S.D.C).filter((c, i, a) => i === 0 || c.split(':').pop() !== a[i - 1].split(':').pop()).join(' ')} */`);
+    all.forEach(nm => {
+      const cls = []; let last = '';
+      sets.forEach(S => {
+        const k = S.names.indexOf(nm);
+        let v;
+        if (I.id === 'bootstrap') { const per = 12 / S.D.C; v = k < 0 ? 'd-none' : `col-${S.bp.prefix}${Math.round(S.zones[k].c[1] * per)}`.replace('col-' + S.bp.prefix, S.bp.prefix ? 'col-' + S.bp.prefix : 'col-'); if (k >= 0 && last === 'd-none') cls.push(S.bp.prefix ? `d-${S.bp.prefix}block` : 'd-block'); }
+        else v = k < 0 ? `${S.bp.prefix}hidden` : `${S.bp.prefix}col-span-${S.zones[k].c[1]} ${S.bp.prefix}col-start-${S.zones[k].c[0] + 1}`;
+        const core = v.replace(S.bp.prefix || '\u0000', '');
+        if (core !== last) cls.push(v);
+        last = core;
+      });
+      L.push(`/* .${nm} → ${cls.join(' ')} */`);
+    });
+  }
+  return L.join('\n') + '\n';
+}
 function claudeDesignBrief(st, layout) {
   const sp = specObject(st, layout);
   const u = st.unit, D = sp.document;
@@ -3411,6 +4497,16 @@ function claudeDesignBrief(st, layout) {
     if (z.textFlow && z.textFlow.wrapsAround.length) line += `. Text wraps around layer ${z.textFlow.wrapsAround.join(', ')}`;
     if (z.overImage) line += '. Set over the image';
     L.push(line + '.');
+  }
+  if (sp.screen) {
+    const S = sp.screen;
+    L.push(`## Screen`);
+    L.push(`- ${S.system}, ${S.breakpoint.label} breakpoint (${S.breakpoint.range}); viewport ${S.viewport.width} × ${S.viewport.height}.`);
+    if (S.page.mode === 'full page') L.push(`- Full scrolling page, ${S.page.height} px tall; the first screen ends at ${S.viewport.height} px.`);
+    L.push(`- Navigation: ${S.navigation}.${S.chrome ? ` System bars (approximate): status ${S.chrome.statusBar || 0}, bottom ${S.chrome.bottomBar || 0}, home indicator ${S.chrome.homeIndicator || 0}.` : ''}`);
+    L.push(`- Touch targets at least ${S.touchTarget.minimum} × ${S.touchTarget.minimum} ${S.touchTarget.unit}. Headings up to ${S.typeScale.headline} / ${S.typeScale.sectionHeading} / ${S.typeScale.smallHeading}, body ${S.typeScale.body}.`);
+    L.push(`- Make it responsive with these breakpoints: ${S.breakpoints.map(b => `${b.label} ≥${b.minWidth} (${b.columns} col${b.container ? ', max ' + b.container : ''})`).join('; ')}.`);
+    L.push('');
   }
   if (sp.platform) {
     L.push('');
@@ -3458,7 +4554,7 @@ function guideScaffoldSVG(st, layout) {
   }
   if (D.safe > 0) s += `<g id="safe-area"><rect x="${f(D.safe)}" y="${f(D.safe)}" width="${f(D.W - 2 * D.safe)}" height="${f(D.H - 2 * D.safe)}" fill="none" stroke="${GUIDE.safe}" stroke-dasharray="${f(4)} ${f(3)}" stroke-width="${f(0.5)}"/></g>\n`;
   const { zones } = generateZones(st, layout);
-  const AN = analyzeZones(zones, D, buildTradition(layout.era, layout.style, layout.alt), layout.arch);
+  const AN = analyzeAll(st, zones, D, buildTradition(layout.era, layout.style, layout.alt), layout.arch);
   s += `<!-- zones are listed back to front: layer 1 is at the back, higher layers are in front -->\n<g id="zones" stroke="#111" stroke-width="${f(0.75)}">`;
   zones.forEach((z, i) => { const r = zoneRect(z, D); const tint = TEXT_ROLES.has(z.role) ? '#FFFFFF' : z.role === 'image' ? '#D9D9D9' : '#EFEFEF'; s += `<rect id="layer-${z.stack}-${z.role}" x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" fill="${tint}" fill-opacity="0.72" stroke-dasharray="${f(3)} ${f(2)}"${z.rot ? ` transform="rotate(${z.rot} ${f(r.x + r.w / 2)} ${f(r.y + r.h / 2)})"` : ''}><title>Layer ${z.stack}: ${esc(ROLE_LABEL[z.role] || z.role)}${z.rot ? ', rotated ' + z.rot + '°' : ''}</title></rect>`; });
   s += `</g>\n<g id="rotated-bounding-boxes" fill="none" stroke="#E5312B" stroke-width="${f(0.5)}" stroke-dasharray="${f(1.5)} ${f(1.5)}">`;
@@ -3477,7 +4573,7 @@ function guideScaffoldSVG(st, layout) {
   return s;
 }
 
-if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MAP, SURFACE, freezeLayout, addZone, zoneGeom, ADD_DEFAULTS, STYLE_GROUPS, styleGroupOf, DOCS, DOC_ORDER, TRADS, ERA_IDS, STYLE_IDS, ALT_IDS, rollGeometry, derive, generateZones, renderSVG, specObject, specReadable, guideScaffoldSVG, resolveTradition, buildTradition, chooseArch, archWeights, mulberry32, toPt, fromPt, fmtU, roundU, UNIT_PT, UNIT_PREC, shapeFamily, RATIOS, ARCH_SHORT, ARCH_INFO, setMeasure: f => { measureWord = f; } };
+if (typeof module !== 'undefined') module.exports = { cssScaffold, screenInfo, screenSpec, SCREEN_SYS, SYS_FOR, settleScreenPage, isScrollPage, viewportH, screenBp, screenSysId, isScreenDoc, screenAtBreakpoints, claudeDesignBrief, TYPE_MAP, SURFACE, freezeLayout, addZone, zoneGeom, ADD_DEFAULTS, STYLE_GROUPS, styleGroupOf, DOCS, DOC_ORDER, TRADS, ERA_IDS, STYLE_IDS, ALT_IDS, rollGeometry, derive, generateZones, renderSVG, specObject, specReadable, guideScaffoldSVG, resolveTradition, buildTradition, chooseArch, archWeights, mulberry32, toPt, fromPt, fmtU, roundU, UNIT_PT, UNIT_PREC, shapeFamily, RATIOS, ARCH_SHORT, ARCH_INFO, setMeasure: f => { measureWord = f; } };
 </script>
 <script>
 /* ============ Gridder UI ============ */
@@ -3493,7 +4589,7 @@ if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MA
     doc: 'poster', sub: 'event', preset: 'p:1', family: 'all',
     unit: 'in', w: 18, h: 24, bleed: 0.125, safe: 0.375,
     m: { t: 1, r: 1, b: 1, l: 1 }, cols: 12, gutter: 0.25, rows: 8, rowGap: 0.25, baseline: 0.3, white: 0.4, dist: 'none',
-    era: 'any', style: 'swiss', alt: false, copy: 'lorem',
+    era: 'any', style: 'swiss', alt: false, copy: 'lorem', sys: null, page: 'full', vh: null,
     locks: { size: false, margins: false, cols: false, rows: false, baseline: false, white: false }
   };
   const view = { guides: true, baseline: false, labels: false, annot: true, specFmt: 'read', texture: true, platform: true };
@@ -3530,11 +4626,13 @@ if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MA
     if (val.startsWith('p:')) {
       const p = DOCS[st.doc].presets[+val.slice(2)];
       st.unit = p.u; st.w = p.w; st.h = p.h; st.bleed = p.b || 0; st.safe = p.sa || 0; st.ui = p.ui || null; st.frames = p.fr || 1;
+      st.vh = st.doc === 'website' ? p.h : null;
+      if (p.sys) st.sys = p.sys;
       // margins and gutters are re-rolled below if unlocked; if locked, keep their physical size
     } else if (val.startsWith('r:')) {
       const r = RATIOS.find(x => x[0] === val.slice(2));
       const long = Math.max(st.w, st.h);
-      st.ui = null; st.frames = 1;
+      st.ui = null; st.frames = 1; st.vh = null;
       if (r[1] >= r[2]) { st.w = long; st.h = roundU(long * r[2] / r[1], st.unit); } else { st.h = long; st.w = roundU(long * r[1] / r[2], st.unit); }
     }
     st.preset = val;
@@ -3542,7 +4640,8 @@ if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MA
   function defaultPresetForSub() {
     const ps = presetsFor();
     const fam = st.family;
-    const inFam = ps.filter(p => fam === 'all' || shapeFamily(p.w, p.h) === fam);
+    let inFam = ps.filter(p => fam === 'all' || shapeFamily(p.w, p.h) === fam);
+    if (st.doc === 'ux' && st.sys) { const same = inFam.filter(p => p.sys === st.sys); if (same.length) inFam = same; }
     const pref = inFam.find(p => p.s === st.sub) || inFam[0] || ps.find(p => p.s === st.sub) || ps[0];
     return pref ? 'p:' + pref.i : 'custom';
   }
@@ -3550,7 +4649,8 @@ if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MA
     $('f-doc').value = st.doc; $('f-sub').value = st.sub; $('f-style').value = st.style; $('f-alt').checked = st.alt;
     document.querySelectorAll('#f-shape .chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.fam === st.family)));
     const T = layout ? buildTradition(layout.era, layout.style, layout.alt) : null;
-    $('filter-sum').textContent = `${DOCS[st.doc].label} · ${fmtU(st.w, st.unit)} × ${fmtU(st.h, st.unit)} ${st.unit}${T ? ' · ' + T.label : ''}`;
+    const SI = screenInfo(st);
+    $('filter-sum').textContent = `${DOCS[st.doc].label} · ${SI ? SI.sys.short + ' ' + SI.bp.label + ' · ' : ''}${fmtU(st.w, st.unit)} × ${fmtU(st.h, st.unit)} ${st.unit}${T ? ' · ' + T.label : ''}`;
   }
 
   /* ---------- directions ---------- */
@@ -3573,6 +4673,7 @@ if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MA
     }
     recentArch.push(arch); recentSig.push(sig); if (recentSig.length > 16) recentSig.shift(); if (recentArch.length > 8) recentArch.shift();
     layout = Object.assign({}, res, { arch, seed });
+    if (isScreenDoc(st)) settleScreenPage(st, layout);
     refresh(true);
   }
   function back() {
@@ -3637,6 +4738,8 @@ if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MA
     const T = buildTradition(layout.era, layout.style, layout.alt);
     const sub = (DOCS[st.doc].subs.find(x => x[0] === st.sub) || [])[1];
     const f = [`${DOCS[st.doc].label}${sub ? ' · ' + sub : ''}`, `${fmtU(st.w, st.unit)} × ${fmtU(st.h, st.unit)} ${st.unit}${(st.frames || 1) > 1 ? ' · ' + st.frames + ' frames' : ''}`];
+    const SI = screenInfo(st);
+    if (SI) f.splice(1, 0, `${SI.sys.short} · ${SI.bp.label} · ${SI.bp.cols ? st.cols + ' col' : ''}${st.doc === 'website' ? ' · ' + (isScrollPage(st, layout.arch) ? 'full page' : 'first screen') : ''}`);
     const chips = f.map(t => `<span class="fact">${esc(t)}</span>`);
     chips.push(`<span class="fact${st.style !== 'any' ? ' on' : ''}">${st.style !== 'any' ? esc(TRADS[st.style].label) : 'Any style'}</span>`);
     if (st.alt) chips.push('<span class="fact on">Alternative</span>');
@@ -3651,7 +4754,7 @@ if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MA
   }
   function refresh(full) {
     drawPreview();
-    readout(); syncGeo(); syncFilters();
+    readout(); syncGeo(); syncFilters(); syncScreen();
     $('btn-back').disabled = $('d-back').disabled = past.length === 0;
     updateHandoff();
     clearTimeout(pngTimer);
@@ -3661,17 +4764,20 @@ if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MA
     const svg = renderSVG(st, layout, { guides: view.guides || view.labels || ed.on, baseline: view.baseline, labels: view.labels, measure: view.labels, texture: view.texture, platform: view.platform });
     $('v-plat-l').hidden = !(st.doc === 'social' && st.ui);
     $('sheet').innerHTML = svg;
+    fitTall();
     drawSelection();
     syncEdit();
     $('v-all').checked = view.guides && view.baseline && view.labels;
   }
-  let spec = null, specTxt = '', specJson = '';
+  let spec = null, specTxt = '', specJson = '', cssTxt = '';
   function updateHandoff() {
     spec = specObject(st, layout);
     specTxt = specReadable(spec);
     specJson = JSON.stringify(spec, null, 2);
     $('h-dir').textContent = spec.direction;
     $('h-cd').textContent = claudeDesignBrief(st, layout);
+    cssTxt = st.doc === 'website' ? cssScaffold(st, layout) : '';
+    $('h-css').textContent = cssTxt;
     $('h-spec').textContent = view.specFmt === 'read' ? specTxt : specJson;
     $('h-save-spec').textContent = view.specFmt === 'read' ? 'Save .txt' : 'Save .json';
     syncQuick(spec.whitespace.distributionResult);
@@ -3704,6 +4810,79 @@ if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MA
       pngUrl = $('h-img').src;
       pngBlob = await new Promise(r => cv.toBlob(r, 'image/png'));
     } catch (e) { pngBlob = null; }
+  }
+
+  /* ---------- screens: system, breakpoint, page length ---------- */
+  function fitTall() {
+    const wrap = $('sheet'), el = wrap.querySelector('svg');
+    const tall = st.doc === 'website' && layout && isScrollPage(st, layout.arch) && toPt(st.h, st.unit) > toPt(st.w, st.unit) * 1.2;
+    wrap.classList.toggle('tall', !!tall);
+    if (!el) return;
+    if (!tall) { el.style.width = ''; el.style.height = ''; return; }
+    const r = wrap.getBoundingClientRect(), D = derive(st);
+    const fold = viewportH(st) * 0.75;
+    const w = Math.max(220, Math.min(r.width || 600, (r.height || 600) * D.W / fold * 0.96));
+    el.style.width = Math.round(w) + 'px';
+  }
+  function syncScreen() {
+    const on = isScreenDoc(st);
+    $('f-sys-l').hidden = !on; $('bpbar').hidden = !on;
+    $('h-css-grp').hidden = st.doc !== 'website';
+    document.querySelectorAll('#e-palette .scr').forEach(b => { b.hidden = !on; });
+    if (!on) return;
+    const SI = screenInfo(st);
+    const opts = SYS_FOR[st.doc].map(k => `<option value="${k}">${SCREEN_SYS[k].label}</option>`).join('');
+    if ($('f-sys').dataset.doc !== st.doc) { $('f-sys').innerHTML = opts; $('f-sys').dataset.doc = st.doc; }
+    $('f-sys').value = SI.id;
+    $('bp-chips').innerHTML = SI.sys.bps.map(b => `<button type="button" class="chip" data-bp="${b.id}" aria-pressed="${b.id === SI.bp.id}" title="${esc(b.label)}: ${b.min ? b.min + ' px and wider' : 'smallest screens'}; previews at ${b.rep[0]} × ${b.rep[1]}">${esc(b.label)}</button>`).join('');
+    $('pg-chips').hidden = st.doc !== 'website' || layout.arch === 'webApp';
+    const scroll = isScrollPage(st, layout.arch);
+    $('pg-chips').querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String((c.dataset.pg === 'full') === scroll)));
+    const k = SI.sys.bps.indexOf(SI.bp), nx = SI.sys.bps[k + 1];
+    $('bp-note').textContent = `${SI.bp.min}${nx ? '–' + (nx.min - 1) : '+'} px · ${st.cols} columns${SI.bp.container ? ' · container ' + SI.bp.container : ''} · targets ≥ ${SI.target}${layout.byBp ? ' · edits kept for ' + Object.keys(layout.byBp).join(', ') : ''}`;
+  }
+  function stashEdits() {
+    if (!layout.zones) return;
+    const bp = screenBp(st).id;
+    const geo = { m: Object.assign({}, st.m), cols: st.cols, gutter: st.gutter, rows: st.rows, rowGap: st.rowGap, baseline: st.baseline, h: st.h, vh: st.vh };
+    const byBp = Object.assign({}, layout.byBp || {}, { [bp]: { zones: layout.zones, zC: layout.zC, zR: layout.zR, nextUid: layout.nextUid, geo } });
+    layout = Object.assign({}, layout, { byBp, zones: undefined, zC: undefined, zR: undefined, edited: undefined });
+  }
+  function reflow(fn, noSnap) {
+    if (!layout) return;
+    if (!noSnap) { past.push(snapshot()); if (past.length > 40) past.shift(); }
+    stashEdits();
+    fn();
+    const T = buildTradition(layout.era, layout.style, layout.alt);
+    const keep = { white: st.white, dist: st.dist }, locks = st.locks;
+    st.locks = Object.assign({}, locks, { size: true, white: true });
+    rollGeometry(st, T, mulberry32(layout.seed));
+    st.locks = locks; Object.assign(st, keep);
+    const saved = layout.byBp && layout.byBp[screenBp(st).id];
+    if (saved) {
+      Object.assign(st, JSON.parse(JSON.stringify(saved.geo)));
+      const byBp = Object.assign({}, layout.byBp); delete byBp[screenBp(st).id];
+      layout = Object.assign({}, layout, { zones: saved.zones, zC: saved.zC, zR: saved.zR, nextUid: saved.nextUid, edited: true, byBp: Object.keys(byBp).length ? byBp : undefined });
+    } else settleScreenPage(st, Object.assign({}, layout, { zones: undefined }));
+    ed.sel = null; ed.undo.length = 0; ed.redo.length = 0;
+    $('guard').hidden = true;
+    st.preset = 'custom';
+    const ps = presetsFor().find(p => p.u === 'px' && p.w === st.w && (p.h === st.h || p.h === st.vh));
+    if (ps) st.preset = 'p:' + ps.i;
+    buildSize(); refresh(true);
+  }
+  function toPx() {
+    if (st.unit === 'px') return;
+    convertUnits('px');
+  }
+  function setBreakpoint(id) {
+    const b = screenInfo(st).sys.bps.find(x => x.id === id); if (!b) return;
+    reflow(() => { toPx(); st.w = b.rep[0]; st.h = b.rep[1]; st.vh = st.doc === 'website' ? b.rep[1] : null; });
+  }
+  function setSystem(id) {
+    past.push(snapshot()); if (past.length > 40) past.shift();
+    if (layout.zones || layout.byBp) { layout = Object.assign({}, layout, { zones: undefined, zC: undefined, zR: undefined, byBp: undefined, edited: undefined }); toast('Hand edits set aside for the new system. Back brings them back.'); }
+    reflow(() => { st.sys = id; }, true);
   }
 
   /* ---------- feedback ---------- */
@@ -3941,6 +5120,7 @@ if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MA
     $('v-all').onchange = e => { const on = e.target.checked; view.guides = view.baseline = view.labels = on; $('v-guides').checked = $('v-base').checked = $('v-labels').checked = on; $('v-base').disabled = !on && !view.guides; refresh(false); };
     $('f-doc').onchange = e => {
       st.doc = e.target.value; st.sub = DOCS[st.doc].subs[0][0];
+      if (isScreenDoc(st)) st.sys = screenSysId(st);
       buildSub();
       if (!st.locks.size) { st.preset = defaultPresetForSub(); if (st.preset !== 'custom') applyPreset(st.preset); }
       buildSize(); next();
@@ -3967,6 +5147,10 @@ if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MA
       next();
     };
     $('f-style').onchange = e => { st.style = e.target.value; next(); };
+    $('f-sys').onchange = e => setSystem(e.target.value);
+    $('bp-chips').onclick = e => { const b = e.target.closest('[data-bp]'); if (b) setBreakpoint(b.dataset.bp); };
+    $('pg-chips').onclick = e => { const b = e.target.closest('[data-pg]'); if (b && b.dataset.pg !== st.page) reflow(() => { st.page = b.dataset.pg; }); };
+    addEventListener('resize', () => { clearTimeout(fitTall.t); fitTall.t = setTimeout(fitTall, 120); });
     $('f-alt').onchange = e => { st.alt = e.target.checked; next(); };
     for (const [id, p] of GEO) $(id).addEventListener('change', () => onGeoInput(id, p));
     $('g-cols').addEventListener('change', () => { const v = parseInt($('g-cols').value, 10); if (v >= 1 && v <= 48) { st.cols = v; refresh(false); } });
@@ -3992,6 +5176,8 @@ if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MA
     $('h-copy-cd').onclick = () => copyText(claudeDesignBrief(st, layout), 'Claude Design brief', $('h-cd'));
     $('h-save-cd').onclick = () => save(fileBase() + '-claude-design-brief.md', claudeDesignBrief(st, layout));
     $('h-save-spec').onclick = () => view.specFmt === 'read' ? save(fileBase() + '-spec.txt', specTxt) : save(fileBase() + '-spec.json', specJson);
+    $('h-copy-css').onclick = () => copyText(cssTxt, 'CSS', $('h-css'));
+    $('h-save-css').onclick = () => save(fileBase() + '-grid.' + (window.claude ? 'txt' : 'css'), cssTxt);
     $('h-save-svg').onclick = () => save(fileBase() + '-guides.svg', guideScaffoldSVG(st, layout));
     $('h-save-png').onclick = async () => { if (!pngBlob) await makePng(); if (pngBlob) save(fileBase() + (view.annot ? '-annotated' : '') + '.png', pngBlob); };
     $('h-copy-img').onclick = () => {
@@ -4045,6 +5231,4 @@ if (typeof module !== 'undefined') module.exports = { claudeDesignBrief, TYPE_MA
   next();
 })();
 </script>
-
-</body>
-</html>
+</body></html>
