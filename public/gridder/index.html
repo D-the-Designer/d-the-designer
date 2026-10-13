@@ -258,6 +258,7 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
           <span title="Baseline"><i class="sw" style="background:var(--g-baseline)"></i></span>
           <span title="Bleed"><i class="sw" style="background:var(--g-bleed)"></i></span>
           <span title="Safe area"><i class="sw" style="background:var(--g-safe)"></i></span>
+          <label id="v-plat-l" title="Where the app's own interface covers the post, plus crops and avatar overlaps. Approximate; confirm in the app." hidden><input type="checkbox" id="v-plat" checked> Platform interface</label>
           <label title="Paper tone and grain where the style calls for it. Preview only; geometry is unaffected."><input type="checkbox" id="v-tex" checked> Paper texture</label>
         </div>
         <div class="quick">
@@ -673,7 +674,87 @@ const DOCS = {
     }
   }
 };
-const DOC_ORDER = ['ad', 'poster', 'card', 'magazine', 'book', 'comic', 'editorial', 'website', 'ux', 'album', 'zine'];
+DOCS.social = {
+  label: 'Social media',
+  subs: [['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'], ['facebook', 'Facebook'], ['linkedin', 'LinkedIn'], ['pinterest', 'Pinterest'], ['x', 'X / Threads']],
+  presets: [
+    { s: 'instagram', n: 'Post, portrait 4:5', w: 1080, h: 1350, u: 'px', ui: 'igGrid' },
+    { s: 'instagram', n: 'Post, square', w: 1080, h: 1080, u: 'px', ui: 'igGrid' },
+    { s: 'instagram', n: 'Story', w: 1080, h: 1920, u: 'px', ui: 'igStory' },
+    { s: 'instagram', n: 'Reel cover / Reel', w: 1080, h: 1920, u: 'px', ui: 'igReel' },
+    { s: 'instagram', n: 'Carousel, 3 frames 4:5', w: 3240, h: 1350, u: 'px', ui: 'igGrid', fr: 3 },
+    { s: 'instagram', n: 'Profile photo', w: 320, h: 320, u: 'px', ui: 'circle' },
+    { s: 'tiktok', n: 'Video / photo', w: 1080, h: 1920, u: 'px', ui: 'tiktok' },
+    { s: 'tiktok', n: 'Photo carousel, 3 frames', w: 3240, h: 1920, u: 'px', ui: 'tiktok', fr: 3 },
+    { s: 'tiktok', n: 'Profile photo', w: 200, h: 200, u: 'px', ui: 'circle' },
+    { s: 'youtube', n: 'Thumbnail', w: 1280, h: 720, u: 'px', ui: 'ytThumb' },
+    { s: 'youtube', n: 'Short', w: 1080, h: 1920, u: 'px', ui: 'ytShorts' },
+    { s: 'youtube', n: 'Channel banner', w: 2560, h: 1440, u: 'px', ui: 'ytBanner' },
+    { s: 'youtube', n: 'Profile photo', w: 800, h: 800, u: 'px', ui: 'circle' },
+    { s: 'facebook', n: 'Feed post 4:5', w: 1080, h: 1350, u: 'px' },
+    { s: 'facebook', n: 'Story', w: 1080, h: 1920, u: 'px', ui: 'fbStory' },
+    { s: 'facebook', n: 'Reel', w: 1080, h: 1920, u: 'px', ui: 'fbReel' },
+    { s: 'facebook', n: 'Page cover', w: 851, h: 315, u: 'px', ui: 'fbCover' },
+    { s: 'linkedin', n: 'Image post, landscape', w: 1200, h: 627, u: 'px' },
+    { s: 'linkedin', n: 'Image post, portrait', w: 1080, h: 1350, u: 'px' },
+    { s: 'linkedin', n: 'Vertical video', w: 1080, h: 1920, u: 'px', ui: 'liVideo' },
+    { s: 'linkedin', n: 'Profile banner', w: 1584, h: 396, u: 'px', ui: 'liBanner' },
+    { s: 'pinterest', n: 'Pin 2:3', w: 1000, h: 1500, u: 'px' },
+    { s: 'pinterest', n: 'Video pin', w: 1080, h: 1920, u: 'px', ui: 'pinVideo' },
+    { s: 'x', n: 'X post 16:9', w: 1200, h: 675, u: 'px' },
+    { s: 'x', n: 'X header', w: 1500, h: 500, u: 'px', ui: 'xHeader' },
+    { s: 'x', n: 'Threads post 4:5', w: 1080, h: 1350, u: 'px' }
+  ],
+  cols: [4, 12], rows: [6, 12],
+  arch: { '*': { fullbleed: 3, typeOnly: 3, split: 2, stack: 2, centered: 2, collage: 1, swissAsym: 1, diagonal: 1 } }
+};
+/* Platform interface overlays. Values are approximate and change with app updates; checked October 2026.
+   Side insets are in px on the reference canvas and scale with the document. */
+const PLATFORM_UI = {
+  igStory: { name: 'Instagram Story', ref: [1080, 1920], sides: { t: [100, 'Profile and progress bar'], b: [200, 'Reply bar'] } },
+  igReel: { name: 'Instagram Reel', ref: [1080, 1920], sides: { t: [210, 'Header and camera'], b: [310, 'Caption, audio and profile'], r: [84, 'Like, comment and share'] } },
+  tiktok: { name: 'TikTok', ref: [1080, 1920], sides: { t: [108, 'Header tabs'], b: [320, 'Caption and audio'], l: [60, 'Edge'], r: [120, 'Like, comment and share'] } },
+  ytShorts: { name: 'YouTube Short', ref: [1080, 1920], sides: { t: [120, 'Header'], b: [300, 'Title and channel'], r: [96, 'Actions'] } },
+  fbStory: { name: 'Facebook Story', ref: [1080, 1920], sides: { t: [100, 'Profile and progress bar'], b: [200, 'Reply bar'] } },
+  fbReel: { name: 'Facebook Reel', ref: [1080, 1920], sides: { t: [100, 'Header'], b: [300, 'Caption and profile'], r: [60, 'Actions'] } },
+  liVideo: { name: 'LinkedIn vertical video', ref: [1080, 1920], sides: { t: [100, 'Header'], b: [100, 'Caption'], l: [35, 'Edge'], r: [35, 'Edge'] } },
+  pinVideo: { name: 'Pinterest video pin', ref: [1080, 1920], sides: { t: [100, 'Header'], b: [220, 'Title and actions'], l: [40, 'Edge'], r: [40, 'Edge'] } },
+  ytThumb: { name: 'YouTube thumbnail', ref: [1280, 720], boxes: [{ n: 'Duration badge', x: 1100, y: 650, w: 160, h: 56 }] },
+  igGrid: { name: 'Instagram profile grid', ref: null, crop: { type: 'ratio', ratio: 3 / 4, n: 'Profile grid crop (3:4)' } },
+  circle: { name: 'Profile photo', ref: null, crop: { type: 'circle', n: 'Circular crop' } },
+  ytBanner: { name: 'YouTube channel banner', ref: [2560, 1440], crop: { type: 'safe', w: 1546, h: 423, n: 'Safe area on every device' }, bands: [{ n: 'Visible on desktop', w: 2560, h: 423 }] },
+  liBanner: { name: 'LinkedIn profile banner', ref: [1584, 396], circles: [{ n: 'Profile photo overlap', cx: 220, cy: 396, r: 150 }] },
+  xHeader: { name: 'X header', ref: [1500, 500], circles: [{ n: 'Profile photo overlap', cx: 135, cy: 500, r: 120 }], sides: { t: [60, 'May crop on some screens'], b: [60, 'May crop on some screens'] } },
+  fbCover: { name: 'Facebook page cover', ref: [851, 315], circles: [{ n: 'Profile photo overlap (desktop)', cx: 110, cy: 300, r: 85 }] }
+};
+/* Platform geometry in pt for the current document (null when the format has no overlay). */
+function platformGeom(st) {
+  const P = st.doc === 'social' && st.ui ? PLATFORM_UI[st.ui] : null;
+  if (!P) return null;
+  const W = toPt(st.w, st.unit), H = toPt(st.h, st.unit);
+  const frames = Math.max(1, st.frames || 1), fw = W / frames;
+  const kx = P.ref ? fw / P.ref[0] : 1, ky = P.ref ? H / P.ref[1] : 1;
+  const out = { name: P.name, zones: [], crop: null, circles: [], bands: [] };
+  for (let f = 0; f < frames; f++) {
+    const ox = f * fw;
+    const sd = P.sides || {};
+    const t = sd.t ? sd.t[0] * ky : 0, b = sd.b ? sd.b[0] * ky : 0;
+    if (sd.t) out.zones.push({ n: sd.t[1], side: 'top', x: ox, y: 0, w: fw, h: t });
+    if (sd.b) out.zones.push({ n: sd.b[1], side: 'bottom', x: ox, y: H - b, w: fw, h: b });
+    if (sd.l) out.zones.push({ n: sd.l[1], side: 'left', x: ox, y: t, w: sd.l[0] * kx, h: H - t - b });
+    if (sd.r) out.zones.push({ n: sd.r[1], side: 'right', x: ox + fw - sd.r[0] * kx, y: t, w: sd.r[0] * kx, h: H - t - b });
+    for (const bx of P.boxes || []) out.zones.push({ n: bx.n, side: 'box', x: ox + bx.x * kx, y: bx.y * ky, w: bx.w * kx, h: bx.h * ky });
+    for (const c of P.circles || []) out.circles.push({ n: c.n, cx: ox + c.cx * kx, cy: c.cy * ky, r: c.r * Math.min(kx, ky) });
+    if (P.crop && P.crop.type === 'ratio' && f === 0) { const cw = Math.min(fw, H * P.crop.ratio), ch = Math.min(H, fw / P.crop.ratio); (out.crops = out.crops || []).push({ n: P.crop.n, type: 'rect', x: ox + (fw - cw) / 2, y: (H - ch) / 2, w: cw, h: ch }); }
+    if (P.crop && P.crop.type === 'circle') { const r = Math.min(fw, H) / 2; (out.crops = out.crops || []).push({ n: P.crop.n, type: 'circle', cx: ox + fw / 2, cy: H / 2, r }); }
+    if (P.crop && P.crop.type === 'safe') { const cw = P.crop.w * kx, ch = P.crop.h * ky; (out.crops = out.crops || []).push({ n: P.crop.n, type: 'safe', x: ox + (fw - cw) / 2, y: (H - ch) / 2, w: cw, h: ch }); }
+    for (const bd of P.bands || []) out.bands.push({ n: bd.n, x: ox + (fw - bd.w * kx) / 2, y: (H - bd.h * ky) / 2, w: bd.w * kx, h: bd.h * ky });
+  }
+  out.crops = out.crops || [];
+  out.frames = frames;
+  return out;
+}
+const DOC_ORDER = ['ad', 'social', 'poster', 'card', 'magazine', 'book', 'comic', 'editorial', 'website', 'ux', 'album', 'zine'];
 const MORE_PRESETS = {
   ad: [
     { s: 'print', n: 'Half page vertical', w: 3.375, h: 10, u: 'in', sa: 0.125 },
@@ -1100,11 +1181,28 @@ function rollGeometry(st, T, rng) {
     }
     const safePt = toPt(st.safe || 0, u);
     if (safePt > 0) for (const k in m) m[k] = Math.max(m[k], safePt * 1.15);
+    const PG = platformGeom(st);
+    if (PG) {
+      const pad = 16 * 0.75, fw = W / PG.frames;
+      for (const z of PG.zones) {
+        if (z.side === 'top') m.t = Math.max(m.t, z.h + pad);
+        if (z.side === 'bottom') m.b = Math.max(m.b, z.h + pad);
+        if (z.side === 'left' && z.x < fw) m.l = Math.max(m.l, z.w + pad);
+        if (z.side === 'right' && z.x + z.w > W - fw) m.r = Math.max(m.r, z.w + pad);
+      }
+      for (const c of PG.circles) if (c.cx < fw) m.l = Math.max(m.l, c.cx + c.r + pad);
+      for (const c of PG.crops) {
+        if (c.type === 'circle' && c.cx < fw) { const inset = c.r * (1 - Math.SQRT1_2) + pad; for (const k in m) m[k] = Math.max(m[k], inset); }
+        if ((c.type === 'rect' || c.type === 'safe') && c.x < fw) { m.l = Math.max(m.l, c.x + pad); m.r = Math.max(m.r, W - (W - fw) - (c.x + c.w) + pad); m.t = Math.max(m.t, c.y + pad); m.b = Math.max(m.b, H - (c.y + c.h) + pad); }
+      }
+      for (const k in m) m[k] = snap(m[k], 4, 8);
+    }
     st.m = { t: fromPt(m.t, u), r: fromPt(m.r, u), b: fromPt(m.b, u), l: fromPt(m.l, u) };
   }
   if (!L.cols) {
     let [a, b] = d.cols;
     if (st.doc === 'website' || st.doc === 'ux') { if (wpx < 600) a = b = 4; else if (wpx < 1100) a = b = 8; else a = b = 12; }
+    if (st.doc === 'social' && (st.frames || 1) > 1) { a = Math.min(24, a * st.frames); b = Math.min(24, b * st.frames); }
     if (isSpread(st)) { a = Math.min(24, a * 2); b = Math.min(24, b * 2); }
     const tc = T.cols || [1, 24];
     let lo = Math.max(a, tc[0]), hi = Math.min(b, tc[1]);
@@ -1158,7 +1256,7 @@ function derive(st) {
   const bleed = toPt(st.bleed || 0, u), safe = toPt(st.safe || 0, u);
   const baseline = toPt(st.baseline, u);
   const ok = liveW > 0 && liveH > 0 && colW > 0 && rowH > 0;
-  return { u, W, H, m, liveW, liveH, C, R, g, rg, colW, rowH, bleed, safe, baseline, ok };
+  return { u, W, H, m, liveW, liveH, C, R, g, rg, colW, rowH, bleed, safe, baseline, ok, platform: platformGeom(st), frames: Math.max(1, st.frames || 1) };
 }
 
 /* ---------- layout archetypes ---------- */
@@ -1594,8 +1692,10 @@ function archWeights(st, T) {
   const w = {};
   const hasPref = Object.keys(docW).some(k => T.arch[k] > 0);
   for (const k in docW) w[k] = docW[k] * (T.arch[k] > 0 ? T.arch[k] : hasPref ? 0.12 : 1);
-  if (st.doc === 'ad' && (ratio > 2.6 || ratio < 0.4) && w.banner == null) w.banner = 6;
-  if (st.doc === 'ad' && (ratio > 2.6 || ratio < 0.4)) for (const k in w) if (k !== 'banner') w[k] *= 0.15;
+  const bannerish = (st.doc === 'ad' || st.doc === 'social') && (ratio / Math.max(1, st.frames || 1) > 2.6 || ratio < 0.4);
+  if (bannerish && w.banner == null) w.banner = 6;
+  if (bannerish) for (const k in w) if (k !== 'banner') w[k] *= 0.15;
+  if (st.doc === 'social' && st.ui === 'circle') { for (const k in w) w[k] = 0; w.centered = 3; w.typeOnly = 3; }
   if (st.doc === 'zine' && T.styleId === 'comix') w.panels = (w.panels || 0) + 3;
   if (T.ownArch && st.doc !== 'comic' && ratio <= 3 && ratio >= 0.33) { for (const k in w) w[k] *= 0.05; w[T.ownArch] = 20; }
   return w;
@@ -2610,6 +2710,7 @@ function renderSVG(st, layout, opts) {
   }
   if (!framed) s += drawFrame(T, D, pal, S);
   if (ctx.spread) s += `<path d="M${n2(D.W / 2)} ${n2(by)}V${n2(by + pageH)}" stroke="${GUIDE.fold}" stroke-opacity="0.5" stroke-width="${n2(S)}" stroke-dasharray="${n2(S * 6)} ${n2(S * 4)}"/>`;
+  for (let f = 1; f < D.frames; f++) { const fx = D.W * f / D.frames; s += `<path d="M${n2(fx)} ${n2(by)}V${n2(by + pageH)}" stroke="#E5312B" stroke-opacity="0.8" stroke-width="${n2(S * 1.2)}" stroke-dasharray="${n2(S * 8)} ${n2(S * 4)}"/>`; }
   s += '</g>';
   // guides
   const gw = Math.max(S * 0.7, 0.4);
@@ -2638,6 +2739,7 @@ function renderSVG(st, layout, opts) {
     }
   }
   if (showBleed || opts.guides) s += `<rect x="0" y="0" width="${n2(D.W)}" height="${n2(D.H)}" fill="none" stroke="#222" stroke-opacity="0.55" stroke-width="${n2(gw)}"/>`;
+  if (D.platform && opts.platform !== false && !opts.clean) s += platformLayer(D, S);
   if (opts.labels) {
     const ls = clamp(Math.min(D.W, D.H) / 50, S * 5, S * 14);
     const u = st.unit, fv = v => fmtU(v / UNIT_PT[u], u);
@@ -2680,6 +2782,39 @@ function renderSVG(st, layout, opts) {
   }
   s += '</svg>';
   return s;
+}
+function platformLayer(D, S) {
+  const P = D.platform; const fs = clamp(Math.min(D.W / D.frames, D.H) / 34, S * 5, S * 16);
+  const shade = '#0B0F0D';
+  let o = `<g id="platform-interface"><pattern id="ph" width="${n2(S * 7)}" height="${n2(S * 7)}" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V${n2(S * 7)}" stroke="#ffffff" stroke-opacity="0.35" stroke-width="${n2(S * 1.4)}"/></pattern>`;
+  const label = (x, y, w, h, t) => {
+    if (w < fs * 3 || h < fs * 1.4) return '';
+    const vert = h > w * 1.6 && w < fs * 6;
+    if (vert) return `<g transform="rotate(-90 ${n2(x + w / 2)} ${n2(y + h / 2)})">` + svgText(x + w / 2, y + h / 2 + fs * 0.35, fitStr(t, h * 0.9, fs, FACES.sans, 700), { face: FACES.sans, size: fs, weight: 700, fill: '#ffffff', anchor: 'middle' }) + '</g>';
+    return svgText(x + w / 2, y + h / 2 + fs * 0.35, fitStr(t, w * 0.92, fs, FACES.sans, 700), { face: FACES.sans, size: fs, weight: 700, fill: '#ffffff', anchor: 'middle' });
+  };
+  for (const z of P.zones) {
+    o += `<rect x="${n2(z.x)}" y="${n2(z.y)}" width="${n2(z.w)}" height="${n2(z.h)}" fill="${shade}" fill-opacity="0.42"/><rect x="${n2(z.x)}" y="${n2(z.y)}" width="${n2(z.w)}" height="${n2(z.h)}" fill="url(#ph)"/>`;
+    o += label(z.x, z.y, z.w, z.h, z.n);
+  }
+  for (const c of P.circles) {
+    o += `<circle cx="${n2(c.cx)}" cy="${n2(c.cy)}" r="${n2(c.r)}" fill="${shade}" fill-opacity="0.42"/><circle cx="${n2(c.cx)}" cy="${n2(c.cy)}" r="${n2(c.r)}" fill="url(#ph)" stroke="#ffffff" stroke-width="${n2(S * 1.5)}"/>`;
+    o += svgText(c.cx, c.cy - c.r * 0.35, fitStr(c.n, c.r * 1.6, fs, FACES.sans, 700), { face: FACES.sans, size: fs, weight: 700, fill: '#ffffff', anchor: 'middle' });
+  }
+  for (const c of P.crops) {
+    const fw = D.W / D.frames, fx = Math.floor((c.cx != null ? c.cx : c.x) / fw) * fw;
+    const outer = `M${n2(fx)} 0H${n2(fx + fw)}V${n2(D.H)}H${n2(fx)}Z`;
+    if (c.type === 'circle') {
+      o += `<path d="${outer} M${n2(c.cx - c.r)} ${n2(c.cy)}A${n2(c.r)} ${n2(c.r)} 0 1 0 ${n2(c.cx + c.r)} ${n2(c.cy)}A${n2(c.r)} ${n2(c.r)} 0 1 0 ${n2(c.cx - c.r)} ${n2(c.cy)}Z" fill="${shade}" fill-opacity="0.5" fill-rule="evenodd"/>`;
+      o += `<circle cx="${n2(c.cx)}" cy="${n2(c.cy)}" r="${n2(c.r)}" fill="none" stroke="#ffffff" stroke-width="${n2(S * 1.5)}" stroke-dasharray="${n2(S * 5)} ${n2(S * 3)}"/>`;
+    } else {
+      o += `<path d="${outer} M${n2(c.x)} ${n2(c.y)}V${n2(c.y + c.h)}H${n2(c.x + c.w)}V${n2(c.y)}Z" fill="${shade}" fill-opacity="${c.type === 'safe' ? 0.3 : 0.42}" fill-rule="evenodd"/>`;
+      o += `<rect x="${n2(c.x)}" y="${n2(c.y)}" width="${n2(c.w)}" height="${n2(c.h)}" fill="none" stroke="#ffffff" stroke-width="${n2(S * 1.5)}" stroke-dasharray="${n2(S * 5)} ${n2(S * 3)}"/>`;
+      o += c.type === 'safe' ? svgText(c.x + fs * 0.4, c.y + c.h + fs * 1.3, c.n, { face: FACES.sans, size: fs, weight: 700, fill: '#ffffff' }) : svgText(c.x + fs * 0.4, c.y + fs * 1.2, c.n, { face: FACES.sans, size: fs, weight: 700, fill: '#ffffff' });
+    }
+  }
+  for (const b of P.bands) o += `<rect x="${n2(b.x)}" y="${n2(b.y)}" width="${n2(b.w)}" height="${n2(b.h)}" fill="none" stroke="#ffffff" stroke-opacity="0.8" stroke-width="${n2(S * 1.2)}"/>` + svgText(b.x + fs * 0.4, b.y - fs * 0.4, b.n, { face: FACES.sans, size: fs * 0.85, weight: 700, fill: '#ffffff' });
+  return o + '</g>';
 }
 function dimLine(x1, y1, x2, y2, label, o) {
   const { fs, col, gw } = o;
@@ -2840,6 +2975,29 @@ function analyzeZones(zones, D, T, arch) {
       }
     }
   });
+  // platform interface and crops
+  const P = D.platform;
+  if (P) zones.forEach((z, i) => {
+    if (z.edge || z.role === 'shape') return;
+    const g = geo[i], b = g.box, isText = TEXT_ROLES.has(z.role);
+    if (isText) for (const pz of P.zones) {
+      const ix = Math.min(b.x + b.w, pz.x + pz.w) - Math.max(b.x, pz.x), iy = Math.min(b.y + b.h, pz.y + pz.h) - Math.max(b.y, pz.y);
+      if (ix > eps && iy > eps) warnings.push({ severity: 'warning', type: 'platform', zones: [z.stack], edges: [pz.side], amount: Math.min(ix, iy), message: `text sits under the ${P.name} ${pz.n.toLowerCase()} area (${pz.side})` });
+    }
+    if (isText) for (const c of P.circles) {
+      const dx = Math.max(b.x - c.cx, 0, c.cx - (b.x + b.w)), dy = Math.max(b.y - c.cy, 0, c.cy - (b.y + b.h));
+      if (Math.hypot(dx, dy) < c.r - eps) warnings.push({ severity: 'warning', type: 'platform', zones: [z.stack], edges: ['overlay'], amount: c.r - Math.hypot(dx, dy), message: `text sits under the ${c.n.toLowerCase()}` });
+    }
+    for (const c of P.crops) {
+      if (!isText && !(z.role === 'image' && !(z.bleed && z.bleed.length >= 3))) continue;
+      let outside = 0;
+      if (c.type === 'circle') { for (const [px, py] of g.poly) outside = Math.max(outside, Math.hypot(px - c.cx, py - c.cy) - c.r); }
+      else outside = Math.max(c.x - b.x, c.y - b.y, b.x + b.w - (c.x + c.w), b.y + b.h - (c.y + c.h));
+      const fw = D.W / D.frames;
+      if (Math.floor(((c.cx != null ? c.cx : c.x)) / fw) !== Math.floor((b.x + b.w / 2) / fw)) continue;
+      if (outside > eps) warnings.push({ severity: isText ? 'warning' : 'note', type: 'crop', zones: [z.stack], edges: [c.type], amount: outside, message: `${isText ? 'text' : 'image'} extends outside the ${c.n.toLowerCase()}` });
+    }
+  });
   // overlaps involving text
   const collageArch = arch === 'collage' || arch === 'diagonal' || arch === 'hud';
   for (let i = 0; i < zones.length; i++) for (let j = i + 1; j < zones.length; j++) {
@@ -2965,8 +3123,16 @@ function specObject(st, layout) {
     document: {
       type: st.doc, typeLabel: d.label, subtype: st.sub, subtypeLabel: (d.subs.find(s => s[0] === st.sub) || [])[1] || null,
       unit: u, width: f(st.w), height: f(st.h), orientation: st.w > st.h ? 'landscape' : st.w < st.h ? 'portrait' : 'square',
-      proportion: shapeFamily(st.w, st.h), aspect: ratioLabel(st.w, st.h), bleed: f(st.bleed || 0), safeArea: f(st.safe || 0), spread: isSpread(st)
+      proportion: shapeFamily(st.w, st.h), aspect: ratioLabel(st.w, st.h), bleed: f(st.bleed || 0), safeArea: f(st.safe || 0), spread: isSpread(st),
+      frames: D.frames > 1 ? { count: D.frames, frameWidth: roundU(D.W / D.frames / UNIT_PT[u], u), note: 'Carousel: one continuous canvas split into equal frames.' } : null
     },
+    platform: D.platform ? {
+      name: D.platform.name,
+      interfaceZones: D.platform.zones.map(z => ({ label: z.n, edge: z.side, x: roundU(z.x / UNIT_PT[u], u), y: roundU(z.y / UNIT_PT[u], u), width: roundU(z.w / UNIT_PT[u], u), height: roundU(z.h / UNIT_PT[u], u) })),
+      overlays: D.platform.circles.map(c => ({ label: c.n, shape: 'circle', centerX: roundU(c.cx / UNIT_PT[u], u), centerY: roundU(c.cy / UNIT_PT[u], u), radius: roundU(c.r / UNIT_PT[u], u) })),
+      crops: D.platform.crops.map(c => c.type === 'circle' ? { label: c.n, shape: 'circle', centerX: roundU(c.cx / UNIT_PT[u], u), centerY: roundU(c.cy / UNIT_PT[u], u), radius: roundU(c.r / UNIT_PT[u], u) } : { label: c.n, shape: 'rectangle', x: roundU(c.x / UNIT_PT[u], u), y: roundU(c.y / UNIT_PT[u], u), width: roundU(c.w / UNIT_PT[u], u), height: roundU(c.h / UNIT_PT[u], u) }),
+      note: 'Approximate interface positions, checked October 2026. Apps change these often; confirm in the app before publishing. Margins keep the grid clear of them.'
+    } : null,
     tradition: { label: T.label, era: layout.era, style: layout.style, alternative: !!layout.alt, period: T.years || null, basis: 'visual inspiration, not a documented historical reference' },
     grid: {
       margins: { top: f(st.m.t), right: f(st.m.r), bottom: f(st.m.b), left: f(st.m.l) },
@@ -3014,6 +3180,14 @@ function specReadable(spec) {
   L.push(`Document     ${D.typeLabel}${D.subtypeLabel ? ' / ' + D.subtypeLabel : ''}`);
   L.push(`Trim size    ${D.width} × ${D.height} ${u} (${D.orientation}, ${D.aspect})${D.spread ? ', two-page spread' : ''}`);
   if (D.bleed || D.safeArea) L.push(`Bleed / safe ${D.bleed} / ${D.safeArea} ${u}`);
+  if (D.frames) L.push(`Carousel     ${D.frames.count} frames, each ${D.frames.frameWidth} ${u} wide`);
+  if (spec.platform) {
+    const P = spec.platform;
+    L.push(`Platform     ${P.name}; approximate interface positions, checked October 2026`);
+    for (const z of P.interfaceZones) L.push(`             ${z.label} (${z.edge}): x ${z.x}, y ${z.y}, ${z.width} × ${z.height}`);
+    for (const c of P.overlays) L.push(`             ${c.label}: circle at ${c.centerX}, ${c.centerY}, radius ${c.radius}`);
+    for (const c of P.crops) L.push(`             ${c.label}: ${c.shape === 'circle' ? `circle at ${c.centerX}, ${c.centerY}, radius ${c.radius}` : `x ${c.x}, y ${c.y}, ${c.width} × ${c.height}`}`);
+  }
   L.push(`Inspiration  ${spec.tradition.label}${spec.tradition.period ? ' (' + spec.tradition.period + ')' : ''}, as visual inspiration`);
   L.push('');
   L.push(`Margins      top ${G.margins.top} · right ${G.margins.right} · bottom ${G.margins.bottom} · left ${G.margins.left}`);
@@ -3127,7 +3301,7 @@ if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeL
     era: 'any', style: 'swiss', alt: false, copy: 'lorem',
     locks: { size: false, margins: false, cols: false, rows: false, baseline: false, white: false }
   };
-  const view = { guides: true, baseline: false, labels: false, annot: true, specFmt: 'read', texture: true };
+  const view = { guides: true, baseline: false, labels: false, annot: true, specFmt: 'read', texture: true, platform: true };
   let layout = null;
   const past = [];
   const recentArch = [], recentSig = [];
@@ -3160,11 +3334,12 @@ if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeL
   function applyPreset(val) {
     if (val.startsWith('p:')) {
       const p = DOCS[st.doc].presets[+val.slice(2)];
-      st.unit = p.u; st.w = p.w; st.h = p.h; st.bleed = p.b || 0; st.safe = p.sa || 0;
+      st.unit = p.u; st.w = p.w; st.h = p.h; st.bleed = p.b || 0; st.safe = p.sa || 0; st.ui = p.ui || null; st.frames = p.fr || 1;
       // margins and gutters are re-rolled below if unlocked; if locked, keep their physical size
     } else if (val.startsWith('r:')) {
       const r = RATIOS.find(x => x[0] === val.slice(2));
       const long = Math.max(st.w, st.h);
+      st.ui = null; st.frames = 1;
       if (r[1] >= r[2]) { st.w = long; st.h = roundU(long * r[2] / r[1], st.unit); } else { st.h = long; st.w = roundU(long * r[1] / r[2], st.unit); }
     }
     st.preset = val;
@@ -3266,7 +3441,7 @@ if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeL
   function syncQuick(status) {
     const T = buildTradition(layout.era, layout.style, layout.alt);
     const sub = (DOCS[st.doc].subs.find(x => x[0] === st.sub) || [])[1];
-    const f = [`${DOCS[st.doc].label}${sub ? ' · ' + sub : ''}`, `${fmtU(st.w, st.unit)} × ${fmtU(st.h, st.unit)} ${st.unit}`];
+    const f = [`${DOCS[st.doc].label}${sub ? ' · ' + sub : ''}`, `${fmtU(st.w, st.unit)} × ${fmtU(st.h, st.unit)} ${st.unit}${(st.frames || 1) > 1 ? ' · ' + st.frames + ' frames' : ''}`];
     const chips = f.map(t => `<span class="fact">${esc(t)}</span>`);
     chips.push(`<span class="fact${st.style !== 'any' ? ' on' : ''}">${st.style !== 'any' ? esc(TRADS[st.style].label) : 'Any style'}</span>`);
     if (st.alt) chips.push('<span class="fact on">Alternative</span>');
@@ -3288,7 +3463,8 @@ if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeL
     pngTimer = setTimeout(makePng, full ? 120 : 400);
   }
   function drawPreview() {
-    const svg = renderSVG(st, layout, { guides: view.guides || view.labels || ed.on, baseline: view.baseline, labels: view.labels, measure: view.labels, texture: view.texture });
+    const svg = renderSVG(st, layout, { guides: view.guides || view.labels || ed.on, baseline: view.baseline, labels: view.labels, measure: view.labels, texture: view.texture, platform: view.platform });
+    $('v-plat-l').hidden = !(st.doc === 'social' && st.ui);
     $('sheet').innerHTML = svg;
     drawSelection();
     syncEdit();
@@ -3311,7 +3487,7 @@ if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeL
     $('chk').textContent = w ? `${w} to check` : '';
     $('chk').hidden = !w;
   }
-  function refSVG(px) { return renderSVG(st, layout, { clean: !view.annot, guides: view.annot, baseline: false, labels: view.annot, measure: view.annot, annotate: view.annot, texture: view.texture, px }); }
+  function refSVG(px) { return renderSVG(st, layout, { clean: !view.annot, guides: view.annot, baseline: false, labels: view.annot, measure: view.annot, annotate: view.annot, texture: view.texture, platform: view.platform, px }); }
   async function makePng() {
     try {
       const long = 1800;
@@ -3565,6 +3741,7 @@ if (typeof module !== 'undefined') module.exports = { TYPE_MAP, SURFACE, freezeL
     $('q-dist').onchange = e => { st.dist = e.target.value; refresh(false); };
     $('q-copy').onchange = e => { st.copy = e.target.value; refresh(false); };
     $('v-tex').onchange = e => { view.texture = e.target.checked; refresh(false); };
+    $('v-plat').onchange = e => { view.platform = e.target.checked; refresh(false); };
     $('v-all').onchange = e => { const on = e.target.checked; view.guides = view.baseline = view.labels = on; $('v-guides').checked = $('v-base').checked = $('v-labels').checked = on; $('v-base').disabled = !on && !view.guides; refresh(false); };
     $('f-doc').onchange = e => {
       st.doc = e.target.value; st.sub = DOCS[st.doc].subs[0][0];
