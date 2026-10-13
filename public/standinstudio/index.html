@@ -393,13 +393,17 @@ const BODY_PRESETS={
   'Big-head stylized':{height:.4,build:.3,muscle:.2,shoulders:.4,bust:.15,waist:.4,hips:.45,glutes:.4,legs:.35,arms:.4,head:1,scale:0.9,headX:1.45},
   Voluptuous:{height:.45,build:.55,muscle:.15,shoulders:.4,bust:1.7,waist:.35,hips:1.35,glutes:1.4,legs:.5,arms:.48,head:.5},
   'Very large':{height:.45,build:1.9,muscle:.15,shoulders:.7,bust:1.2,waist:1.9,hips:1.5,glutes:1.3,legs:.4,arms:.45,head:.5},
+  'Muscle man':{height:.72,build:.7,muscle:1.4,shoulders:1,bust:.05,waist:.3,belly:0,hips:.4,glutes:.75,legs:.5,arms:.55,head:.3},
+  'Fitness model':{height:.6,build:.3,muscle:.8,shoulders:.55,bust:.55,waist:.18,belly:0,hips:.65,glutes:1.1,legs:.6,arms:.5,head:.45},
+  'Fashion model':{height:.95,build:.08,muscle:.2,shoulders:.45,bust:.2,waist:.18,belly:0,hips:.4,glutes:.35,legs:.95,arms:.62,head:.38},
+  'Pin-up':{height:.45,build:.45,muscle:.15,shoulders:.4,bust:1.15,waist:.15,belly:0,hips:1.05,glutes:1,legs:.55,arms:.48,head:.5},
   Teen:{kid:1,height:.5,build:.25,muscle:.2,shoulders:.4,bust:0,waist:.35,hips:.4,glutes:.3,legs:.6,arms:.55,head:.5,scale:0.9},
   Child:{kid:1,height:.5,build:.3,muscle:.1,shoulders:.3,bust:0,waist:.45,hips:.35,glutes:.2,legs:.5,arms:.5,head:.5,scale:0.68},
   Toddler:{kid:1,height:.5,build:.6,muscle:0,shoulders:.25,bust:0,waist:.6,hips:.4,glutes:.25,legs:.25,arms:.35,head:.6,scale:0.5},
   Infant:{kid:1,height:.5,build:.75,muscle:0,shoulders:.2,bust:0,waist:.7,hips:.4,glutes:.25,legs:.15,arms:.25,head:.8,scale:0.36}
 };
 const BODY_GROUPS=[['Common',['Average','Slender','Athletic','Muscular','Curvy','Heavyset','Stocky','Tall & lean','Petite']],
-  ['Distinct',['Elderly','Bodybuilder','Large','Very large','Voluptuous','Pear','Apple','Lanky','Very tall','Giant','Little person','Big-head stylized']],
+  ['Distinct',['Elderly','Bodybuilder','Large','Very large','Voluptuous','Pear','Apple','Lanky','Very tall','Giant','Little person','Big-head stylized','Muscle man','Fitness model','Fashion model','Pin-up']],
   ['Young',['Teen','Child','Toddler','Infant']]];
 const isKid=b=>!!b.kid;
 {const BELLY={Average:.15,Slender:0,Athletic:0,Muscular:0,Curvy:.2,Heavyset:1.0,Stocky:.5,'Tall & lean':0,Petite:0,Elderly:.5,Bodybuilder:0,Large:1.3,Pear:.4,Apple:1.4,Lanky:0,'Very tall':.1,Giant:.6,'Little person':.3,'Big-head stylized':.1,Voluptuous:.3,'Very large':2.0,Teen:0,Child:.2,Toddler:.6,Infant:.8};
@@ -796,6 +800,18 @@ const PROP_DEFS=[
  {id:'cat',name:'Cat',cat:'Animals',pts:{},build:g=>{const m=MAT.pet;const b=mk(CAP,m);b.scale.set(.15,.2,.16);b.rotation.x=Math.PI/2;b.position.set(0,.25,0);g.add(b);
    sp(g,.075,0,.36,.22,m);cone(g,.032,.07,.045,.45,.22,0,m,4);cone(g,.032,.07,-.045,.45,.22,0,m,4);
    for(const x of[-.05,.05])for(const z of[-.11,.11])cy(g,.02,.018,.2,x,.1,z,0,0,0,m,6);cy(g,.014,.01,.34,0,.4,-.25,-25,0,0,m,6);}},
+ {id:'bottle',name:'Product bottle',cat:'Hand props',hand:1,pts:{grip:[0,-0.01,-0.03]},build:g=>{cy(g,.03,.03,.15,0,0,0,0,0,0,MAT.prop,10);cy(g,.016,.02,.03,0,.09,0,0,0,0,W_(),8);cy(g,.006,.006,.03,0,.115,0,0,0,0,W_(),6);}},
+ {id:'spray',name:'Spray bottle',cat:'Hand props',hand:1,pts:{grip:[0,0.03,-0.03]},build:g=>{cy(g,.035,.035,.17,0,0,0,0,0,0,MAT.prop,10);bx(g,.03,.05,.07,0,.11,.015,0,0,0,W_());bx(g,.012,.04,.012,0,.07,.045,0,0,0,W_());}},
+ {id:'productbox',name:'Product box',cat:'Hand props',pts:{grip:[0,0,0],l:[0.095,-0.02,0],r:[-0.095,-0.02,0]},build:g=>{bx(g,.19,.24,.07,0,0,0,0,0,0,MAT.prop);bx(g,.12,.06,.002,0,.04,.036,0,0,0,W_());}},
+ {id:'shopbag',name:'Shopping bag',cat:'Hand props',hand:1,pts:{grip:[0,0.21,0]},build:g=>{bx(g,.3,.32,.12,0,0,0,0,0,0,MAT.prop);bx(g,.012,.07,.012,.06,.19,0,0,0,0,W_());bx(g,.012,.07,.012,-.06,.19,0,0,0,0,W_());bx(g,.13,.012,.012,0,.225,0,0,0,0,W_());}},
+ {id:'mic',name:'Handheld mic',cat:'Hand props',hand:1,pts:{grip:[0,-0.03,0]},build:g=>{const m=W_();cy(g,.017,.013,.17,0,-.02,0,0,0,0,m,8);sp(g,.03,0,.085,0,MAT.prop);}},
+ {id:'makeupbrush',name:'Makeup brush',cat:'Hand props',hand:1,pts:{grip:[0,-0.03,0]},build:g=>{cy(g,.006,.008,.15,0,0,0,0,0,0,W_(),6);sp(g,.017,0,.09,0,MAT.prop,1,1.5,1);}},
+ {id:'dumbbell',name:'Dumbbell',cat:'Hand props',hand:1,pts:{grip:[0,0,0]},build:g=>{const m=W_();cy(g,.016,.016,.3,0,0,0,0,0,0,m,8);cy(g,.06,.06,.05,0,.12,0,0,0,0,m,10);cy(g,.06,.06,.05,0,-.12,0,0,0,0,m,10);}},
+ {id:'barbell',name:'Barbell',cat:'Tools',pts:{grip:[0,0,0],l:[0.3,0,0],r:[-0.3,0,0]},build:g=>{const m=W_();cy(g,.014,.014,1.9,0,0,0,0,0,90,m,8);for(const x of[-.72,.72])cy(g,.225,.225,.06,x,0,0,0,0,90,m,14);}},
+ {id:'discus',name:'Discus',cat:'Hand props',hand:1,pts:{grip:[0,0,0]},build:g=>{cy(g,.11,.11,.03,0,0,0,0,0,90,W_(),14);}},
+ {id:'ringlight',name:'Ring light',cat:'Set pieces',pts:{},build:g=>{const m=W_();for(let i=0;i<3;i++){const a=i*120*D2R;cy(g,.01,.01,.42,Math.cos(a)*.08,.2,Math.sin(a)*.08,Math.sin(a)*22,0,-Math.cos(a)*22,m,5);}cy(g,.012,.012,1.2,0,.95,0,0,0,0,m,6);const r=mk(new THREE.TorusGeometry(.24,.025,6,28),MAT.prop);r.position.set(0,1.62,0);g.add(r);bx(g,.075,.15,.01,0,1.62,.01,0,0,0,m);}},
+ {id:'plinth',name:'Statue plinth',cat:'Set blocks',pts:{},build:g=>{const m=F_();bx(g,.8,.08,.8,0,.04,0,0,0,0,m);bx(g,.7,.5,.7,0,.33,0,0,0,0,m);bx(g,.8,.08,.8,0,.62,0,0,0,0,m);}},
+ {id:'vanity',name:'Vanity mirror',cat:'Set pieces',pts:{},build:g=>{const m=F_();bx(g,1.0,.04,.45,0,.75,0,0,0,0,m);for(const x of[-.46,.46])bx(g,.04,.73,.4,x,.365,0,0,0,0,m);bx(g,.6,.7,.03,0,1.15,-.2,0,0,0,MAT.prop);bx(g,.66,.04,.04,0,1.51,-.2,0,0,0,m);}},
  {id:'box',name:'Box',cat:'Primitives',pts:{},build:g=>{bx(g,.5,.5,.5,0,.25,0);}},
  {id:'cylinder',name:'Cylinder',cat:'Primitives',pts:{},build:g=>{cy(g,.25,.25,.5,0,.25,0,0,0,0,MAT.prop,16);}},
  {id:'sphere',name:'Sphere',cat:'Primitives',pts:{},build:g=>{sp(g,.25,0,.25,0);}},
@@ -1387,7 +1403,125 @@ POSES.push(
  {id:'bk-wolf',name:'Wilderness: wolf encounter',cat:C+'Outdoors & fantasy',j:{spine:[-18,0,0],chest:[-12,0,0],head:[-10,0,0],thL:[-30,0,6],shinL:[32,0,0],thR:[8,0,-4],uaL:[-30,0,62],uaR:[-40,0,-72],faL:[-30,0,0],faR:[-30,0,0]},props:[{t:'wolf',k:'w',a:'root',p:[0.2,0,2.2],r:[0,180,0]},{t:'wolf',k:'w2',a:'root',p:[-1.4,0,2.8],r:[0,150,0]},{t:'tree',k:'t1',a:'root',p:[-2.5,0,-1]},{t:'tree',k:'t2',a:'root',p:[2.2,0,1.5]}],cam:{shot:'WS',angle:'low',focal:24,yaw:140}}
 );
 }
-const POSE_CATS=['Standing','Posture & attitude','Distress','Gestures','Everyday life','School life','Action','Scenes','Scenes · Work & home','Scenes · Travel','Scenes · Action','Scenes · Public places','Scenes · Outdoors & fantasy','Running & parkour','Grabbing','Seated & floor','Mobility','Family','Affection','Dance','Helping','Riding','Animals','Labor','Driving & piloting','War','Katana','Action snapshots','Acrobatic','Ballet','Comic book','Martial arts','Sparring','Rifle','Pistol','Melee & archery','Sci-fi & heavy','Maintenance','Couples','Groups','My poses'];
+{
+const HIPL={a:'hips',p:[0.2,0.03,0],pole:[1,0,-0.5]}, HIPR={a:'hips',p:[-0.2,0.03,0],pole:[-1,0,-0.5]};
+const CON={hips:[0,-6,-5],spine:[0,4,3],chest:[0,6,4],thL:[-10,0,7],shinL:[16,0,0],thR:[2,0,-2]};
+const CONR={hips:[0,6,5],spine:[0,-4,-3],chest:[0,-6,-4],thR:[-10,0,-7],shinR:[16,0,0],thL:[2,0,2]};
+const POP={hips:[0,-10,-10],spine:[0,4,6],chest:[0,8,5],thL:[-22,-12,-4],shinL:[34,0,0],ftL:[30,0,0],thR:[4,0,-1]};
+const SEIZA={thL:[-90,0,4],shinL:[160,0,0],ftL:[60,0,0],thR:[-90,0,-4],shinR:[160,0,0],ftR:[60,0,0]};
+const KNEELUP={thL:[0,0,6],shinL:[90,0,0],ftL:[60,0,0],thR:[0,0,-6],shinR:[90,0,0],ftR:[60,0,0]};
+const STOOL={t:'stool',k:'stool',a:'root',p:[0,0,-0.02]}, ROCK={t:'box',k:'rock',a:'root',p:[0,0,-0.06],s:0.95};
+const SIDE={hips:[0,0,90],spine:[0,0,-30],chest:[0,0,-14],neck:[0,0,-10],head:[0,-10,-14],thL:[-35,0,-4],shinL:[60,0,0],thR:[-8,0,0],shinR:[10,0,0],uaL:[-8,0,10],faL:[-20,0,0]};
+const PRONE={hips:[90,0,0],spine:[-22,0,0],chest:[-18,0,0],neck:[-12,0,0],head:[-16,0,0],thL:[0,0,4],shinL:[100,0,0],ftL:[40,0,0],thR:[0,0,-4],shinR:[120,0,0],ftR:[40,0,0]};
+const PHONE_UP={t:'phone',k:'ph',a:'hdR',r:[0,0,0]};
+POSES.push(
+ /* ---- UGC & influencer ---- */
+ {id:'ug-selfie-peace',name:'Selfie, peace sign',cat:'UGC & influencer',j:J(POP,{head:[-6,-14,10]}),props:[PHONE_UP],ik:{R:{a:'chest',p:[-0.2,0.6,0.5],pole:[-1,-0.5,0]},L:{a:'head',p:[0.13,0.06,0.07],pole:[1,-1,0]}}},
+ {id:'ug-mirror',name:'Mirror selfie, hand on hip',cat:'UGC & influencer',j:J(POP,{head:[10,0,0]}),props:[{t:'phone',k:'ph',a:'hdR',r:[0,0,90]}],ik:{R:{a:'head',p:[-0.02,0.0,0.24],pole:[-1,-1,0]},L:HIPL}},
+ {id:'ug-talk',name:'Talking to camera',cat:'UGC & influencer',j:J(CON,{head:[0,0,-4]}),ik:{L:{a:'chest',p:[0.14,0.06,0.3],pole:[1,-1,-0.3]},R:{a:'chest',p:[-0.18,0.1,0.3],pole:[-1,-1,-0.3]}}},
+ {id:'ug-pointup',name:'Point up at the caption',cat:'UGC & influencer',j:J(CON,{head:[-14,0,8]}),ik:{R:{a:'chest',p:[-0.22,0.72,0.2],pole:[-1,-0.6,0]},L:HIPL}},
+ {id:'ug-pointdown',name:'Point down, "link below"',cat:'UGC & influencer',j:J(CON,{chest:[10,0,0],head:[24,0,0]}),ik:{L:{a:'chest',p:[0.14,-0.26,0.3],pole:[1,0,-0.5]},R:{a:'chest',p:[-0.14,-0.26,0.3],pole:[-1,0,-0.5]}}},
+ {id:'ug-heart',name:'Heart hands',cat:'UGC & influencer',j:J(CON,{head:[0,0,8]}),ik:{L:{a:'chest',p:[0.03,0.18,0.3],pole:[1,-0.6,0]},R:{a:'chest',p:[-0.03,0.18,0.3],pole:[-1,-0.6,0]}}},
+ {id:'ug-shock',name:'Unboxing reaction, hands on cheeks',cat:'UGC & influencer',j:{chest:[-6,0,0],head:[-6,0,0],thL:[-6,0,5],shinL:[10,0,0]},ik:{L:{a:'head',p:[0.09,0.0,0.07],pole:[1,-1,0]},R:{a:'head',p:[-0.09,0.0,0.07],pole:[-1,-1,0]}}},
+ {id:'ug-outfit',name:'Outfit check, ta-da',cat:'UGC & influencer',j:J(POP,{head:[-4,0,6]}),ik:{L:{a:'hips',p:[0.48,0.12,0.12],pole:[1,-1,0]},R:{a:'hips',p:[-0.48,0.12,0.12],pole:[-1,-1,0]}}},
+ {id:'ug-vlogwalk',name:'Vlogging, walking with phone',cat:'UGC & influencer',j:J(WALKL,{head:[-4,0,0],uaL:[16,0,6],faL:[-12,0,0]}),props:[{t:'phone',k:'ph',a:'hdR',r:[0,180,0]}],ik:{R:{a:'chest',p:[-0.08,0.38,0.55],pole:[-1,-1,0]}}},
+ {id:'ug-followme',name:'"Follow me", reaching back',cat:'UGC & influencer',cam:{shot:'FS',yaw:180},j:J(WALKL,{chest:[0,-14,0],head:[0,-40,0]}),ik:{R:{a:'chest',p:[-0.12,0.24,-0.62],pole:[-1,-1,0]}}},
+ {id:'ug-grwm',name:'Get ready with me, makeup',cat:'UGC & influencer',cam:{shot:'FS',yaw:75},seat:0.47,j:J(SIT,{spine:[6,0,0],head:[-6,0,-8]}),props:[STOOL,{t:'vanity',k:'v',a:'root',p:[0,0,0.62],r:[0,180,0]},{t:'makeupbrush',k:'b',a:'hdR'}],ik:{R:{a:'head',p:[-0.07,0.03,0.12],pole:[-1,-1,0]},L:{a:'root',p:[0.15,0.79,0.4],pole:[1,-1,-0.3]}}},
+ {id:'ug-bedphone',name:'Lying on bed, scrolling',cat:'UGC & influencer',lift:0.55,j:J(PRONE,{head:[10,0,0]}),props:[{t:'bed',k:'bed',a:'root',p:[0,0,0.05]},{t:'phone',k:'ph',a:'hdR',r:[0,0,0]}],ik:{R:{a:'head',p:[-0.04,-0.2,0.26],pole:[-1,0,-1]},L:{a:'head',p:[0.12,-0.22,0.2],pole:[1,0,-1]}}},
+ {id:'ug-podcast',name:'Podcast, mic in hand',cat:'UGC & influencer',seat:0.47,j:J(SIT,{spine:[-6,0,0],head:[0,-20,0],thL:[-80,0,24],shinL:[70,0,0]}),props:[CHAIR,{t:'mic',k:'mic',a:'hdR',r:[60,0,0]}],ik:{R:{a:'head',p:[-0.03,-0.04,0.16],pole:[-1,-1,0]},L:{a:'chest',p:[0.18,0.02,0.3],pole:[1,-1,0]}}},
+ {id:'ug-ringlight',name:'Filming at the ring light',cat:'UGC & influencer',j:J(CON),props:[{t:'ringlight',k:'rl',a:'root',p:[0,0,1.2],r:[0,180,0]}],ik:{L:{a:'chest',p:[0.14,0.06,0.3],pole:[1,-1,-0.3]},R:{a:'chest',p:[-0.18,0.1,0.3],pole:[-1,-1,-0.3]}}},
+ {id:'ug-haul',name:'Shopping haul',cat:'UGC & influencer',j:J(POP,{head:[-6,0,6]}),props:[{t:'shopbag',k:'b1',a:'hdL',r:[0,0,0]},{t:'shopbag',k:'b2',a:'hdR',r:[0,0,0]}],ik:{L:{a:'chest',p:[0.36,-0.14,0.12],pole:[1,-0.3,-0.5]},R:{a:'chest',p:[-0.36,-0.14,0.12],pole:[-1,-0.3,-0.5]}}},
+ {id:'ug-fitflex',name:'Gym mirror flex',cat:'UGC & influencer',j:J(CON,{chest:[0,-10,0],head:[6,0,0]}),props:[{t:'phone',k:'ph',a:'hdR',r:[0,0,90]}],ik:{R:{a:'head',p:[-0.02,0.0,0.24],pole:[-1,-1,0]},L:{a:'chest',p:[0.4,0.42,0.02],pole:[1,-0.5,0]}}},
+
+ /* ---- Product demo ---- */
+ {id:'pd-byface',name:'Hold product by the face',cat:'Product demo',j:J(CON,{head:[0,-10,-8]}),props:[{t:'bottle',k:'b',a:'hdR'}],ik:{R:{a:'head',p:[-0.15,-0.06,0.09],pole:[-1,-1,0]}}},
+ {id:'pd-present',name:'Present to camera, two hands',cat:'Product demo',j:J(CON,{head:[6,0,-4]}),props:[{t:'productbox',k:'box',a:'chest',p:[0,0.06,0.42]}],ik:{L:{prop:'box',pt:'l',pole:[1,-1,0]},R:{prop:'box',pt:'r',pole:[-1,-1,0]}}},
+ {id:'pd-pointat',name:'Point at the product',cat:'Product demo',j:J(CON,{head:[10,-14,0]}),props:[{t:'bottle',k:'b',a:'hdL'}],ik:{L:{a:'chest',p:[0.22,0.12,0.32],pole:[1,-1,0]},R:{a:'chest',p:[0.12,0.14,0.42],pole:[-1,-1,0]}}},
+ {id:'pd-thumbs',name:'Thumbs up with product',cat:'Product demo',j:J(CON,{head:[-4,0,6]}),props:[{t:'bottle',k:'b',a:'hdL'}],ik:{L:{a:'chest',p:[0.24,0.16,0.3],pole:[1,-1,0]},R:{a:'chest',p:[-0.18,0.2,0.34],pole:[-1,-1,0]}}},
+ {id:'pd-lotion',name:'Apply lotion to forearm',cat:'Product demo',j:J(CON,{head:[26,0,0]}),ik:{L:{a:'chest',p:[0.1,0.0,0.34],pole:[1,-1,0]},R:{a:'chest',p:[0.04,0.04,0.36],pole:[-1,-1,0]}}},
+ {id:'pd-spray',name:'Spray demo',cat:'Product demo',j:J(CON,{head:[4,-20,0]}),props:[{t:'spray',k:'s',a:'hdR',r:[90,0,0]}],ik:{R:{a:'chest',p:[-0.14,0.24,0.5],pole:[-1,-1,0]},L:HIPL}},
+ {id:'pd-sip',name:'Taste test, sip and react',cat:'Product demo',j:J(CON,{head:[-8,0,0]}),props:[{t:'cup',k:'cup',a:'hdR'}],ik:{R:{a:'head',p:[-0.03,-0.04,0.17],pole:[-1,-1,-0.2]},L:{a:'chest',p:[0.16,0.04,0.3],pole:[1,-1,0]}}},
+ {id:'pd-screen',name:'Show the phone screen',cat:'Product demo',j:J(CON,{head:[6,-10,0]}),props:[{t:'phone',k:'ph',a:'chest',p:[-0.06,0.2,0.46],r:[0,180,0]}],ik:{R:{prop:'ph',pt:'r',pole:[-1,-1,0]},L:{a:'chest',p:[0.06,0.2,0.4],pole:[1,-1,0]}}},
+ {id:'pd-counter',name:'Infomercial at the counter',cat:'Product demo',j:J(WIDE,{chest:[4,0,0],head:[-4,0,0]}),props:[{t:'counter',k:'c',a:'root',p:[0,0,0.55]},{t:'productbox',k:'box',a:'root',p:[0.1,1.04,0.48]}],ik:{L:{a:'root',p:[0.42,1.0,0.36],pole:[1,-1,0]},R:{a:'root',p:[-0.06,0.98,0.38],pole:[-1,-1,0]}}},
+ {id:'pd-unbox',name:'Unboxing at the table',cat:'Product demo',seat:0.47,j:J(SIT,{spine:[14,0,0],head:[24,0,0]}),props:[CHAIR,TABLE,{t:'carrybox',k:'box',a:'root',p:[0,0.91,0.5],s:0.6}],ik:{L:{a:'root',p:[0.14,1.0,0.48],pole:[1,-1,0]},R:{a:'root',p:[-0.14,1.0,0.48],pole:[-1,-1,0]}}},
+ {id:'pd-compare',name:'Compare two products',cat:'Product demo',j:J(WIDE,{head:[0,0,-4]}),props:[{t:'bottle',k:'a',a:'hdL'},{t:'productbox',k:'b',a:'hdR',r:[90,0,0]}],ik:{L:{a:'chest',p:[0.3,0.2,0.3],pole:[1,-1,0]},R:{a:'chest',p:[-0.3,0.2,0.3],pole:[-1,-1,0]}}},
+ {id:'pd-cradle',name:'Cradle product, hand-model close-up',cat:'Product demo',cam:{shot:'MCU',yaw:20},j:J(CON,{head:[20,0,0]}),props:[{t:'bottle',k:'b',a:'chest',p:[0,0.04,0.3],r:[0,0,0]}],ik:{L:{a:'chest',p:[0.03,-0.04,0.3],pole:[1,-1,0]},R:{a:'chest',p:[-0.04,0.06,0.33],pole:[-1,-1,0]}}},
+ {id:'pd-gesture',name:'Presenter, "look at this"',cat:'Product demo',j:J(CON,{head:[0,24,0]}),ik:{L:{a:'chest',p:[0.5,0.14,0.06],pole:[1,-1,0]},R:{a:'chest',p:[-0.1,0.1,0.3],pole:[-1,-1,0]}}},
+
+ /* ---- Classic art ---- */
+ {id:'ca-david',name:'Statue of David (Michelangelo)',cat:'Classic art',j:J(CON,{head:[0,38,0],uaR:[0,0,-6],faR:[-12,0,0]}),ik:{L:{a:'chest',p:[0.17,0.22,0.08],pole:[1,-1,-0.3]}}},
+ {id:'ca-doryphoros',name:'Spear Bearer (Doryphoros)',cat:'Classic art',j:J(CONR,{head:[8,-18,0],uaR:[0,0,-4],faR:[-6,0,0]}),props:[{t:'spear',k:'sp',a:'hdL',r:[90,0,0]}],ik:{L:{a:'chest',p:[0.26,0.0,0.18],pole:[1,-1,0]}}},
+ {id:'ca-venus',name:'Venus pudica (Medici Venus)',cat:'Classic art',adult:1,j:J(CON,{head:[10,26,-6],chest:[6,10,4]}),ik:{R:{a:'chest',p:[0.06,0.13,0.17],pole:[-1,-1,0]},L:{a:'hips',p:[-0.02,-0.1,0.17],pole:[1,-0.3,-0.3]}}},
+ {id:'ca-thinker',name:'The Thinker (Rodin)',cat:'Classic art',seat:0.48,j:J(SIT,{spine:[30,0,0],chest:[16,0,0],neck:[10,0,0],head:[6,0,0],thL:[-82,0,10],shinL:[78,0,0]}),props:[ROCK],ik:{R:{a:'head',p:[0,-0.1,0.12],pole:[-0.2,-1,0.4]},L:{a:'thL',p:[0,-0.4,0.12],pole:[1,0,0]}}},
+ {id:'ca-discobolus',name:'Discus Thrower (Discobolus)',cat:'Classic art',j:{spine:[34,-28,0],chest:[10,-22,0],head:[18,38,0],thR:[-40,0,-4],shinR:[58,0,0],thL:[26,0,12],shinL:[44,0,0],ftL:[50,0,0],uaR:[70,0,-50],faR:[-8,0,0],uaL:[-40,0,-10],faL:[-30,0,0]},props:[{t:'discus',k:'d',a:'hdR'}],ik:{L:{a:'thR',p:[-0.04,-0.36,0.1],pole:[1,0,-1]}}},
+ {id:'ca-apollo',name:'Apollo Belvedere',cat:'Classic art',j:J(CON,{thL:[22,0,12],shinL:[18,0,0],ftL:[30,0,0],chest:[0,16,0],head:[-4,44,0],uaL:[-46,0,72],faL:[-8,0,0],uaR:[0,0,-22],faR:[-24,0,0]})},
+ {id:'ca-mercury',name:'Flying Mercury (Giambologna)',cat:'Classic art',j:{spine:[0,0,-4],chest:[-8,0,0],head:[-26,0,0],thR:[36,0,-6],shinR:[80,0,0],ftR:[40,0,0],ftL:[40,0,0],uaR:[-10,0,-168],faR:[-6,0,0],uaL:[-30,0,34],faL:[-50,0,0]}},
+ {id:'ca-victory',name:'Winged Victory',cat:'Classic art',j:{chest:[-16,0,0],head:[-6,0,0],thR:[-22,0,-3],shinR:[10,0,0],thL:[18,0,4],shinL:[22,0,0],ftL:[30,0,0],uaL:[48,0,62],uaR:[48,0,-62],faL:[-10,0,0],faR:[-10,0,0]}},
+ {id:'ca-vitruvian',name:'Vitruvian Man (Leonardo)',cat:'Classic art',j:{uaL:[0,0,88],uaR:[0,0,-88],thL:[0,0,16],thR:[0,0,-16]}},
+ {id:'ca-slave',name:'Dying Slave (Michelangelo)',cat:'Classic art',j:J(CONR,{head:[-18,18,16],chest:[-6,0,-4]}),ik:{L:{a:'head',p:[0.1,0.18,-0.06],pole:[1,0.5,0]},R:{a:'chest',p:[0.03,0.18,0.17],pole:[-1,-1,0]}}},
+ {id:'ca-hercules',name:'Farnese Hercules, leaning on club',cat:'Classic art',j:{spine:[6,0,-8],chest:[8,0,-6],head:[20,0,0],thR:[-12,0,-6],shinR:[14,0,0],thL:[2,0,4],uaL:[-6,0,20],faL:[-30,0,0]},props:[{t:'staff',k:'club',a:'root',p:[0.34,0.64,0.06],s:0.72}],ik:{R:{a:'hips',p:[-0.04,0.02,-0.2],pole:[-1,0,0.3]}}},
+ {id:'ca-gaul',name:'Dying Gaul',cat:'Classic art',j:{spine:[18,0,16],chest:[10,0,6],head:[34,0,0],thR:[-82,-10,-22],shinR:[40,0,0],thL:[-76,0,12],shinL:[106,0,0]},ik:{R:{a:'hips',p:[-0.34,-0.14,0.06],pole:[-1,0,-1]},L:{a:'thL',p:[0,-0.3,0.1],pole:[1,0,0]}}},
+ {id:'ca-atlas',name:'Atlas bearing the heavens',cat:'Classic art',j:J(KNEEL,{spine:[28,0,0],chest:[8,0,0],head:[22,0,0]}),props:[{t:'sphere',k:'globe',a:'chest',p:[0,0.32,-0.34],s:2.4}],ik:{L:{a:'chest',p:[0.3,0.46,-0.02],pole:[1,-1,0]},R:{a:'chest',p:[-0.3,0.46,-0.02],pole:[-1,-1,0]}}},
+ {id:'ca-spinario',name:'Thorn Puller (Spinario)',cat:'Classic art',seat:0.48,j:J(SIT,{spine:[26,0,0],chest:[10,0,0],head:[40,0,0],thR:[-80,40,-40],shinR:[100,0,0]}),props:[ROCK],ik:{R:{a:'shinR',p:[0,-0.36,0.04],pole:[-1,0,0]},L:{a:'shinR',p:[0,-0.33,0.0],pole:[1,-1,0]}}},
+ {id:'ca-adam',name:'Creation of Adam (reclining)',cat:'Classic art',groundAll:1,j:{hips:[-72,0,12],spine:[16,0,0],chest:[10,0,0],head:[26,-14,0],thR:[-18,0,-6],shinR:[14,0,0],thL:[-64,0,8],shinL:[96,0,0],uaR:[44,0,-26],faR:[-84,0,0],uaL:[-30,0,30],faL:[-12,0,0]}},
+ {id:'ca-odalisque',name:'Reclining figure (Venus of Urbino)',cat:'Classic art',adult:1,lift:0.55,groundAll:1,j:J(SIDE,{uaR:[0,0,-10],faR:[-90,0,0]}),props:[{t:'bed',k:'bed',a:'root',p:[0.1,0,0],r:[0,90,0]}]},
+ {id:'ca-life-reach',name:'Life drawing: stretch, hands clasped high',cat:'Classic art',j:J(CON,{chest:[-8,24,0],head:[-10,10,0]}),ik:{L:{a:'head',p:[0.02,0.36,0.02],pole:[1,0.2,0]},R:{a:'head',p:[-0.02,0.36,0.02],pole:[-1,0.2,0]}}},
+ {id:'ca-life-seiza',name:'Life drawing: kneel, sitting on heels',cat:'Classic art',j:J(SEIZA,{spine:[4,0,0],head:[14,-20,0]}),ik:{L:{a:'thL',p:[0,-0.3,0.1],pole:[1,0,-0.3]},R:{a:'thR',p:[0,-0.3,0.1],pole:[-1,0,-0.3]}}},
+ {id:'ca-life-twist',name:'Life drawing: seated twist on stool',cat:'Classic art',seat:0.47,j:J(SIT,{spine:[0,26,0],chest:[0,22,0],head:[0,26,0],thR:[-90,0,-14],shinR:[60,0,0]}),props:[STOOL],ik:{R:{a:'thL',p:[0,-0.36,0.1],pole:[-1,-1,0]},L:{a:'hips',p:[0.3,-0.04,-0.2],pole:[1,0,0]}}},
+ {id:'ca-life-crouch',name:'Life drawing: crouch, hugging one knee',cat:'Classic art',j:{spine:[30,0,0],chest:[16,0,0],head:[10,0,0],thL:[-120,0,8],shinL:[140,0,0],thR:[-40,0,-30],shinR:[150,0,0]},ik:{L:{a:'shinL',p:[0,-0.08,0.12],pole:[1,0,0]},R:{a:'shinL',p:[-0.04,-0.12,0.12],pole:[-1,-1,0]}}},
+ {id:'ca-life-recline',name:'Life drawing: long reclining pose',cat:'Classic art',adult:1,j:{hips:[-90,0,0],head:[-6,-20,0],thL:[-50,0,6],shinL:[96,0,0],thR:[0,0,-4],uaR:[0,0,-22],faR:[-10,0,0]},ik:{L:{a:'head',p:[0.12,0.1,-0.08],pole:[1,0,1]}}},
+
+ /* ---- Fashion ---- */
+ {id:'fa-runway',name:'Runway walk',cat:'Fashion',j:{hips:[0,8,-6],spine:[0,-4,3],chest:[-4,-6,0],head:[-4,0,0],thL:[-24,0,-6],shinL:[8,0,0],thR:[14,0,4],shinR:[24,0,0],ftR:[24,0,0],uaL:[18,0,5],faL:[-10,0,0],uaR:[-16,0,-5],faR:[-14,0,0]}},
+ {id:'fa-endpose',name:'End of runway, hand on hip',cat:'Fashion',j:J(POP,{head:[-8,-10,4]}),ik:{L:HIPL}},
+ {id:'fa-hairup',name:'Editorial, hands in hair',cat:'Fashion',j:J(CON,{chest:[-6,0,4],head:[-12,0,10]}),ik:{L:{a:'head',p:[0.1,0.14,-0.02],pole:[1,0.3,0]},R:{a:'head',p:[-0.1,0.16,0.0],pole:[-1,0.3,0]}}},
+ {id:'fa-crossed',name:'Legs crossed, hand at collar',cat:'Fashion',j:{hips:[0,0,-3],head:[4,-12,4],thL:[-6,0,-10],shinL:[10,0,0],ftL:[20,0,0],thR:[2,0,-2]},ik:{R:{a:'chest',p:[-0.04,0.26,0.13],pole:[-1,-1,0]},L:{a:'hips',p:[0.2,-0.06,0.04],pole:[1,0,0]}}},
+ {id:'fa-shoulder',name:'Over the shoulder, hand on hip',cat:'Fashion',cam:{shot:'FS',yaw:150},j:J(CON,{chest:[0,22,0],neck:[0,22,0],head:[-4,46,-4]}),ik:{L:HIPL}},
+ {id:'fa-cover',name:'Magazine cover, hand to face',cat:'Fashion',j:J(POP,{head:[4,-8,6]}),ik:{R:{a:'head',p:[-0.07,-0.04,0.1],pole:[-1,-1,0]},L:HIPL}},
+ {id:'fa-power',name:'Power stance, hands in pockets',cat:'Fashion',j:{thL:[0,0,12],thR:[0,0,-12],chest:[-6,0,0],head:[-8,0,0]},ik:{L:{a:'hips',p:[0.19,-0.06,0.08],pole:[1,0.3,-0.4]},R:{a:'hips',p:[-0.19,-0.06,0.08],pole:[-1,0.3,-0.4]}}},
+ {id:'fa-wall',name:'Wall lean, ankles crossed',cat:'Fashion',j:{hips:[0,0,11],spine:[0,0,0],head:[0,-16,-4],thL:[-4,0,-12],shinL:[6,0,0],thR:[6,0,-10]},props:[{t:'wall',k:'w',a:'root',p:[-0.4,0,0],r:[0,90,0]}],ik:{L:{a:'hips',p:[0.19,-0.06,0.08],pole:[1,0.3,-0.4]},R:{a:'chest',p:[0.04,0.15,0.17],pole:[-1,-0.4,0.1]}}},
+ {id:'fa-stool',name:'Seated on stool, editorial',cat:'Fashion',seat:0.6,j:J(SIT,{spine:[16,0,0],head:[-6,-10,0],thL:[-100,0,14],shinL:[120,0,0],thR:[-60,0,-14],shinR:[40,0,0]}),props:[{t:'barstool',k:'bs',a:'root',p:[0,0,-0.04]}],ik:{L:{a:'thL',p:[0,-0.38,0.08],pole:[1,0,0]},R:{a:'thL',p:[-0.05,-0.36,0.1],pole:[-1,-1,0]}}},
+ {id:'fa-squat',name:'Editorial squat',cat:'Fashion',j:{spine:[22,0,0],head:[-14,0,0],thL:[-118,0,30],shinL:[140,0,0],ftL:[20,0,0],thR:[-118,0,-30],shinR:[140,0,0],ftR:[20,0,0]},ik:{L:{a:'shinL',p:[0.04,-0.12,0.18],pole:[1,0,-0.4]},R:{a:'shinR',p:[-0.04,-0.12,0.18],pole:[-1,0,-0.4]}}},
+ {id:'fa-twirl',name:'Twirl, skirt flare',cat:'Fashion',j:{spine:[0,-14,0],chest:[0,-10,0],head:[-10,20,0],thR:[24,0,-4],shinR:[56,0,0],ftR:[30,0,0],ftL:[30,0,0],uaL:[-10,0,70],faL:[-8,0,0],uaR:[-10,0,-60],faR:[-12,0,0]}},
+ {id:'fa-sunglasses',name:'Walking, touching sunglasses',cat:'Fashion',j:J(WALKL,{head:[-4,0,0],uaL:[16,0,6],faL:[-12,0,0]}),ik:{R:{a:'head',p:[-0.07,0.11,0.13],pole:[-1,-1,0]}}},
+ {id:'fa-floor',name:'Floor sprawl, leaning back',cat:'Fashion',j:{hips:[-20,0,0],spine:[-10,0,0],head:[6,-14,0],thL:[-100,0,10],shinL:[120,0,0],thR:[-70,0,-6],shinR:[10,0,0]},ik:{L:{a:'hips',p:[0.24,-0.12,-0.28],pole:[1,1,0]},R:{a:'hips',p:[-0.24,-0.12,-0.28],pole:[-1,1,0]}}},
+ {id:'fa-coat',name:'Coat over shoulder',cat:'Fashion',j:J(CON,{head:[-6,-14,0]}),ik:{R:{a:'chest',p:[-0.12,0.32,0.0],pole:[-1,-1,0.3]},L:{a:'hips',p:[0.19,-0.06,0.08],pole:[1,0.3,-0.4]}}},
+
+ /* ---- Pin-up & centerfold (adult figures) ---- */
+ {id:'pu-knee',name:'Classic pin-up, knee pop',cat:'Pin-up & centerfold',adult:1,j:J(POP,{spine:[6,4,6],chest:[-4,10,4],head:[4,-12,8]}),ik:{L:HIPL,R:{a:'hips',p:[-0.22,0.0,0.06],pole:[-1,0,-0.5]}}},
+ {id:'pu-backlook',name:'Over-the-shoulder pin-up, heel kick',cat:'Pin-up & centerfold',adult:1,cam:{shot:'FS',yaw:160},j:{hips:[0,-8,-6],chest:[-6,26,4],neck:[0,20,0],head:[-6,40,0],thR:[14,0,-4],shinR:[96,0,0],ftR:[40,0,0]},ik:{L:HIPL,R:{a:'hips',p:[-0.2,-0.02,0.06],pole:[-1,0,-0.5]}}},
+ {id:'pu-arch',name:'Arms overhead, arched stretch',cat:'Pin-up & centerfold',adult:1,j:J(POP,{spine:[-10,0,6],chest:[-12,0,4],head:[-8,0,12]}),ik:{L:{a:'head',p:[0.12,0.16,-0.06],pole:[1,0.4,0]},R:{a:'head',p:[-0.1,0.18,-0.04],pole:[-1,0.4,0]}}},
+ {id:'pu-kneelhands',name:'Kneeling upright, hands in hair',cat:'Pin-up & centerfold',adult:1,j:J(KNEELUP,{hips:[0,0,-6],spine:[0,0,6],chest:[-8,0,4],head:[-8,0,10]}),ik:{L:{a:'head',p:[0.1,0.14,-0.02],pole:[1,0.3,0]},R:{a:'head',p:[-0.1,0.16,0.0],pole:[-1,0.3,0]}}},
+ {id:'pu-heels',name:'Sitting on heels, arms behind head',cat:'Pin-up & centerfold',adult:1,j:J(SEIZA,{chest:[-10,0,0],head:[-4,-10,6]}),ik:{L:{a:'head',p:[0.1,0.08,-0.1],pole:[1,0.6,0]},R:{a:'head',p:[-0.1,0.08,-0.1],pole:[-1,0.6,0]}}},
+ {id:'pu-stoolcross',name:'Stool, legs crossed, leaning in',cat:'Pin-up & centerfold',adult:1,seat:0.47,j:J(SIT,{spine:[18,0,0],chest:[6,0,0],head:[-14,0,6],thR:[-96,-14,14],shinR:[70,0,0],ftR:[40,0,0]}),props:[STOOL],ik:{L:{a:'thR',p:[0.02,-0.36,0.1],pole:[1,-1,0]},R:{a:'thR',p:[-0.04,-0.36,0.12],pole:[-1,-1,0]}}},
+ {id:'pu-prone',name:'Lying on stomach, feet kicked up',cat:'Pin-up & centerfold',adult:1,j:J(PRONE,{thL:[0,0,-2],shinL:[110,0,10],thR:[0,0,2],shinR:[100,0,-10]}),ik:{L:{a:'head',p:[0.05,-0.12,0.12],pole:[1,0,-1]},R:{a:'head',p:[-0.05,-0.12,0.12],pole:[-1,0,-1]}}},
+ {id:'pu-side',name:'Centerfold, reclining on elbow',cat:'Pin-up & centerfold',adult:1,groundAll:1,j:J(SIDE,{uaR:[0,0,-10],faR:[-90,0,0]})},
+ {id:'pu-back',name:'Centerfold, on back, knees up',cat:'Pin-up & centerfold',adult:1,j:{hips:[-90,0,0],head:[-10,-24,0],thL:[-60,0,4],shinL:[100,0,0],thR:[-40,0,-6],shinR:[60,0,0],uaL:[0,0,150],faL:[-40,0,0],uaR:[0,0,-150],faR:[-40,0,0]}},
+ {id:'pu-bededge',name:'Bed edge, leaning back on hands',cat:'Pin-up & centerfold',adult:1,seat:0.55,j:J(SIT,{spine:[-16,0,0],head:[10,-14,6],thR:[-96,-14,14],shinR:[70,0,0],ftR:[40,0,0]}),props:[{t:'bed',k:'bed',a:'root',p:[0,0,-0.95]}],ik:{L:{a:'root',p:[0.3,0.56,-0.32],pole:[1,1,0]},R:{a:'root',p:[-0.3,0.56,-0.32],pole:[-1,1,0]}}},
+ {id:'pu-chair',name:'Straddling a chair backward',cat:'Pin-up & centerfold',adult:1,seat:0.47,j:J(SIT,{spine:[10,0,0],head:[-4,-10,6],thL:[-86,0,30],shinL:[90,0,0],thR:[-86,0,-30],shinR:[90,0,0]}),props:[{t:'chair',k:'chair',a:'root',p:[0,0,-0.06],r:[0,180,0]}],ik:{L:{a:'root',p:[0.08,0.93,0.18],pole:[1,-1,0]},R:{a:'root',p:[-0.08,0.95,0.2],pole:[-1,-1,0]}}},
+ {id:'pu-stocking',name:'Foot up, adjusting stocking',cat:'Pin-up & centerfold',adult:1,j:{spine:[26,0,0],chest:[6,0,0],head:[-8,-14,0],thL:[-70,0,6],shinL:[80,0,0],thR:[4,0,-2]},props:[{t:'box',k:'step',a:'root',p:[0.12,0,0.32],s:0.55}],ik:{L:{a:'shinL',p:[0.02,-0.22,0.1],pole:[1,-1,0]},R:{a:'shinL',p:[-0.06,-0.12,0.12],pole:[-1,-1,0]}}},
+ {id:'pu-wind',name:'Skirt caught by the wind',cat:'Pin-up & centerfold',adult:1,j:{head:[-18,0,0],chest:[-6,0,0],thL:[-6,10,-4],shinL:[14,0,0],ftL:[20,0,0],thR:[2,-10,2]},ik:{L:{a:'hips',p:[0.06,-0.2,0.16],pole:[1,0,0]},R:{a:'hips',p:[-0.06,-0.2,0.16],pole:[-1,0,0]}}},
+ {id:'pu-wink',name:'Lean forward, hands on knees',cat:'Pin-up & centerfold',adult:1,j:{spine:[34,0,0],chest:[4,0,0],head:[-34,0,8],thL:[-14,0,4],shinL:[22,0,0],thR:[-14,0,-4],shinR:[22,0,0]},ik:{L:{a:'thL',p:[0,-0.36,0.08],pole:[1,0,-0.3]},R:{a:'thR',p:[0,-0.36,0.08],pole:[-1,0,-0.3]}}},
+
+ /* ---- Bodybuilding ---- */
+ {id:'bb-frontdb',name:'Front double biceps',cat:'Bodybuilding',j:{thL:[0,0,10],thR:[0,0,-10],chest:[-6,0,0],head:[-4,0,0],clavL:[0,0,6],clavR:[0,0,-6]},ik:{L:{a:'chest',p:[0.34,0.5,0.02],pole:[1,-0.3,0]},R:{a:'chest',p:[-0.34,0.5,0.02],pole:[-1,-0.3,0]}}},
+ {id:'bb-frontlat',name:'Front lat spread',cat:'Bodybuilding',j:{thL:[0,0,10],thR:[0,0,-10],chest:[-8,0,0],head:[-4,0,0]},ik:{L:{a:'hips',p:[0.14,0.16,0.02],pole:[1,0,0.7]},R:{a:'hips',p:[-0.14,0.16,0.02],pole:[-1,0,0.7]}}},
+ {id:'bb-sidechest',name:'Side chest',cat:'Bodybuilding',cam:{shot:'FS',yaw:70},j:{chest:[-6,-20,0],head:[0,-10,0],thR:[-12,0,0],shinR:[26,0,0],ftR:[40,0,0],thL:[2,0,2]},ik:{R:{a:'chest',p:[0.06,0.04,0.3],pole:[-1,-0.3,0]},L:{a:'chest',p:[0.1,0.05,0.3],pole:[1,-1,0]}}},
+ {id:'bb-backdb',name:'Back double biceps',cat:'Bodybuilding',cam:{shot:'FS',yaw:180},j:{thL:[0,0,8],thR:[16,0,-8],shinR:[10,0,0],ftR:[50,0,0],chest:[-8,0,0],head:[-12,0,0]},ik:{L:{a:'chest',p:[0.34,0.5,0.0],pole:[1,-0.3,0]},R:{a:'chest',p:[-0.34,0.5,0.0],pole:[-1,-0.3,0]}}},
+ {id:'bb-backlat',name:'Back lat spread',cat:'Bodybuilding',cam:{shot:'FS',yaw:180},j:{thL:[0,0,8],thR:[16,0,-8],shinR:[10,0,0],ftR:[50,0,0],chest:[-6,0,0]},ik:{L:{a:'hips',p:[0.14,0.16,0.0],pole:[1,0,0.7]},R:{a:'hips',p:[-0.14,0.16,0.0],pole:[-1,0,0.7]}}},
+ {id:'bb-sidetri',name:'Side triceps',cat:'Bodybuilding',cam:{shot:'FS',yaw:-70},j:{chest:[-6,14,0],head:[0,18,0],thL:[-12,0,0],shinL:[26,0,0],ftL:[40,0,0],uaR:[18,0,-4],faR:[0,0,0]},ik:{L:{a:'hips',p:[-0.12,-0.12,-0.16],pole:[1,0,0]}}},
+ {id:'bb-absthigh',name:'Abdominal and thigh',cat:'Bodybuilding',j:{spine:[10,0,0],chest:[8,0,0],head:[6,0,0],thL:[-14,0,6],ftL:[-20,0,0]},ik:{L:{a:'head',p:[0.1,0.1,-0.1],pole:[1,0.4,0]},R:{a:'head',p:[-0.1,0.1,-0.1],pole:[-1,0.4,0]}}},
+ {id:'bb-mostmusc',name:'Most muscular (crab)',cat:'Bodybuilding',j:{spine:[22,0,0],chest:[10,0,0],head:[-18,0,0],clavL:[0,10,10],clavR:[0,-10,-10],thL:[-14,0,10],shinL:[16,0,0],thR:[-14,0,-10],shinR:[16,0,0]},ik:{L:{a:'hips',p:[0.05,0.16,0.3],pole:[1,0,0.6]},R:{a:'hips',p:[-0.05,0.16,0.3],pole:[-1,0,0.6]}}},
+ {id:'bb-relaxed',name:'Front relaxed (quarter turn)',cat:'Bodybuilding',j:{thL:[0,0,6],thR:[0,0,-6],chest:[-8,0,0],head:[-4,0,0],clavL:[0,8,0],clavR:[0,-8,0],uaL:[0,0,22],uaR:[0,0,-22],faL:[-14,0,0],faR:[-14,0,0]}},
+ {id:'bb-oneflex',name:'Single-arm flex',cat:'Bodybuilding',j:J(CON,{chest:[-6,-10,0],head:[0,-20,0]}),ik:{R:{a:'chest',p:[-0.4,0.42,0.04],pole:[-1,-0.5,0]},L:HIPL}},
+ {id:'bb-curl',name:'Dumbbell curl',cat:'Bodybuilding',j:{chest:[-4,0,0],head:[10,0,0],uaL:[0,0,6],faL:[-10,0,0],uaR:[6,0,-8],faR:[-120,0,0]},props:[{t:'dumbbell',k:'db',a:'hdR'}]},
+ {id:'bb-deadlift',name:'Deadlift, bottom',cat:'Bodybuilding',j:{spine:[46,0,0],chest:[4,0,0],head:[-34,0,0],thL:[-58,0,10],shinL:[30,0,0],ftL:[28,0,0],thR:[-58,0,-10],shinR:[30,0,0],ftR:[28,0,0]},props:[{t:'barbell',k:'bar',a:'root',p:[0,0.225,0.14]}],ik:{L:{prop:'bar',pt:'l',pole:[1,0,0]},R:{prop:'bar',pt:'r',pole:[-1,0,0]}}},
+ {id:'bb-overhead',name:'Strongman, barbell overhead',cat:'Bodybuilding',j:{thL:[0,0,12],thR:[0,0,-12],chest:[-6,0,0],head:[-10,0,0]},props:[{t:'barbell',k:'bar',a:'chest',p:[0,0.92,0.02]}],ik:{L:{prop:'bar',pt:'l',pole:[1,0,0]},R:{prop:'bar',pt:'r',pole:[-1,0,0]}}},
+ {id:'bb-lineup',name:'Posedown lineup',cat:'Bodybuilding',cam:{shot:'ALL',yaw:0},members:[
+   {use:'bb-frontdb',body:'Muscle man',x:-1.3,z:0},{use:'bb-mostmusc',body:'Bodybuilder',x:0,z:0},{use:'bb-frontlat',body:'Fitness model',x:1.3,z:0}]}
+);
+}
+const POSE_CATS=['Standing','Posture & attitude','Distress','Gestures','Everyday life','School life','Action','Scenes','Scenes · Work & home','Scenes · Travel','Scenes · Action','Scenes · Public places','Scenes · Outdoors & fantasy','Running & parkour','Grabbing','Seated & floor','Mobility','Family','Affection','Dance','Helping','Riding','Animals','Labor','Driving & piloting','War','Katana','Action snapshots','Acrobatic','Ballet','UGC & influencer','Product demo','Fashion','Pin-up & centerfold','Classic art','Bodybuilding','Comic book','Martial arts','Sparring','Rifle','Pistol','Melee & archery','Sci-fi & heavy','Maintenance','Couples','Groups','My poses'];
 let MY_POSES=[]; try{MY_POSES=JSON.parse(localStorage.getItem('standin.myposes')||'[]')||[];}catch(e){MY_POSES=[];}
 const allPoses=()=>POSES.concat(MY_POSES);
 const poseById=id=>allPoses().find(p=>p.id===id);
@@ -1527,7 +1661,9 @@ function applyPoseEntry(p){
     p.members.forEach((m,i)=>{const f=S.figures[i];applyMemberBody(f,m);f.base.position.set(m.x||0,0,m.z||0);f.base.rotation.y=(m.yaw||0)*D2R;const o=resolvePose(m);o._member=1;f.applyPose(o);if(m.mirror)f.mirror();f.poseName=p.name;});
     if(!S.figures.includes(S.selFig)) S.selFig=S.figures[0];
   } else {
-    const f=S.selFig||S.figures[0]||addFigure(); S.selFig=f; f.applyPose(resolvePose(p));
+    const f=S.selFig||S.figures[0]||addFigure(); S.selFig=f;
+    if(p.adult&&isKid(f.body)){f.body={...BODY_PRESETS.Average,limbs:f.body.limbs};f.bodyName='Average';f.applyBody();toast('This pose uses an adult figure');}
+    f.applyPose(resolvePose(p)); f.adultPose=!!p.adult;
   }
   S.selProp=null; S.lastPose=p.id;
   if(p.cam) applyCamPreset(p.cam);
@@ -1932,7 +2068,7 @@ function figControls(){
 function panelBody(){
   rightPane.append(figControls());
   if(needFig()) return; const f=S.selFig;
-  const pick=v=>{f.body={...BODY_PRESETS[v],limbs:isKid(BODY_PRESETS[v])?f.body.limbs:f.body.limbs};f.bodyName=v;f.applyBody();renderRight();renderLeftLists();};
+  const pick=v=>{if(isKid(BODY_PRESETS[v])&&f.adultPose){f.applyPose(poseById('stand'));f.adultPose=false;}f.body={...BODY_PRESETS[v],limbs:isKid(BODY_PRESETS[v])?f.body.limbs:f.body.limbs};f.bodyName=v;f.applyBody();renderRight();renderLeftLists();};
   rightPane.append(sec(`${f.name} · body type`,...BODY_GROUPS.map(([g,list])=>h('div',{class:'jgroup'},h('span',{class:'lbl'},g),chips(list,f.bodyName,pick,g+' bodies')))));
   const limbSel=(key,kind,label)=>{const id='limb'+key;const s=h('select',{id},LIMB_OPTS[kind].map(([v,t])=>h('option',{value:v},t)));s.value=(f.body.limbs&&f.body.limbs[key])||'full';
     s.addEventListener('change',()=>{f.body.limbs={...(f.body.limbs||{}),[key]:s.value};f.applyBody();});return h('div',{class:'row'},h('label',{for:id},label),s,h('span'));};
