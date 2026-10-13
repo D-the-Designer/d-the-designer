@@ -717,6 +717,19 @@ const PROP_DEFS=[
  {id:'r-kitchen',name:'Kitchen',cat:'Rooms',room:1,pts:{},build:g=>{wall(g,4.4,0,-1.35);piece(g,'counter',0,-1.0);bx(g,2,.7,.35,0,1.75,-1.12,0,0,0,MAT.prop);piece(g,'fridge',1.5,-.95);piece(g,'counter',0,.6);piece(g,'barstool',-.35,1.15);piece(g,'barstool',.35,1.15);}},
  {id:'r-classroom',name:'Classroom',cat:'Rooms',room:1,pts:{},build:g=>{for(const z of[0,1.0,2.0])for(const x of[-1.4,-.47,.47,1.4])piece(g,'schooldesk',x,z,180);piece(g,'table',0,-1.3);piece(g,'chair',0,-1.85);piece(g,'whiteboard',0,-2.3);wall(g,4.6,0,-2.4);}},
  {id:'bar',name:'Pull-up bar',cat:'Set blocks',pts:{},build:g=>{const k=W_();bx(g,.06,2.45,.06,-.75,1.225,0,0,0,0,k);bx(g,.06,2.45,.06,.75,1.225,0,0,0,0,k);cy(g,.018,.018,1.55,0,2.33,0,0,0,90,k,8);bx(g,.3,.03,.5,-.75,.015,0,0,0,0,k);bx(g,.3,.03,.5,.75,.015,0,0,0,0,k);}},
+ {id:'katana',name:'Katana',cat:'Melee',hand:1,pts:{grip:[0,-0.06,0],grip2:[0,-0.21,0],blade:[0,0.4,0]},build:g=>{const m=W_();cy(g,.017,.017,.26,0,-.13,0,0,0,0,MAT.furn,6);cy(g,.042,.042,.008,0,.004,0,0,0,0,m,10);
+   for(let i=0;i<3;i++)bx(g,.008,.245,.03,0,.13+.24*i,-.004*i*i,-2*i,0,0,m);cone(g,.015,.06,0,.86,-.02,0,m,4);}},
+ {id:'saya',name:'Scabbard',cat:'Melee',hand:1,pts:{grip:[0,-0.1,0],mouth:[0,-0.02,0]},build:g=>{bx(g,.026,.76,.04,0,-.38,-.01,0,0,0,MAT.furn);}},
+ {id:'katanaSheathed',name:'Katana, sheathed',cat:'Melee',hand:1,pts:{grip:[0,0.12,0],mouth:[0,-0.03,0]},build:g=>{cy(g,.017,.017,.26,0,.14,0,0,0,0,MAT.furn,6);cy(g,.042,.042,.008,0,.006,0,0,0,0,W_(),10);bx(g,.026,.76,.04,0,-.38,-.01,0,0,0,MAT.furn);}},
+ {id:'bowl',name:'Rice bowl',cat:'Hand props',hand:1,pts:{grip:[0,-0.02,0]},build:g=>{cy(g,.06,.035,.06,0,0,0,0,0,0,MAT.prop,12);}},
+ {id:'chopsticks',name:'Chopsticks',cat:'Hand props',hand:1,pts:{grip:[0,-0.04,0]},build:g=>{cy(g,.003,.002,.22,.006,0,0,0,0,2,W_(),4);cy(g,.003,.002,.22,-.006,0,0,0,0,-2,W_(),4);}},
+ {id:'hairdryer',name:'Hair dryer',cat:'Hand props',hand:1,pts:{grip:[0,-0.05,0]},build:g=>{bx(g,.035,.13,.04,0,-.05,0,0,0,0,MAT.prop);cy(g,.04,.035,.17,0,.04,.06,90,0,0,MAT.prop,10);}},
+ {id:'controller',name:'Game controller',cat:'Hand props',hand:1,pts:{grip:[0,0,0],l:[0.06,0,0],r:[-0.06,0,0]},build:g=>{bx(g,.15,.05,.025,0,0,0,0,0,0,W_());sp(g,.03,.06,-.02,0,W_());sp(g,.03,-.06,-.02,0,W_());}},
+ {id:'umbrella',name:'Umbrella',cat:'Hand props',hand:1,pts:{grip:[0,0,0]},build:g=>{cy(g,.008,.008,.85,0,.42,0,0,0,0,W_(),6);const c=mk(new THREE.ConeGeometry(.55,.25,10,1,true),MAT.prop);c.position.set(0,.86,0);g.add(c);cy(g,.012,.012,.08,0,-.02,0,0,0,0,MAT.furn,6);}},
+ {id:'schoolbag',name:'School bag',cat:'Hand props',hand:1,pts:{grip:[0,0.12,0]},build:g=>{bx(g,.38,.28,.1,0,-.06,0,0,0,0,MAT.furn);cy(g,.008,.008,.16,0,.1,0,0,0,90,W_(),4);}},
+ {id:'strap',name:'Train hand strap',cat:'Set pieces',pts:{ring:[0,-0.32,0]},build:g=>{cy(g,.015,.015,1.4,0,0,0,0,0,90,W_(),6);bx(g,.02,.24,.02,0,-.12,0,0,0,0,MAT.prop);const t=mk(new THREE.TorusGeometry(.05,.008,4,12),MAT.prop);t.position.set(0,-.29,0);g.add(t);}},
+ {id:'toast',name:'Toast',cat:'Hand props',hand:1,pts:{grip:[0,0,0]},build:g=>{bx(g,.1,.1,.012,0,0,0,0,0,0,MAT.furn);}},
+ {id:'letter',name:'Letter',cat:'Hand props',hand:1,pts:{grip:[0,0,0],l:[0.05,-0.03,0],r:[-0.05,-0.03,0]},build:g=>{bx(g,.16,.1,.004,0,0,0,0,0,0,MAT.prop);}},
  {id:'rod',name:'Cleaning rod',cat:'Hand props',hand:1,pts:{grip:[0,0,0]},build:g=>{const m=W_();cy(g,.004,.004,.8,0,.38,0,0,0,0,m,6);cy(g,.012,.012,.1,0,0,0,0,0,90,m,6);}},
  {id:'chair',name:'Chair',cat:'Furniture',pts:{},build:g=>{const m=F_();bx(g,.45,.04,.45,0,.45,0,0,0,0,m);for(const x of[-.2,.2])for(const z of[-.2,.2])cy(g,.018,.018,.43,x,.215,z,0,0,0,m,6);bx(g,.45,.42,.035,0,.69,-.21,0,0,0,m);}},
  {id:'stool',name:'Stool',cat:'Furniture',pts:{},build:g=>{const m=F_();cy(g,.18,.18,.04,0,.45,0,0,0,0,m,12);for(let i=0;i<3;i++){const a=i*120*D2R;cy(g,.016,.02,.44,Math.cos(a)*.12,.22,Math.sin(a)*.12,0,0,0,m,6);}}},
@@ -1066,7 +1079,38 @@ POSES.push(
  {id:'sp-staff',name:'Staff sparring',cat:'Sparring',members:[{use:'staff',x:0,z:-0.8,yaw:0},{use:'staff',x:0,z:0.8,yaw:180,mirror:1}]},
  {id:'f-wc',name:'Push a child’s wheelchair',cat:'Family',members:[{use:'mb-wc',body:'Child',kidScale:1,x:0,z:0},{use:'walk',body:'Average',x:0,z:-0.62,j:{spine:[18,0,0],head:[10,0,0]},ik:{L:{a:'root',p:[0.136,0.66,0.36],pole:[1,-1,-0.4]},R:{a:'root',p:[-0.136,0.66,0.36],pole:[-1,-1,-0.4]}}}]}
 );
-const POSE_CATS=['Standing','Posture & attitude','Distress','Gestures','Action','Seated & floor','Mobility','Family','Dance','Helping','Riding','Animals','Labor','Driving & piloting','War','Acrobatic','Ballet','Comic book','Martial arts','Sparring','Rifle','Pistol','Melee & archery','Sci-fi & heavy','Maintenance','Couples','Groups','My poses'];
+POSES.push(
+ {id:'ev-eat',name:'Eat with chopsticks',cat:'Everyday life',seat:0.47,j:J(SIT,{spine:[10,0,0],head:[14,0,0]}),props:[CHAIR,TABLE,{t:'bowl',k:'bowl',a:'hdL',r:[0,0,0]},{t:'chopsticks',k:'cs',a:'hdR',r:[90,0,60]}],ik:{L:{a:'chest',p:[0.05,0.14,0.3],pole:[1,-1,0]},R:{a:'head',p:[-0.02,-0.02,0.16],pole:[-1,-1,0]}}},
+ {id:'ev-drink',name:'Drink from a cup',cat:'Everyday life',j:{head:[-14,0,0],thL:[-6,0,4]},props:[{t:'cup',k:'cup',a:'hdR'}],ik:{R:{a:'head',p:[-0.02,-0.03,0.16],pole:[-1,-1,0]}}},
+ {id:'ev-hair',name:'Tie hair up',cat:'Everyday life',j:{head:[6,0,0],chest:[-4,0,0],thL:[-6,0,4]},ik:{L:{a:'head',p:[0.05,0.15,-0.08],pole:[1,0.6,0]},R:{a:'head',p:[-0.05,0.15,-0.08],pole:[-1,0.6,0]}}},
+ {id:'ev-dryer',name:'Blow-dry hair',cat:'Everyday life',j:{head:[0,0,12]},props:[{t:'hairdryer',k:'hd',a:'hdR',r:[0,0,0]}],ik:{R:{a:'head',p:[-0.16,0.12,0.05],pole:[-1,0.2,0]},L:{a:'head',p:[0.08,0.18,0],pole:[1,0.4,0]}}},
+ {id:'ev-selfie',name:'Selfie',cat:'Everyday life',j:{head:[-8,-10,8],thL:[-8,0,6],shinL:[10,0,0]},props:[{t:'phone',k:'ph',a:'hdR',r:[0,0,0]}],ik:{R:{a:'chest',p:[-0.18,0.62,0.48],pole:[-1,-0.5,0]},L:{a:'head',p:[0.1,0.06,0.12],pole:[1,-1,0]}}},
+ {id:'ev-stretch',name:'Morning stretch',cat:'Everyday life',j:{chest:[-12,0,0],head:[-14,0,0]},ik:{L:{a:'chest',p:[0.02,0.95,0.04],pole:[1,0,0]},R:{a:'chest',p:[-0.02,0.95,0.04],pole:[-1,0,0]}}},
+ {id:'ev-tree',name:'Yoga tree pose',cat:'Everyday life',j:{thR:[-40,60,-60],shinR:[130,0,0],ftR:[0,0,0]},ik:{L:{a:'chest',p:[0.02,0.92,0.08],pole:[1,0,0]},R:{a:'chest',p:[-0.02,0.92,0.08],pole:[-1,0,0]}}},
+ {id:'ev-game',name:'Gaming on the floor',cat:'Everyday life',j:{spine:[14,0,0],head:[8,0,0],thL:[-82,-28,42],shinL:[140,0,0],ftL:[20,0,0],thR:[-82,28,-42],shinR:[140,0,0],ftR:[20,0,0]},props:[{t:'controller',k:'c',a:'chest',p:[0,-0.05,0.3],r:[-40,0,0]}],ik:{L:{prop:'c',pt:'l',pole:[1,-1,0]},R:{prop:'c',pt:'r',pole:[-1,-1,0]}}},
+ {id:'ev-umbrella',name:'Walk with an umbrella',cat:'Everyday life',j:J(WALKL,{head:[4,0,0],uaL:[16,0,6],faL:[-12,0,0]}),props:[{t:'umbrella',k:'u',a:'chest',p:[-0.06,0,0.26]}],ik:{R:{prop:'u',pt:'grip',pole:[-1,-1,0]}}},
+ {id:'ev-train',name:'Train commute, holding a strap',cat:'Everyday life',j:{head:[30,0,0],thL:[-4,0,6],thR:[0,0,-6]},props:[{t:'strap',k:'s',a:'root',p:[-0.12,2.05,0.12]},{t:'phone',k:'ph',a:'chest',p:[0.04,0.1,0.26],r:[-125,0,0]}],ik:{R:{prop:'s',pt:'ring',pole:[-1,-0.3,0]},L:{prop:'ph',pt:'l',pole:[1,-1,0]}}},
+ {id:'sc-raise',name:'Raise hand in class',cat:'School life',seat:0.48,j:J(SIT,{uaR:[0,0,-168],faR:[0,0,0],head:[-6,0,0]}),props:[{t:'schooldesk',k:'d',a:'root',p:[0,0,0]}],ik:{L:{a:'root',p:[0.12,0.75,0.28],pole:[1,-1,-0.4]}}},
+ {id:'sc-board',name:'Write on the board',cat:'School life',j:{head:[-10,-10,0],thL:[-4,0,6]},props:[{t:'whiteboard',k:'wb',a:'root',p:[0,0,0.42]}],ik:{R:{a:'root',p:[-0.12,1.55,0.39],pole:[-1,-0.6,-0.2]}}},
+ {id:'sc-fence',name:'Lean on the rooftop fence',cat:'School life',j:{spine:[22,0,0],head:[-14,10,0],thL:[-8,30,-6],shinL:[10,0,0],thR:[4,0,-4]},props:[{t:'cover',k:'f',a:'root',p:[0,0,0.48]}],ik:{L:{a:'root',p:[0.16,1.02,0.38],pole:[1,-0.5,-0.2]},R:{a:'root',p:[-0.16,1.02,0.38],pole:[-1,-0.5,-0.2]}}},
+ {id:'sc-late',name:'Late for school, toast in mouth',cat:'School life',j:J(RUNL,{head:[-6,0,0],uaR:[-45,0,-8],faR:[-80,0,0]}),props:[{t:'toast',k:'t',a:'head',p:[0,0.0,0.17],r:[-80,0,0]},{t:'schoolbag',k:'b',a:'hdL',r:[0,0,0]}],ik:{L:{a:'chest',p:[0.3,0.05,-0.2],pole:[1,-0.5,0]}}},
+ {id:'sc-bag',name:'Bag over the shoulder',cat:'School life',j:J(WALKL,{head:[0,-12,0],uaR:[-18,0,-6],faR:[-12,0,0]}),props:[{t:'schoolbag',k:'b',a:'chest',p:[0.22,0.22,-0.18],r:[0,90,-10]}],ik:{L:{a:'chest',p:[0.2,0.36,0.04],pole:[1,-1,-0.3]}}},
+ {id:'sc-confess',name:'Confession, offering a letter',cat:'School life',j:{spine:[38,0,0],chest:[6,0,0],head:[20,0,0],ftL:[0,-10,0],ftR:[0,10,0]},props:[{t:'letter',k:'l',a:'chest',p:[0,0.28,0.48],r:[-60,0,0]}],ik:{L:{prop:'l',pt:'l',pole:[1,-1,0]},R:{prop:'l',pt:'r',pole:[-1,-1,0]}}},
+ {id:'kt-ready',name:'Katana · ready to draw',cat:'Katana',j:{thL:[-30,0,6],shinL:[35,0,0],thR:[10,0,-8],shinR:[20,0,0],spine:[14,0,0],head:[-12,0,0]},props:[{t:'katanaSheathed',k:'k',a:'hips',p:[0.17,0,0.05],r:[70,0,-10]}],ik:{R:{prop:'k',pt:'grip',pole:[-1,-1,0]},L:{prop:'k',pt:'mouth',pole:[1,-1,0]}}},
+ {id:'kt-draw',name:'Katana · drawing cut',cat:'Katana',j:{thL:[-60,0,8],shinL:[62,0,0],thR:[30,0,-8],spine:[12,0,0],chest:[0,-20,0],head:[0,10,0]},props:[{t:'katana',k:'k',a:'chest',p:[-0.6,0.3,0.32],r:[0,30,90]},{t:'saya',k:'s',a:'hips',p:[0.17,0,0.05],r:[70,0,-10]}],ik:{R:{prop:'k',pt:'grip',pole:[-1,-0.3,0]},L:{prop:'s',pt:'mouth',pole:[1,-1,0]}}},
+ {id:'kt-chudan',name:'Katana · middle guard',cat:'Katana',j:{thL:[-24,0,6],shinL:[24,0,0],thR:[18,0,-6],shinR:[14,0,0],hips:[0,-8,0]},props:[{t:'katana',k:'k',a:'chest',p:[0,-0.04,0.34],r:[42,0,0]},{t:'saya',k:'s',a:'hips',p:[0.17,0,0.05],r:[70,0,-10]}],ik:{R:{prop:'k',pt:'grip',pole:[-0.6,-1,0]},L:{prop:'k',pt:'grip2',pole:[0.6,-1,0]}}},
+ {id:'kt-jodan',name:'Katana · overhead guard',cat:'Katana',j:{thL:[-24,0,6],shinL:[24,0,0],thR:[18,0,-6],shinR:[14,0,0],chest:[-4,0,0]},props:[{t:'katana',k:'k',a:'chest',p:[-0.04,0.62,0.14],r:[-40,0,6]},{t:'saya',k:'s',a:'hips',p:[0.17,0,0.05],r:[70,0,-10]}],ik:{R:{prop:'k',pt:'grip',pole:[-1,0,0]},L:{prop:'k',pt:'grip2',pole:[1,0,0]}}},
+ {id:'kt-waki',name:'Katana · low side guard',cat:'Katana',j:{thL:[-34,0,8],shinL:[34,0,0],thR:[20,0,-8],shinR:[14,0,0],hips:[0,-30,0],head:[0,24,0]},props:[{t:'katana',k:'k',a:'chest',p:[-0.24,-0.12,-0.04],r:[-120,0,0]},{t:'saya',k:'s',a:'hips',p:[0.17,0,0.05],r:[70,0,-10]}],ik:{R:{prop:'k',pt:'grip',pole:[-1,-0.5,0]},L:{prop:'k',pt:'grip2',pole:[1,-0.5,0]}}},
+ {id:'kt-sheathe',name:'Katana · sheathing',cat:'Katana',j:{thL:[-20,0,6],shinL:[20,0,0],thR:[10,0,-6],head:[10,0,0]},props:[{t:'saya',k:'s',a:'hips',p:[0.17,0,0.05],r:[70,0,-10]},{t:'katana',k:'k',a:'hips',p:[0.08,0.18,0.42],r:[105,-20,0]}],ik:{L:{prop:'s',pt:'mouth',pole:[1,-1,0]},R:{prop:'k',pt:'grip',pole:[-1,-0.5,0]}}},
+ {id:'kt-seiza',name:'Seiza with katana',cat:'Katana',j:{thL:[-90,0,4],shinL:[165,0,0],thR:[-90,0,-4],shinR:[165,0,0],head:[4,0,0]},props:[{t:'katanaSheathed',k:'k',a:'root',p:[-0.4,0.025,0.1],r:[90,0,0]}],ik:{L:{a:'hips',p:[0.1,0.1,0.3],pole:[1,-1,-0.4]},R:{a:'hips',p:[-0.1,0.1,0.3],pole:[-1,-1,-0.4]}}},
+ {id:'sn-sprint',name:'Sprint, both feet off the ground',cat:'Action snapshots',lift:0.12,j:J(RUNL,{head:[-10,0,0],chest:[0,-12,0],uaL:[40,0,8],faL:[-95,0,0],uaR:[-55,0,-8],faR:[-90,0,0]})},
+ {id:'sn-vault',name:'Vault over a crate',cat:'Action snapshots',lift:0.55,j:{hips:[0,0,-30],spine:[10,0,10],thL:[-80,0,30],shinL:[30,0,0],thR:[-70,0,-10],shinR:[60,0,0],head:[0,0,20],uaL:[-20,0,60]},props:[{t:'crate',k:'c',a:'root',p:[-0.3,0,0.1],s:1.2}],ik:{R:{a:'root',p:[-0.3,0.74,0.12],pole:[-1,0,-0.3]}}},
+ {id:'sn-roll',name:'Dodge roll',cat:'Action snapshots',groundAll:1,j:{hips:[70,0,40],spine:[30,0,0],head:[30,0,0],thL:[-110,0,0],shinL:[120,0,0],thR:[-100,0,0],shinR:[120,0,0]},ik:{L:{a:'hips',p:[0.1,0.2,0.36],pole:[1,0,0]},R:{a:'hips',p:[-0.1,0.2,0.36],pole:[-1,0,0]}}},
+ {id:'sn-slide',name:'Slide to a stop',cat:'Action snapshots',groundAll:1,j:{spine:[-20,0,0],head:[10,0,0],thL:[-70,0,6],thR:[-20,0,-10],shinR:[110,0,0],uaL:[-60,0,30]},ik:{R:{a:'root',p:[-0.32,0.03,-0.2],pole:[-1,0.3,0]}}},
+ {id:'sn-dodge',name:'Lean back dodge',cat:'Action snapshots',j:{spine:[-30,0,0],chest:[-20,0,0],head:[-20,0,0],thL:[-40,0,8],shinL:[60,0,0],thR:[14,0,-8],shinR:[30,0,0],uaL:[-40,0,70],uaR:[-30,0,-80]}},
+ {id:'sn-turn',name:'Whip around, hair flying',cat:'Action snapshots',j:{hips:[0,40,0],chest:[0,30,0],head:[0,30,0],thL:[-10,0,8],shinL:[14,0,0],thR:[8,0,-8],uaL:[10,0,50],uaR:[-40,0,-30],faR:[-60,0,0]}}
+);
+const POSE_CATS=['Standing','Posture & attitude','Distress','Gestures','Everyday life','School life','Action','Seated & floor','Mobility','Family','Dance','Helping','Riding','Animals','Labor','Driving & piloting','War','Katana','Action snapshots','Acrobatic','Ballet','Comic book','Martial arts','Sparring','Rifle','Pistol','Melee & archery','Sci-fi & heavy','Maintenance','Couples','Groups','My poses'];
 let MY_POSES=[]; try{MY_POSES=JSON.parse(localStorage.getItem('standin.myposes')||'[]')||[];}catch(e){MY_POSES=[];}
 const allPoses=()=>POSES.concat(MY_POSES);
 const poseById=id=>allPoses().find(p=>p.id===id);
@@ -1647,6 +1691,8 @@ function panelCamera(){
   const curShot=shotInfo().code;
   rightPane.append(sec('Shot size',chips(SHOTS.map(s=>[s[0],s[0]]),curShot,v=>{setShot(v);renderRight();},'Shot size'),h('p',{class:'note'},SHOTS.map(s=>`${s[0]} ${s[1].toLowerCase()}`).join(' · '))));
   rightPane.append(sec('Angle',chips([['eye','Eye level'],['high','High'],['low','Low'],['bird',"Bird's-eye"],['worm',"Worm's-eye"],['dutch','Dutch'],['ots','Over shoulder'],['pov','POV']],null,v=>{setAngle(v);renderRight();},'Camera angle')));
+  rightPane.append(sec('Turnaround',chips(SHEET_VIEWS.map((v,i)=>[i,v[0]+' '+v[1]]),null,i=>{const f=subjectFig();if(!f)return;releaseOverride();const v=SHEET_VIEWS[i];S.rig.yaw=f.base.rotation.y+v[2]*D2R;S.rig.pitch=v[3]*D2R;const c=figCenter(f);S.rig.target.set(c.x,c.y+0.1,c.z);S.shotTag=null;renderRight();},'Turnaround views'),
+    h('p',{class:'note'},'Directions are relative to the selected figure, so Front always faces them.')));
   REFS.focal=slider('Focal length',12,200,1,Math.round(S.camCur?S.camCur.focal:S.rig.focal),v=>v+'mm',v=>{releaseOverride();S.rig.focal=v;});
   rightPane.append(sec('Lens',chips([14,24,35,50,85,135,200].map(v=>[v,v+'mm']),Math.round(S.rig.focal),v=>{releaseOverride();S.rig.focal=v;renderRight();},'Lens presets'),REFS.focal,
     check('Flat projection (orthographic)',S.ortho,v=>{S.ortho=v;})));
@@ -1708,7 +1754,12 @@ function panelExport(){
   rightPane.append(sec('Still',h('div',{class:'btnrow'},
     h('button',{class:'btn primary',onclick:()=>exportStill()},'Save still (PNG)'),
     h('button',{class:'btn',onclick:()=>exportPasses()},'All passes (.zip)')),
-    h('p',{class:'note'},'All passes saves toon, manga, lines, silhouette, depth and pose map from the same camera, plus shot notes and the scene file.')));
+    h('p',{class:'note'},'All passes saves every render style from the same camera, plus shot notes and the scene file.')));
+  rightPane.append(sec('Pose sheet',h('div',{class:'btnrow'},
+    h('button',{class:'btn primary',onclick:()=>exportSheet()},'Pose sheet (10 angles)'),
+    h('button',{class:'btn',onclick:()=>exportTurnaround()},'Turnaround (.zip)')),
+    check('Figures only (hide sets and loose props)',S.exp.sheetFigOnly!==false,v=>S.exp.sheetFigOnly=v),
+    h('p',{class:'note'},'Like a Japanese pose book: the same pose from the eight directions around the figure, plus a high angle (俯瞰) and a low angle (あおり), on one labeled sheet in the current style.')));
   rightPane.append(sec('Clip',h('div',{class:'btnrow'},
     h('button',{class:'btn rec',onclick:()=>exportVideo()},'Record video'),
     h('button',{class:'btn',onclick:()=>exportFrames()},'Frames (.zip)'),
@@ -1823,6 +1874,53 @@ async function exportFirstLast(){
   evalClip(clip.dur); zip.file('last_frame.png',await canvasBlob(renderFrameToCanvas(S.style)));
   zip.file('shot-notes.txt',shotNotes()); S.time=clip.dur; updateTimeline();
   await saveFile(`stand-in-keyframes-${stamp()}.zip`,await zip.generateAsync({type:'blob'}));
+}
+
+const SHEET_VIEWS=[['Front','正面',0,3],['Front 3/4 left','左斜め前',45,3],['Left side','左側面',90,3],['Back 3/4 left','左斜め後ろ',135,3],['Back','背面',180,3],['Back 3/4 right','右斜め後ろ',225,3],['Right side','右側面',270,3],['Front 3/4 right','右斜め前',315,3],['High angle','俯瞰',35,40],['Low angle','あおり',35,-24]];
+async function renderSheetViews(cw,ch){
+  const figOnly=S.exp.sheetFigOnly!==false, prevVis=propRoot.visible; if(figOnly) propRoot.visible=false;
+  S.figures.forEach(f=>f.update()); updateLight(S.style);
+  const box=new THREE.Box3(); S.figures.forEach(f=>box.expandByObject(f.base)); if(!figOnly) S.props.forEach(p=>box.expandByObject(p.group));
+  const sph=box.getBoundingSphere(new THREE.Sphere()); const c=sph.center, rad=Math.max(0.3,sph.radius);
+  const ref=S.selFig||S.figures[0]; const fy=ref?ref.base.rotation.y:0;
+  const cam=new THREE.PerspectiveCamera(30,cw/ch,0.05,200);
+  const vf=cam.fov*D2R, hf=2*Math.atan(Math.tan(vf/2)*cam.aspect), dist=rad/Math.sin(Math.min(vf,hf)/2)*1.02;
+  const out=[];
+  try{
+    for(const v of SHEET_VIEWS){
+      const yaw=fy+v[2]*D2R,pt=v[3]*D2R; const pos=new V3(Math.sin(yaw)*Math.cos(pt),Math.sin(pt),Math.cos(yaw)*Math.cos(pt)).multiplyScalar(dist).add(c); if(pos.y<0.05)pos.y=0.05;
+      cam.position.copy(pos); cam.up.set(0,1,0); cam.lookAt(c); cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+      const T=renderPass(scene,cam,cw,ch,'sheet',S.style,{transparent:false,grid:false}); const cv=targetToCanvas(T);
+      if(S.style==='pose') drawPoseSkeleton(cv.getContext('2d'),cam,cw,ch,S.figures);
+      out.push(cv); await new Promise(res=>setTimeout(res,0));
+    }
+  } finally { propRoot.visible=prevVis; }
+  return out;
+}
+function sheetDims(){return S.figures.length>1?[600,450]:[480,600];}
+async function exportSheet(){
+  if(!S.figures.length){toast('Add a figure first');return;}
+  const [cw,ch]=sheetDims(); showRec(true,'Rendering pose sheet');
+  let views; try{ views=await renderSheetViews(cw,ch); } finally { showRec(false); }
+  const cols=5,pad=24,lab=44,head=104,W=cols*cw+(cols+1)*pad,H=head+2*(ch+lab)+2*pad;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const ctx=cv.getContext('2d');
+  ctx.fillStyle=S.look.paper; ctx.fillRect(0,0,W,H);
+  const names=[...new Set(S.figures.map(f=>f.poseName))].join(' + ');
+  ctx.fillStyle=S.look.ink; ctx.font='700 34px "Schibsted Grotesk", system-ui, sans-serif'; ctx.fillText(names,pad,52);
+  ctx.fillStyle='#6b7680'; ctx.font='500 17px "Schibsted Grotesk", system-ui, sans-serif'; ctx.fillText('Pose sheet · 8 directions + 俯瞰 high + あおり low · Stand-In Studio · by D THE DESIGNER · d-the-designer.com',pad,84);
+  views.forEach((v,i)=>{const x=pad+(i%cols)*(cw+pad),y=head+Math.floor(i/cols)*(ch+lab+pad);
+    ctx.drawImage(v,x,y); ctx.strokeStyle='#d5dbe0'; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,cw-1,ch-1);
+    ctx.fillStyle=S.look.ink; ctx.font='700 17px "Schibsted Grotesk", system-ui, sans-serif'; const t=SHEET_VIEWS[i][0]; ctx.fillText(t,x,y+ch+27);
+    const tw=ctx.measureText(t).width; ctx.fillStyle='#6b7680'; ctx.font='500 17px system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif'; ctx.fillText(SHEET_VIEWS[i][1],x+tw+10,y+ch+27);});
+  await saveFile(`stand-in-pose-sheet-${stamp()}.png`,await canvasBlob(cv));
+}
+async function exportTurnaround(){
+  if(!window.JSZip){toast('Zip export did not load');return;} if(!S.figures.length){toast('Add a figure first');return;}
+  const [cw,ch]=sheetDims(); showRec(true,'Rendering turnaround');
+  let views; try{ views=await renderSheetViews(cw*2,ch*2); } finally { showRec(false); }
+  const zip=new JSZip(); for(let i=0;i<views.length;i++){zip.file(`${String(i+1).padStart(2,'0')}_${SHEET_VIEWS[i][0].toLowerCase().replace(/[^a-z0-9]+/g,'-')}.png`,await canvasBlob(views[i]));}
+  zip.file('shot-notes.txt',shotNotes());
+  await saveFile(`stand-in-turnaround-${stamp()}.zip`,await zip.generateAsync({type:'blob'}));
 }
 async function exportVideo(){
   if(!window.MediaRecorder){toast('This browser cannot record video. Use Frames (.zip) instead.');return;}
