@@ -1203,10 +1203,11 @@ const TRADS = {
 };
 const ERA_IDS = ['victorian', 'e1900', 'e1910', 'e1920', 'e1930', 'e1940', 'e1950', 'e1960', 'e1970', 'e1980', 'e1990', 'e2000'];
 const STYLE_IDS = ['bauhaus', 'swiss', 'constructivist', 'destijl', 'artnouveau', 'artdeco', 'midcentury', 'psychedelic', 'punk', 'comix', 'memphis', 'newwave', 'grunge', 'brutalist',
-  'pulp', 'spaceage', 'cyberpunk', 'hud', 'illuminated', 'fantasypb', 'darkfantasy', 'jazz', 'gigposter', 'rave', 'hiphop', 'metal', 'disco',
+  'pulp', 'spaceage', 'cyberpunk', 'hud', 'illuminated', 'fantasypb', 'darkfantasy',
   'frutigeraero', 'gvc', 'corpmemphis', 'experimental'];
+// Music styles (jazz, gigposter, rave, hiphop, metal, disco) are parked too, at D's request.
 // 'institutional' (Institutional Futurism) is parked: defined in TRADS but not offered until it is reworked.
-const STYLE_GROUPS = [['', 'Movements and styles'], ['scifi', 'Sci-fi'], ['fantasy', 'Fantasy'], ['music', 'Music'], ['digital', 'Internet and digital aesthetics'], ['alt', 'Alternative and countercultural']];
+const STYLE_GROUPS = [['', 'Movements and styles'], ['scifi', 'Sci-fi'], ['fantasy', 'Fantasy'], ['digital', 'Internet and digital aesthetics'], ['alt', 'Alternative and countercultural']];
 const styleGroupOf = k => TRADS[k].group || (TRADS[k].alt ? 'alt' : '');
 const ALT_IDS = STYLE_IDS.filter(k => TRADS[k].alt);
 
