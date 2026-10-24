@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type PageKey = "home" | "work" | "freebies" | "about" | "contact" | "support";
+export type PageKey = "home" | "work" | "freebies" | "about" | "contact" | "support" | "tools";
 
 const navItems: Array<{ key: PageKey; label: string; href: string }> = [
   { key: "work", label: "Work", href: "/work" },
@@ -28,15 +28,15 @@ export function SiteShell({ current, children }: { current: PageKey; children: R
         </nav>
       </header>
       {children}
-      <SiteFooter />
+      <SiteFooter current={current} />
     </div>
   );
 }
 
-function SiteFooter() {
+function SiteFooter({ current }: { current: PageKey }) {
   return (
     <footer className="portfolio-footer">
-      <div className="footer-pages"><a href="/">Home</a>{navItems.map((item) => <a key={item.key} href={item.href}>{item.label}</a>)}</div>
+      <div className="footer-pages"><a href="/">Home</a>{navItems.map((item) => <a key={item.key} href={item.href}>{item.label}</a>)}<a href="/tools/" aria-current={current === "tools" ? "page" : undefined}>Tools I Use</a></div>
       <div className="footer-socials"><a href={externalLinks.instagram} target="_blank" rel="noreferrer">Instagram</a><a href={externalLinks.x} target="_blank" rel="noreferrer">X</a><a href="/support">Support</a><a href={externalLinks.email}>hello@d-the-designer.com</a></div>
     </footer>
   );

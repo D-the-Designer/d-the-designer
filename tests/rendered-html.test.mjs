@@ -3,7 +3,7 @@ import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const root = new URL("../github-pages/", import.meta.url);
-const routes = ["index.html", "work/index.html", "freebies/index.html", "about/index.html", "contact/index.html", "support/index.html"];
+const routes = ["index.html", "work/index.html", "freebies/index.html", "about/index.html", "contact/index.html", "support/index.html", "tools/index.html"];
 
 async function htmlFor(route) {
   return readFile(new URL(route, root), "utf8");
@@ -53,4 +53,22 @@ test("keeps the public identity brand-first", async () => {
 
 test("ships the supplied headshot asset", async () => {
   await access(new URL("public/headshot.jpg", new URL("../", import.meta.url)));
+});
+
+test("makes the tools page discoverable and discloses its only active affiliate link", async () => {
+  for (const route of routes) {
+    assert.match(await htmlFor(route), /href="\/tools\/"(?: aria-current="page")?>Tools I Use<\/a>/);
+  }
+  const html = await htmlFor("tools/index.html");
+  const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1];
+  assert.ok(main);
+  assert.match(main, /<h1>Tools I Use<\/h1>/);
+  assert.ok(main.indexOf('aria-label="Affiliate disclosure"') < main.indexOf('<a '));
+  assert.match(main, /href="https:\/\/try\.elevenlabs\.io\/ez4kfs7z1wpc" target="_blank" rel="sponsored noopener">Try ElevenLabs<\/a> <span>\(affiliate link\)<\/span>/);
+  assert.equal((main.match(/<a /g) ?? []).length, 1);
+  assert.equal((main.match(/Link coming soon/g) ?? []).length, 3);
+  assert.doesNotMatch(main, /\[RUNWAY CODE\]|\[KREA LINK\]|\[HEDRA LINK\]|25% off/);
+  for (const tool of ["ElevenLabs", "Runway (with Kling)", "Krea", "Hedra", "Photoshop"]) {
+    assert.ok(main.includes(tool));
+  }
 });

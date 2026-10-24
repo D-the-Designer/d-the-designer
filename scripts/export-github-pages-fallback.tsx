@@ -7,6 +7,7 @@ import FreebiesPage from "../app/freebies/page";
 import AboutPage from "../app/about/page";
 import ContactPage from "../app/contact/page";
 import SupportPage from "../app/support/page";
+import ToolsPage, { metadata as toolsMetadata } from "../app/tools/page";
 
 const root = join(process.cwd(), "github-pages");
 const publicRoot = join(process.cwd(), "public");
@@ -22,6 +23,7 @@ const pages = [
   { path: "/about", title: "About — D The Designer", description: "About D the Designer, a Design Technologist and Visual Systems Designer.", Component: AboutPage },
   { path: "/contact", title: "Contact — D The Designer", description: "Hire or contact D the Designer, a Design Technologist and Visual Systems Designer.", Component: ContactPage },
   { path: "/support", title: "Support — D The Designer", description: "Support D the Designer's independent creative tools and visual work.", Component: SupportPage },
+  { path: "/tools", title: toolsMetadata.title, description: toolsMetadata.description, Component: ToolsPage },
 ] as const;
 
 const carouselScript = `

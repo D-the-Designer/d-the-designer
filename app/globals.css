@@ -118,6 +118,22 @@ a:focus-visible,button:focus-visible { outline:3px solid var(--hover); outline-o
 .hero-slide-title + p { margin-top:0; }
 .work-cta .primary-button:focus-visible { outline-color:var(--black); }
 
+.tools-page { max-width:860px; }
+.tools-page h1 { margin-bottom:20px; }
+.tools-disclosure { margin-bottom:28px; padding:18px 20px; border-left:3px solid var(--yellow); background:var(--panel); }
+.tools-disclosure p { margin:0; color:var(--body); font-size:1rem; line-height:1.5; }
+.tools-disclosure strong { color:var(--yellow); }
+.tools-intro { margin-bottom:36px; color:var(--white); font-size:1.25rem; line-height:1.5; }
+.tools-list { display:grid; gap:32px; }
+.tools-list section { min-width:0; padding-top:24px; border-top:1px solid var(--border); }
+.tools-list h2 { margin-bottom:14px; color:var(--yellow); font-size:clamp(20px,3vw,24px); line-height:1.25; }
+.tools-list p { margin-bottom:14px; color:var(--body); font-size:1.125rem; line-height:1.65; }
+.tools-list p:last-child { margin-bottom:0; }
+.tools-list .tool-link,.tools-list .tool-pending,.tools-list .tool-note { font-size:1rem; line-height:1.5; }
+.tool-link a { display:inline-flex; align-items:center; min-height:44px; text-decoration:underline; text-underline-offset:4px; }
+.tool-link span { display:inline-block; }
+.footer-pages a[aria-current="page"] { color:var(--white); }
+
 @media (max-width:720px) {
   .hero-slide-title { margin-bottom:12px!important; font-size:calc(clamp(27px,8vw,38px) - 4pt)!important; }
   .carousel-dots button { width:24px; height:24px; }
