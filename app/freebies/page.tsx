@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { PageFrame, SiteShell } from "../components/SiteShell";
 
 export const metadata: Metadata = { title: "Freebies — D The Designer", description: "Free tools, GPTs, and downloads from D The Designer." };
-type Freebie = { title: string; body: string; href: string; action: string };
+type Freebie = { title: string; body: string; href: string; action: string; extra?: { href: string; action: string } };
 const tools: Freebie[] = [
   { title: "Gridder", body: "An art director's layout tool. Click through layout directions by document type, era and style — from Swiss and Bauhaus to punk zines, sci-fi HUDs and Frutiger Aero — tune the grid, and hand off a measured spec, reference image and guide scaffold.", href: "/gridder/", action: "Open tool →" },
   { title: "Stand-In Studio", body: "Low-poly posing studio for drawing reference, storyboarding, and AI previs. Dial body types, pose figures with props, block in rooms and mounts, frame shots, and export clean line-art stills, pose sheets, and depth and pose maps.", href: "/standinstudio/", action: "Open tool →" },
-  { title: "Palette Pal", body: "A retro desktop color studio. Pick a color, explore complementary, analogous and triadic harmonies on an artist's RYB or digital RGB wheel, then fine-tune chips and export PNG swatches, a printable PDF reference sheet, or a data file. No account — palettes save in your browser.", href: "/palettepal/", action: "Open tool →" },
+  { title: "Palette Pal", body: "A retro desktop color studio. Pick a color, explore complementary, analogous and triadic harmonies on an artist's RYB or digital RGB wheel, then fine-tune chips and export PNG swatches, a printable PDF reference sheet, or a data file. No account — palettes save in your browser.", href: "/palettepal/", action: "Open tool →", extra: { href: "/palettepal/palette-pal-guide.pdf", action: "User guide (PDF) →" } },
   { title: "Common Clip", body: "License-safe stock images from Wikimedia Commons — with copy-paste attribution and metadata preserved on every image. Now live.", href: "https://www.commonclip.com", action: "Open Common Clip →" },
   { title: "Morse Translator", body: "Translate text to and from Morse code in the browser.", href: "https://d-the-designer.github.io/toys/morse-translator.html", action: "Open tool →" },
   { title: "AI Prompt Compendium", body: "Searchable prompt library with per-prompt copy buttons.", href: "https://d-the-designer.github.io/prompt-compendium/", action: "Open tool →" },
@@ -27,7 +27,7 @@ const illustration: Freebie[] = [
 ];
 
 function FreebieSection({ title, items, accent = false }: { title: string; items: Freebie[]; accent?: boolean }) {
-  return <section className="freebies-section"><h2 className={accent ? "accent-heading" : ""}>{title}</h2><div className="freebie-grid">{items.map((item) => <article className="freebie-card" key={item.title}><h3>{item.title}</h3><p>{item.body}</p><a href={item.href} target="_blank" rel="noreferrer">{item.action}</a></article>)}</div></section>;
+  return <section className="freebies-section"><h2 className={accent ? "accent-heading" : ""}>{title}</h2><div className="freebie-grid">{items.map((item) => <article className="freebie-card" key={item.title}><h3>{item.title}</h3><p>{item.body}</p><a href={item.href} target="_blank" rel="noreferrer">{item.action}</a>{item.extra && <a href={item.extra.href} target="_blank" rel="noreferrer">{item.extra.action}</a>}</article>)}</div></section>;
 }
 
 export default function FreebiesPage() {
