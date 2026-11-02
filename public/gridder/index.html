@@ -278,6 +278,7 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
           <span title="Bleed"><i class="sw" style="background:var(--g-bleed)"></i></span>
           <span title="Safe area"><i class="sw" style="background:var(--g-safe)"></i></span>
           <label id="v-plat-l" title="Where the app's own interface covers the post, plus crops and avatar overlaps. Approximate; confirm in the app." hidden><input type="checkbox" id="v-plat" checked> Platform interface</label>
+          <label id="v-obs-l" title="Tighter safe zones observed in the app UI. Unofficial; Meta published Ads Guide values are the default." hidden><input type="checkbox" id="v-obs"> UI overlay (observed)</label>
           <label title="Paper tone and grain where the style calls for it. Preview only; geometry is unaffected."><input type="checkbox" id="v-tex" checked> Paper texture</label>
         </div>
         <div class="quick">
@@ -306,7 +307,7 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
           <div class="row">
             <label class="num"><span>Width</span><input type="number" id="g-w" step="any" min="0"></label>
             <label class="num"><span>Height</span><input type="number" id="g-h" step="any" min="0"></label>
-            <label class="num"><span>Units</span><select id="g-unit"><option value="in">in</option><option value="mm">mm</option><option value="pt">pt</option><option value="px">px</option></select></label>
+            <label class="num"><span>Units</span><select id="g-unit"><option value="in">in</option><option value="mm">mm</option><option value="pt">pt</option><option value="p">pica</option><option value="px">px</option></select></label>
             <div class="num"><span>Orientation</span><button class="btn" id="g-rot" type="button" style="justify-content:center">Swap ⇄</button></div>
           </div>
           <details class="more" id="more-bleed">
@@ -342,6 +343,7 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
             <label class="num"><span>Row gap</span><input type="number" id="g-rgap" step="any" min="0"></label>
           </div>
           <div class="derived" id="d-row"></div>
+            <label class="switch"><input type="checkbox" id="g-rowlock"> Lock rows to baseline</label>
         </div>
         <div class="grp">
           <div class="grp-h"><h3>Baseline grid</h3><button class="lock" data-lock="baseline" aria-pressed="false" type="button"></button></div>
@@ -451,6 +453,7 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
             <div><b id="h-ready-t">Ready to hand off</b><span id="h-ready-d"></span></div>
             <div class="btns">
               <button class="btn btn-primary save" id="h-save-png" type="button">Save PNG</button>
+              <button class="btn save" id="h-save-png1" type="button">Save PNG 1:1</button>
               <button class="btn btn-primary" id="h-copy-img" type="button">Copy image</button>
             </div>
           </div>
@@ -523,16 +526,40 @@ pre.spec { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 
    ============================================================ */
 
 /* ---------- units ---------- */
-const UNIT_PT = { pt: 1, in: 72, mm: 72 / 25.4, px: 0.75 };
-const UNIT_PREC = { in: 3, mm: 1, pt: 1, px: 0 };
+const UNIT_PT = { pt: 1, in: 72, mm: 72 / 25.4, px: 0.75, p: 12 };
+const UNIT_PREC = { in: 3, mm: 1, pt: 1, px: 0, p: 3 };
 const toPt = (v, u) => v * UNIT_PT[u];
 const roundU = (v, u) => { const f = Math.pow(10, UNIT_PREC[u]); return Math.round(v * f) / f; };
-const fromPt = (v, u) => roundU(v / UNIT_PT[u], u);
+// VNEXT #1: conversions NEVER round. Geometry is stored as unrounded floats and
+// derive() converts to canonical pt, so a unit switch changes display only and
+// pt geometry is invariant (round-trip error is float noise, ~1e-12 relative).
+const fromPt = (v, u) => v / UNIT_PT[u];
+const fmtPica = v => {
+  let total = Math.round(v * 12 * 100) / 100; // value is in picas; work in pt
+  const neg = total < 0; total = Math.abs(total);
+  let x = Math.floor(total / 12), y = Math.round((total - x * 12) * 100) / 100;
+  if (y >= 12) { x += 1; y = 0; }
+  const ys = Number.isInteger(y) ? String(y) : String(y).replace(/0+$/, '').replace(/\.$/, '');
+  return (neg ? '-' : '') + x + 'p' + ys;
+};
 const fmtU = (v, u) => {
+  if (u === 'p') return fmtPica(v);
   let s = roundU(v, u).toFixed(UNIT_PREC[u]);
   if (UNIT_PREC[u] > 0) s = s.replace(/\.?0+$/, '');
   return s === '-0' ? '0' : s;
 };
+// VNEXT #1: switch the display unit of a state without rounding anything.
+// Only geometry fields are converted; locks, preset, frames and all other
+// state survive the switch unchanged.
+function convertStateUnits(st, nu) {
+  const ou = st.unit; if (ou === nu) return st;
+  const c = v => fromPt(toPt(v, ou), nu);
+  st.w = c(st.w); st.h = c(st.h); st.bleed = c(st.bleed || 0); st.safe = c(st.safe || 0);
+  st.m = { t: c(st.m.t), r: c(st.m.r), b: c(st.m.b), l: c(st.m.l) };
+  st.gutter = c(st.gutter); st.rowGap = c(st.rowGap); st.baseline = c(st.baseline);
+  st.unit = nu;
+  return st;
+}
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 /* ---------- rng ---------- */
@@ -701,17 +728,17 @@ const DOCS = {
     label: 'Stationery',
     subs: [['bizcard', 'Business card'], ['letterhead', 'Letterhead'], ['envelope', 'Envelope']],
     presets: [
-      { s: 'bizcard', n: 'US card 3.5 × 2 in', w: 3.5, h: 2, u: 'in', b: 0.125, sa: 0.125 },
-      { s: 'bizcard', n: 'EU card 85 × 55 mm', w: 85, h: 55, u: 'mm', b: 3, sa: 3 },
-      { s: 'bizcard', n: 'Vertical 2 × 3.5 in', w: 2, h: 3.5, u: 'in', b: 0.125, sa: 0.125 },
-      { s: 'bizcard', n: 'Japan card 91 × 55 mm', w: 91, h: 55, u: 'mm', b: 3, sa: 3 },
-      { s: 'bizcard', n: 'Square 2.5 in', w: 2.5, h: 2.5, u: 'in', b: 0.125, sa: 0.125 },
-      { s: 'letterhead', n: 'Letter 8.5 × 11 in', w: 8.5, h: 11, u: 'in', sa: 0.25 },
-      { s: 'letterhead', n: 'A4 (DIN 5008)', w: 210, h: 297, u: 'mm', sa: 6 },
-      { s: 'envelope', n: '#10 envelope 9.5 × 4.125 in', w: 9.5, h: 4.125, u: 'in', sa: 0.25 },
-      { s: 'envelope', n: 'DL envelope 220 × 110 mm', w: 220, h: 110, u: 'mm', sa: 6 },
-      { s: 'envelope', n: 'C5 envelope 229 × 162 mm', w: 229, h: 162, u: 'mm', sa: 6 },
-      { s: 'envelope', n: 'A7 envelope 7.25 × 5.25 in', w: 7.25, h: 5.25, u: 'in', sa: 0.25 }
+      { s: 'bizcard', n: 'US card 3.5 × 2 in', w: 3.5, h: 2, u: 'in', b: 0.125, sa: 0.125, std: 'US' },
+      { s: 'bizcard', n: 'EU card 85 × 55 mm', w: 85, h: 55, u: 'mm', b: 3, sa: 3, std: 'DIN' },
+      { s: 'bizcard', n: 'Vertical 2 × 3.5 in', w: 2, h: 3.5, u: 'in', b: 0.125, sa: 0.125, std: 'US' },
+      { s: 'bizcard', n: 'Japan card 91 × 55 mm', w: 91, h: 55, u: 'mm', b: 3, sa: 3, std: 'DIN' },
+      { s: 'bizcard', n: 'Square 2.5 in', w: 2.5, h: 2.5, u: 'in', b: 0.125, sa: 0.125, std: 'US' },
+      { s: 'letterhead', n: 'Letter 8.5 × 11 in', w: 8.5, h: 11, u: 'in', sa: 0.25, std: 'US' },
+      { s: 'letterhead', n: 'A4 (DIN 5008)', w: 210, h: 297, u: 'mm', sa: 6, std: 'DIN5008-B' },
+      { s: 'envelope', n: '#10 envelope 9.5 × 4.125 in', w: 9.5, h: 4.125, u: 'in', sa: 0.25, std: 'USPS-10' },
+      { s: 'envelope', n: 'DL envelope 220 × 110 mm', w: 220, h: 110, u: 'mm', sa: 6, std: 'DL' },
+      { s: 'envelope', n: 'C5 envelope 229 × 162 mm', w: 229, h: 162, u: 'mm', sa: 6, std: 'DIN' },
+      { s: 'envelope', n: 'A7 envelope 7.25 × 5.25 in', w: 7.25, h: 5.25, u: 'in', sa: 0.25, std: 'US' }
     ],
     cols: [4, 12], rows: [4, 14], colsBy: { bizcard: [4, 8], envelope: [6, 12], letterhead: [6, 12] }, rowsBy: { bizcard: [4, 6], envelope: [4, 8], letterhead: [12, 16] },
     arch: { bizcard: { bizFront: 3, bizBack: 2 }, letterhead: { letterhead: 5 }, envelope: { envelope: 5 } }
@@ -776,6 +803,7 @@ DOCS.social = {
   subs: [['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'], ['facebook', 'Facebook'], ['linkedin', 'LinkedIn'], ['pinterest', 'Pinterest'], ['x', 'X / Threads']],
   presets: [
     { s: 'instagram', n: 'Post, portrait 4:5', w: 1080, h: 1350, u: 'px', ui: 'igGrid' },
+    { s: 'instagram', n: 'Post, portrait 3:4', w: 1080, h: 1440, u: 'px', ui: 'igGrid' },
     { s: 'instagram', n: 'Post, square', w: 1080, h: 1080, u: 'px', ui: 'igGrid' },
     { s: 'instagram', n: 'Story', w: 1080, h: 1920, u: 'px', ui: 'igStory' },
     { s: 'instagram', n: 'Reel cover / Reel', w: 1080, h: 1920, u: 'px', ui: 'igReel' },
@@ -808,12 +836,12 @@ DOCS.social = {
 /* Platform interface overlays. Values are approximate and change with app updates; checked October 2026.
    Side insets are in px on the reference canvas and scale with the document. */
 const PLATFORM_UI = {
-  igStory: { name: 'Instagram Story', ref: [1080, 1920], sides: { t: [100, 'Profile and progress bar'], b: [200, 'Reply bar'] } },
-  igReel: { name: 'Instagram Reel', ref: [1080, 1920], sides: { t: [210, 'Header and camera'], b: [310, 'Caption, audio and profile'], r: [84, 'Like, comment and share'] } },
+  igStory: { name: 'Instagram Story', ref: [1080, 1920], sides: { t: [269, 'Safe area, top (Meta Ads Guide, 14%)'], b: [672, 'Safe area, bottom (Meta Ads Guide, 35%)'], l: [65, 'Safe area, side (Meta Ads Guide, 6%)'], r: [65, 'Safe area, side (Meta Ads Guide, 6%)'] }, obs: { t: [100, 'Profile and progress bar'], b: [200, 'Reply bar'] } },
+  igReel: { name: 'Instagram Reel', ref: [1080, 1920], sides: { t: [269, 'Safe area, top (Meta Ads Guide, 14%)'], b: [672, 'Safe area, bottom (Meta Ads Guide, 35%)'], l: [65, 'Safe area, side (Meta Ads Guide, 6%)'], r: [65, 'Safe area, side (Meta Ads Guide, 6%)'] }, obs: { t: [210, 'Header and camera'], b: [310, 'Caption, audio and profile'], r: [84, 'Like, comment and share'] } },
   tiktok: { name: 'TikTok', ref: [1080, 1920], sides: { t: [108, 'Header tabs'], b: [320, 'Caption and audio'], l: [60, 'Edge'], r: [120, 'Like, comment and share'] } },
   ytShorts: { name: 'YouTube Short', ref: [1080, 1920], sides: { t: [120, 'Header'], b: [300, 'Title and channel'], r: [96, 'Actions'] } },
-  fbStory: { name: 'Facebook Story', ref: [1080, 1920], sides: { t: [100, 'Profile and progress bar'], b: [200, 'Reply bar'] } },
-  fbReel: { name: 'Facebook Reel', ref: [1080, 1920], sides: { t: [100, 'Header'], b: [300, 'Caption and profile'], r: [60, 'Actions'] } },
+  fbStory: { name: 'Facebook Story', ref: [1080, 1920], sides: { t: [250, 'Safe area, top (Meta, 250 px)'], b: [340, 'Safe area, bottom (Meta, 340 px)'] }, obs: { t: [100, 'Profile and progress bar'], b: [200, 'Reply bar'] } },
+  fbReel: { name: 'Facebook Reel', ref: [1080, 1920], sides: { t: [269, 'Safe area, top (Meta Ads Guide, 14%)'], b: [672, 'Safe area, bottom (Meta Ads Guide, 35%)'], l: [65, 'Safe area, side (Meta Ads Guide, 6%)'], r: [65, 'Safe area, side (Meta Ads Guide, 6%)'] }, obs: { t: [100, 'Header'], b: [300, 'Caption and profile'], r: [60, 'Actions'] } },
   liVideo: { name: 'LinkedIn vertical video', ref: [1080, 1920], sides: { t: [100, 'Header'], b: [100, 'Caption'], l: [35, 'Edge'], r: [35, 'Edge'] } },
   pinVideo: { name: 'Pinterest video pin', ref: [1080, 1920], sides: { t: [100, 'Header'], b: [220, 'Title and actions'], l: [40, 'Edge'], r: [40, 'Edge'] } },
   ytThumb: { name: 'YouTube thumbnail', ref: [1280, 720], boxes: [{ n: 'Duration badge', x: 1100, y: 650, w: 160, h: 56 }] },
@@ -834,7 +862,7 @@ function platformGeom(st) {
   const out = { name: P.name, zones: [], crop: null, circles: [], bands: [] };
   for (let f = 0; f < frames; f++) {
     const ox = f * fw;
-    const sd = P.sides || {};
+    const sd = (st.uiObserved && P.obs) ? P.obs : (P.sides || {}); // VNEXT #12: Meta published values by default; st.uiObserved shows the tighter observed UI overlay (unofficial)
     const t = sd.t ? sd.t[0] * ky : 0, b = sd.b ? sd.b[0] * ky : 0;
     if (sd.t) out.zones.push({ n: sd.t[1], side: 'top', x: ox, y: 0, w: fw, h: t });
     if (sd.b) out.zones.push({ n: sd.b[1], side: 'bottom', x: ox, y: H - b, w: fw, h: b });
@@ -1249,6 +1277,52 @@ function resolveTradition(st, rng) {
 
 /* ---------- geometry ---------- */
 function isSpread(st) { return (st.doc === 'magazine' || st.doc === 'zine') && st.w / st.h > 1.25; }
+// VNEXT #4: a stationery sheet's standard comes from its preset (or, for a
+// custom size, from the sheet dimensions) — never from the display unit.
+function stationeryStandard(st) {
+  if (st.doc !== 'stationery') return null;
+  if (st.preset && st.preset.startsWith('p:')) { const p = DOCS.stationery.presets[+st.preset.slice(2)]; if (p && p.std) return p.std; }
+  const W = toPt(st.w, st.unit), H = toPt(st.h, st.unit), MM = 72 / 25.4;
+  const near = (a, b, t) => Math.abs(a - b) <= t;
+  if (near(W, 210 * MM, 3 * MM) && near(H, 297 * MM, 3 * MM)) return 'DIN5008-B';
+  if (near(W, 612, 4) && near(H, 792, 4)) return 'US';
+  if (near(W, 9.5 * 72, 4) && near(H, 4.125 * 72, 4)) return 'USPS-10';
+  if (near(W, 220 * MM, 3 * MM) && near(H, 110 * MM, 3 * MM)) return 'DL';
+  const wmm = W / MM, hmm = H / MM;
+  if (Math.abs(wmm - Math.round(wmm)) < 0.6 && Math.abs(hmm - Math.round(hmm)) < 0.6) return 'DIN';
+  return 'US';
+}
+// VNEXT #3: baseline-locked modular rows are the default for Swiss/modular
+// and editorial work; st.lockRows overrides.
+function defaultRowLock(st, T) {
+  const sid = (T && (T.styleId || T.eraId)) || null;
+  return sid === 'swiss' || sid === 'destijl' || sid === 'constructivist' || st.doc === 'editorial' || st.doc === 'magazine';
+}
+// VNEXT #3 solver: gap = k*baseline, row step = n*baseline, leftover live
+// height goes to the bottom margin, never into the rows.
+function applyRowLock(st) {
+  const u = st.unit, L = st.locks || {};
+  if (L.rows) return false;
+  const H = toPt(st.h, u), bl = toPt(st.baseline, u);
+  if (!(bl > 0) || !(H > 0)) return false;
+  const mt = toPt(st.m.t, u), mb = toPt(st.m.b, u);
+  const liveH = H - mt - mb;
+  if (liveH <= bl) return false;
+  const rg = toPt(st.rowGap, u);
+  const k = Math.max(0, Math.round(rg / bl));
+  const newRg = k * bl;
+  let n = Math.max(1, Math.round(((liveH + newRg) / Math.max(1, st.rows)) / bl));
+  let step = n * bl, rowH = step - newRg;
+  while (rowH <= bl * 0.5) { n += 1; step = n * bl; rowH = step - newRg; }
+  const R = Math.max(1, Math.floor((liveH + newRg) / step));
+  const used = R * rowH + (R - 1) * newRg;
+  const leftover = Math.max(0, liveH - used);
+  st.rows = R;
+  st.rowGap = fromPt(newRg, u);
+  st.m = { t: st.m.t, r: st.m.r, b: fromPt(mb + leftover, u), l: st.m.l };
+  st.rowLock = true;
+  return true;
+}
 /* ---------- screen systems: frameworks, breakpoints, platform chrome ----------
    Values are px (CSS px / iOS pt / Android dp treated 1:1). Sources: Bootstrap 5.3 grid docs, Tailwind CSS v4 docs,
    Android window size classes (Material 3), Apple Human Interface Guidelines, WCAG 2.2. Chrome sizes are approximate. */
@@ -1387,8 +1461,29 @@ function screenRowPx(st) {
 function screenType(st) {
   const cls = screenCls(st), sys = screenSysId(st);
   // max heading sizes in px for h1 / h2 / h3
-  if (st.doc === 'ux') return sys === 'hig' ? { h1: cls === 'sm' ? 34 : 40, h2: 22, h3: 17, body: 17 } : { h1: cls === 'sm' ? 32 : 45, h2: 24, h3: 16, body: 16 };
-  return { h1: cls === 'sm' ? 40 : cls === 'md' ? 52 : 64, h2: cls === 'sm' ? 28 : cls === 'md' ? 32 : 40, h3: cls === 'sm' ? 20 : 24, body: cls === 'lg' ? 18 : 16 };
+  if (st.doc === 'ux') return sys === 'hig' ? { h1: cls === 'sm' ? 34 : 40, h2: 22, h3: 17, body: 17, bodyLead: 22 } : { h1: cls === 'sm' ? 32 : 45, h2: 24, h3: 16, body: 16, bodyLead: 24 };
+  return { h1: cls === 'sm' ? 40 : cls === 'md' ? 52 : 64, h2: cls === 'sm' ? 28 : cls === 'md' ? 32 : 40, h3: cls === 'sm' ? 20 : 24, body: cls === 'lg' ? 18 : 16, bodyLead: cls === 'lg' ? 28 : 24 };
+}
+// VNEXT #2/#11: single source for body type. Print: size = baseline/1.35,
+// leading = baseline, always in pt. Screen: size and leading come from the
+// system type scale (HIG body 17/22, Material 3 body-large 16/24, web
+// 16/24 or 18/28), always in px; the baseline is derived from the leading.
+function bodyType(st, D) {
+  if (isScreenDoc(st)) { const t = screenType(st); return { sizePt: t.body * 0.75, leadPt: t.bodyLead * 0.75, size: t.body, leading: t.bodyLead, unit: 'px' }; }
+  const bl = D ? D.baseline : toPt(st.baseline, st.unit);
+  return { sizePt: bl / 1.35, leadPt: bl, size: bl / 1.35, leading: bl, unit: 'pt' };
+}
+const exactNum = v => Math.round(v * 1e6) / 1e6;
+// VNEXT P3: text columns inside a body zone must split its grid span evenly:
+// pick a divisor of the span nearest the wanted column count (a 5-col span
+// splits 1 or 5 ways, never 2+3).
+function bodyCols(wPt, sizePt, span) {
+  let want = Math.max(1, Math.round(wPt / (30 * sizePt)));
+  if (!span || span < 2) return 1;
+  want = clamp(want, 1, span);
+  let best = 1, bd = Infinity;
+  for (let d = 1; d <= span; d++) if (span % d === 0) { const dist = Math.abs(d - want); if (dist < bd || (dist === bd && d > best)) { best = d; bd = dist; } }
+  return best;
 }
 function screenInfo(st) {
   if (!isScreenDoc(st)) return null;
@@ -1436,9 +1531,8 @@ function rollScreenGeometry(st, T, rng) {
     st.gutter = fromPt(P(g), u);
   }
   if (!L.baseline) {
-    let bl = st.doc === 'ux' ? (I.id === 'hig' ? 22 : 24) : I.cls === 'lg' ? 28 : 24;
-    if (fluid) bl = pick(rng, I.cls === 'lg' ? [28, 32] : [24, 28]);
-    st.baseline = fromPt(P(bl), u);
+    // VNEXT #11: the baseline IS the body leading from the system type scale.
+    st.baseline = fromPt(P(I.type.bodyLead), u);
   }
   if (!L.rows) {
     st.rowGap = st.doc === 'ux' ? fromPt(P(8), u) : st.gutter;
@@ -1467,14 +1561,10 @@ function rollGeometry(st, T, rng) {
 
   if (!L.margins) {
     let m;
-    if (st.doc === 'ux') {
-      const e = uxEdges(st);
-      const side = e.kind === 'phone' ? pick(rng, [16, 20, 24]) : pick(rng, [24, 32]);
-      m = { t: (e.top + (e.kind === 'phone' ? 8 : 16)) * 0.75, b: ((e.bottom || 16) + 8) * 0.75, l: side * 0.75, r: side * 0.75 };
-    } else if (st.doc === 'website') {
-      const side = wpx >= 1200 ? pick(rng, [64, 80, 96, 120]) : wpx >= 700 ? pick(rng, [32, 40, 48]) : pick(rng, [16, 20, 24]);
-      m = { t: 16 * 0.75, b: 16 * 0.75, l: side * 0.75, r: side * 0.75 };
-    } else {
+    // VNEXT P3: the old ux/website margin branches here were dead code
+    // (screen docs return via rollScreenGeometry above) and called the
+    // undefined edge helper; removed.
+    {
       const base = lerp(T.margin[0], T.margin[1]) * short;
       const pat = pickW(rng, T.mpat || TBASE.mpat);
       m = { t: base, r: base, b: base, l: base };
@@ -1508,13 +1598,19 @@ function rollGeometry(st, T, rng) {
   if (!L.cols) {
     let [a, b] = (d.colsBy && d.colsBy[st.sub]) || d.cols;
     if (st.doc === 'website' || st.doc === 'ux') { if (wpx < 600) a = b = 4; else if (wpx < 1100) a = b = 8; else a = b = 12; }
-    if (st.doc === 'social' && (st.frames || 1) > 1) { a = Math.min(24, a * st.frames); b = Math.min(24, b * st.frames); }
-    if (isSpread(st)) { a = Math.min(24, a * 2); b = Math.min(24, b * 2); }
+    // VNEXT #5/#6: for spreads and carousels, [a, b] is the PER-PAGE /
+    // PER-FRAME column range; the total is per x pages so seams land on
+    // page boundaries.
+    const pages = isSpread(st) ? 2 : Math.max(1, st.frames || 1);
     const tc = T.cols || [1, 24];
     let lo = Math.max(a, tc[0]), hi = Math.min(b, tc[1]);
     if (lo > hi) { lo = a; hi = b; }
     const nice = [1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 16, 18, 24].filter(n => n >= lo && n <= hi);
-    st.cols = nice.length ? pick(rng, nice) : lo;
+    if (pages > 1) {
+      const perNice = nice.filter(n => n * pages <= 24);
+      const per = perNice.length ? pick(rng, perNice) : Math.max(1, Math.floor(24 / pages));
+      st.cols = per * pages;
+    } else st.cols = nice.length ? pick(rng, nice) : lo;
     let g;
     if (st.doc === 'website') g = pick(rng, wpx >= 1100 ? [24, 32] : [16, 24]) * 0.75;
     else if (st.doc === 'ux') g = pick(rng, [8, 12, 16]) * 0.75;
@@ -1533,6 +1629,8 @@ function rollGeometry(st, T, rng) {
     const mm = { t: toPt(st.m.t, u), r: toPt(st.m.r, u), b: toPt(st.m.b, u), l: toPt(st.m.l, u) };
     const lw = W - mm.l - mm.r, lh = H - mm.t - mm.b, g0 = toPt(st.gutter, u), rg0 = toPt(st.rowGap, u);
     const minCell = 6;
+    // VNEXT #10: rolled grids respect the same column floor exports enforce.
+    if (!L.cols) { const mc = minColPt(st, g0); let guard = 0; while (st.cols > 1 && derive(st).colW < mc && guard++ < 40) { const D0 = derive(st); st.cols -= D0.per ? D0.pageCount : 1; if (st.cols < 1) st.cols = 1; } }
     if (!L.cols) while (st.cols > 1 && (lw - (st.cols - 1) * g0) / st.cols < Math.max(minCell, g0 * 1.5)) st.cols--;
     if (!L.rows) while (st.rows > 1 && (lh - (st.rows - 1) * rg0) / st.rows < Math.max(minCell, rg0 * 1.5)) st.rows--;
   }
@@ -1544,12 +1642,34 @@ function rollGeometry(st, T, rng) {
     else bl = Math.round(clamp(short * 0.017, 7, 60) * 1.35 * 2) / 2;
     st.baseline = fromPt(bl, u);
   }
+  // VNEXT #3: lock rows to the baseline grid (after baseline exists).
+  st.rowLock = false;
+  if (st.lockRows != null ? st.lockRows : defaultRowLock(st, T)) applyRowLock(st);
   if (!L.white) {
     st.white = Math.round(lerp(T.white[0], T.white[1]) * 100) / 100;
     st.dist = pickW(rng, { none: 3, balanced: 1, top: 1, bottom: 1 });
   }
 }
 
+// VNEXT #10: hard minimum column width. Absolute floor: 24 px / 0.25 in
+// (= 18 pt), combined with the app's established 1.5 x gutter clamp.
+// DEVIATION from the audit text: its max(3 x gutter, floor) formula would
+// block the verified standard grids themselves (Bootstrap md columns are
+// 36 px with a 24 px gutter; Tailwind xl columns are 72 px with a 32 px
+// gutter), violating the "keep verified standards data" ground rule.
+function minColPt(st, gPt) { return Math.max(1.5 * (gPt || 0), 18); }
+// VNEXT #5/#6: column x position and span width honouring seam/spine gaps.
+// D.per = columns per page/frame (0 when the grid is not split into pages).
+function colX(D, i) {
+  if (!D.per) return D.m.l + i * (D.colW + D.g);
+  const seams = Math.floor(i / D.per);
+  return D.m.l + i * D.colW + (i - seams) * D.g + seams * D.seamGap;
+}
+function spanW(D, c0, cs) {
+  if (!D.per) return cs * D.colW + (cs - 1) * D.g;
+  let seam = 0; for (let j = c0 + 1; j < c0 + cs; j++) if (j % D.per === 0) seam++;
+  return cs * D.colW + (cs - 1 - seam) * D.g + seam * D.seamGap;
+}
 function derive(st) {
   const u = st.unit;
   const W = toPt(st.w, u), H = toPt(st.h, u);
@@ -1557,12 +1677,31 @@ function derive(st) {
   const liveW = W - m.l - m.r, liveH = H - m.t - m.b;
   const C = Math.max(1, st.cols | 0), R = Math.max(1, st.rows | 0);
   const g = toPt(st.gutter, u), rg = toPt(st.rowGap, u);
-  const colW = (liveW - (C - 1) * g) / C;
+  // VNEXT #5/#6: a spread is two mirrored pages; a carousel is N frames.
+  // Each page/frame gets its own margins: the gap at a seam is the two
+  // inside margins back to back (spread inside margins are 0.8 x the larger
+  // outside margin, so inside >= 0.75 x outside by construction).
+  const frames = Math.max(1, st.frames || 1);
+  const spread = isSpread(st);
+  const pageCount = spread ? 2 : frames;
+  let per = 0, seamGap = 0;
+  if (pageCount > 1 && C % pageCount === 0) {
+    per = C / pageCount;
+    seamGap = spread ? 1.6 * Math.max(m.l, m.r) : m.l + m.r;
+  }
+  const colW = per ? (liveW - (C - pageCount) * g - (pageCount - 1) * seamGap) / C : (liveW - (C - 1) * g) / C;
   const rowH = (liveH - (R - 1) * rg) / R;
   const bleed = toPt(st.bleed || 0, u), safe = toPt(st.safe || 0, u);
   const baseline = toPt(st.baseline, u);
   const ok = liveW > 0 && liveH > 0 && colW > 0 && rowH > 0;
-  return { u, W, H, m, liveW, liveH, C, R, g, rg, colW, rowH, bleed, safe, baseline, ok, platform: platformGeom(st), frames: Math.max(1, st.frames || 1) };
+  const seams = [];
+  if (per) for (let k = 1; k < pageCount; k++) seams.push(m.l + (k * per) * colW + ((k * per - k) * g + (k - 1) * seamGap) + seamGap / 2);
+  // VNEXT #10: exports are blocked when columns fall below the floor.
+  const minCol = minColPt(st, g);
+  const blocked = !(colW > 0) ? 'column width is not positive; reduce the column count or widen the document'
+    : colW < minCol - 1e-9 ? `column width ${Math.round(colW / 0.75 * 10) / 10} px-equivalent is below the minimum ${Math.round(minCol / 0.75 * 10) / 10} px-equivalent (24 px / 0.25 in floor, and at least 1.5 x the gutter); reduce the column count`
+    : null;
+  return { u, W, H, m, liveW, liveH, C, R, g, rg, colW, rowH, bleed, safe, baseline, ok, platform: platformGeom(st), frames, spread, pageCount, per, seamGap, seams, minCol, blocked };
 }
 
 /* ---------- layout archetypes ---------- */
@@ -2381,7 +2520,7 @@ A.bizBack = g => {
   return z;
 };
 A.letterhead = g => {
-  const { C, R } = g, z = [], metric = g.unit === 'mm';
+  const { C, R } = g, z = [], metric = !!(g.std && g.std.indexOf('DIN') === 0); // VNEXT #4: preset standard, not display unit
   const ls = Math.max(1, g.span(0.3));
   const center = g.chance(0.3);
   z.push(Z('logo', center ? g.mid(ls) : 0, ls, 0, 1, center ? { center: 1 } : { left: 1 }));
@@ -2390,7 +2529,7 @@ A.letterhead = g => {
   const ad = metric ? fixedZone('addressee', 20 * MM, 45 * MM, 85 * MM, 45 * MM, { std: 'DIN 5008 form B address field (85 × 45 mm, 20 mm from left, 45 mm from top) for a DL window envelope' })
     : fixedZone('addressee', 1 * IN, 2 * IN, 3.5 * IN, 1 * IN, { std: 'approximate position for a #10 window envelope after a tri-fold; test with your envelope' });
   z.push(ad);
-  z.push(fixedZone('marks', 0, 0, metric ? 10 * MM : 0.35 * IN, g.H, { folds: metric ? [105 * MM, 210 * MM] : [11 / 3 * IN, 22 / 3 * IN], punch: metric ? 148.5 * MM : null, std: metric ? 'DIN 5008 form B fold marks at 105 and 210 mm, punch mark at 148.5 mm' : 'tri-fold marks at one third and two thirds of the sheet' }));
+  z.push(fixedZone('marks', 0, 0, metric ? 10 * MM : 0.35 * IN, g.H, { folds: metric ? [105 * MM, 210 * MM] : [g.H / 3, 2 * g.H / 3], punch: metric ? 148.5 * MM : null, std: metric ? 'DIN 5008 form B fold marks at 105 and 210 mm, punch mark at 148.5 mm' : 'tri-fold marks at one third and two thirds of the sheet' }));
   const r0 = rowAtPt(g, ad.abs.y + ad.abs.h) + 1;
   const bodyC0 = 0;
   if (r0 < R - 4) {
@@ -2402,9 +2541,9 @@ A.letterhead = g => {
   return z;
 };
 A.envelope = g => {
-  const { C, R } = g, z = [], metric = g.unit === 'mm', W = g.W, H = g.H;
+  const { C, R } = g, z = [], metric = !!(g.std && g.std.indexOf('DIN') === 0), W = g.W, H = g.H; // VNEXT #4
   const ls = Math.max(1, g.span(0.3));
-  const isDL = metric && Math.abs(W / MM - 220) < 3, is10 = !metric && Math.abs(W / IN - 9.5) < 0.1;
+  const isDL = g.std === 'DL', is10 = g.std === 'USPS-10'; // VNEXT #4: from the preset's standard
   const win = (isDL || is10) && g.chance(0.4);
   const winZ = !win ? null : is10 ? fixedZone('window', 0.875 * IN, H - 0.5 * IN - 1.125 * IN, 4.5 * IN, 1.125 * IN, { std: 'standard #10 window: 4½ × 1⅛ in, ⅞ in from left, ½ in from bottom' })
     : fixedZone('window', 20 * MM, H - 15 * MM - 45 * MM, 90 * MM, 45 * MM, { std: 'common DL window: 90 × 45 mm, 20 mm from left, 15 mm from bottom' });
@@ -2696,8 +2835,8 @@ function buildZones(st, layout, T, D) {
   const rng = mulberry32(layout.seed);
   const SI = screenInfo(st);
   const ctx = { C: D.C, R: D.R, w: st.white, align: T.align, ratio: st.w / st.h, doc: st.doc, sub: st.sub, T,
-    W: D.W, H: D.H, mr: D.m.r, mb: D.m.b, mt: D.m.t, rowPt: D.rowH, rgPt: D.rg, unit: st.unit, wpx: D.W / 0.75, cls: SI ? SI.cls : null, chrome: SI ? SI.chrome : uxChrome(st),
-    colPx: D.colW / 0.75, gPx: D.g / 0.75, bodyPx: D.baseline / 1.35 / 0.75 };
+    W: D.W, H: D.H, mr: D.m.r, mb: D.m.b, mt: D.m.t, rowPt: D.rowH, rgPt: D.rg, unit: st.unit, std: stationeryStandard(st), wpx: D.W / 0.75, cls: SI ? SI.cls : null, chrome: SI ? SI.chrome : uxChrome(st),
+    colPx: D.colW / 0.75, gPx: D.g / 0.75, bodyPx: bodyType(st, D).sizePt / 0.75 };
   const g = makeG(ctx, rng);
   void g;
   let zones = (A[layout.arch] || A.stack)(g);
@@ -2709,6 +2848,22 @@ function buildZones(st, layout, T, D) {
     z.r[0] = clamp(Math.round(z.r[0]), 0, D.R - 1); z.r[1] = clamp(Math.round(z.r[1]), 1, D.R - z.r[0]);
     return true;
   });
+  // VNEXT #5/#6: text zones never cross a spine or a swipe seam. Trim each
+  // text zone's span to the page/frame that contains its centre. Image
+  // zones may span (a spread image / carousel pan is intentional).
+  if (D.per) {
+    const per = D.per, pc = D.pageCount;
+    zones.forEach(z => {
+      if (z.edge || !TEXT_ROLES.has(z.role)) return;
+      const c0 = z.c[0], c1 = z.c[0] + z.c[1] - 1;
+      if (Math.floor(c0 / per) === Math.floor(c1 / per)) return;
+      const pg = clamp(Math.floor((z.c[0] + z.c[1] / 2) / per), 0, pc - 1);
+      const lo2 = pg * per, hi2 = lo2 + per - 1;
+      const nc0 = clamp(c0, lo2, hi2), nc1 = clamp(c1, lo2, hi2);
+      z.c = [nc0, Math.max(1, nc1 - nc0 + 1)];
+      z.seamTrimmed = true;
+    });
+  }
   // white-space distribution
   const movable = zones.filter(z => !z.edge && !z.pin);
   if (isScrollPage(st, layout.arch)) st = Object.assign({}, st, { dist: 'none' });
@@ -2763,6 +2918,22 @@ function buildZones(st, layout, T, D) {
     if (z.shape === 'grass') { const rs = Math.max(1, Math.round(D.R * 0.14)); z.c = [0, D.C]; z.r = [D.R - rs, rs]; z.bleed = 'lrb'; delete z.rot; }
     if (z.shape === 'brutal') { const rs = Math.max(1, Math.min(D.R, z.r[1] + 1)); z.r = [D.R - rs, rs]; z.bleed = 'b'; delete z.rot; }
   });
+  // VNEXT #5/#6 final guard: tradition post-passes (rotation, grid breaks)
+  // must not push text back across a spine/seam either.
+  if (D.per && D.seams.length) {
+    zones.forEach(z => {
+      if (z.edge || !TEXT_ROLES.has(z.role)) return;
+      const crosses = () => { const b = zoneGeom(z, D).box; return D.seams.some(sx => b.x < sx - 0.01 && b.x + b.w > sx + 0.01); };
+      if (!crosses()) return;
+      delete z.dx; delete z.dy; delete z.grow; delete z.rot;
+      if (crosses()) { // last resort: shrink the span to its centre page
+        const per = D.per, pg = clamp(Math.floor((z.c[0] + z.c[1] / 2) / per), 0, D.pageCount - 1);
+        const lo2 = pg * per, hi2 = lo2 + per - 1;
+        const nc0 = clamp(z.c[0], lo2, hi2), nc1 = clamp(z.c[0] + z.c[1] - 1, lo2, hi2);
+        z.c = [nc0, Math.max(1, nc1 - nc0 + 1)];
+      }
+    });
+  }
   const out = finishZones(zones);
   out.distStatus = distStatus;
   return out;
@@ -2835,7 +3006,7 @@ function zoneRect(z, D) {
   if (z.edge === 'left') return { x: 0, y: z.top || 0, w: z.size, h: D.H - (z.top || 0) };
   if (z.edge === 'float') return Object.assign({}, z.abs);
   const [c0, cs] = z.c, [r0, rs] = z.r;
-  let x = D.m.l + c0 * (D.colW + D.g), w = cs * D.colW + (cs - 1) * D.g;
+  let x = colX(D, c0), w = spanW(D, c0, cs);
   let y = D.m.t + r0 * (D.rowH + D.rg), h = rs * D.rowH + (rs - 1) * D.rg;
   if (z.dx) x += z.dx * (D.colW + D.g);
   if (z.dy) y += z.dy * (D.rowH + D.rg);
@@ -3112,8 +3283,8 @@ function renderZone(z, r, ctx) {
         const per = Math.floor(z.c[1] / cols);
         for (let i = 0; i < cols; i++) {
           const span = i === cols - 1 ? z.c[1] - per * (cols - 1) : per;
-          const cx = x + i * per * (D.colW + D.g);
-          const cw = span * D.colW + (span - 1) * D.g;
+          const cx = x + (colX(D, z.c[0] + i * per) - colX(D, z.c[0]));
+          const cw = spanW(D, z.c[0] + i * per, span);
           out += bodyBlock(cx, y, cw, h, R, ctx, { dropcap: T.dropcap && i === 0 && !(excl && excl.length), excl });
         }
       }
@@ -4276,7 +4447,7 @@ function renderSVG(st, layout, opts) {
   const pal = T.pal;
   const S = Math.min(D.W, D.H) / 400;
   const screen = st.unit === 'px';
-  const bodyPt = D.baseline / 1.35;
+  const bodyPt = bodyType(st, D).sizePt;
   const ctx = { T, pal, S, D, screen, bodySize: bodyPt, lead: D.baseline, spread: isSpread(st), zones, boxes: zones.map(z => zoneGeom(z, D).box), ST: isScreenDoc(st) ? screenType(st) : null, sys: screenSysId(st) };
   const showBleed = !opts.clean && D.bleed > 0;
   const bx = showBleed ? -D.bleed : 0, by = showBleed ? -D.bleed : 0;
@@ -4330,13 +4501,13 @@ function renderSVG(st, layout, opts) {
     }
     if (D.ok) {
       let cols = '';
-      for (let i = 0; i < D.C; i++) cols += `<rect x="${n2(D.m.l + i * (D.colW + D.g))}" y="${n2(D.m.t)}" width="${n2(D.colW)}" height="${n2(D.liveH)}"/>`;
+      for (let i = 0; i < D.C; i++) cols += `<rect x="${n2(colX(D, i))}" y="${n2(D.m.t)}" width="${n2(D.colW)}" height="${n2(D.liveH)}"/>`;
       s += `<g fill="${GUIDE.column}" fill-opacity="0.09">${cols}</g>`;
       let rows = '';
       for (let i = 1; i < D.R; i++) { const yy = D.m.t + i * (D.rowH + D.rg); rows += `M${n2(D.m.l)} ${n2(yy - D.rg)}H${n2(D.W - D.m.r)}M${n2(D.m.l)} ${n2(yy)}H${n2(D.W - D.m.r)}`; }
       s += `<path d="${rows}" stroke="${GUIDE.column}" stroke-opacity="0.55" stroke-width="${n2(gw)}"/>`;
       let cl = '';
-      for (let i = 0; i < D.C; i++) { const x0 = D.m.l + i * (D.colW + D.g); cl += `M${n2(x0)} ${n2(D.m.t)}V${n2(D.H - D.m.b)}M${n2(x0 + D.colW)} ${n2(D.m.t)}V${n2(D.H - D.m.b)}`; }
+      for (let i = 0; i < D.C; i++) { const x0 = colX(D, i); cl += `M${n2(x0)} ${n2(D.m.t)}V${n2(D.H - D.m.b)}M${n2(x0 + D.colW)} ${n2(D.m.t)}V${n2(D.H - D.m.b)}`; }
       s += `<path d="${cl}" stroke="${GUIDE.column}" stroke-opacity="0.7" stroke-width="${n2(gw)}"/>`;
     }
     s += `<rect x="${n2(D.m.l)}" y="${n2(D.m.t)}" width="${n2(Math.max(0, D.liveW))}" height="${n2(Math.max(0, D.liveH))}" fill="none" stroke="${GUIDE.margin}" stroke-width="${n2(gw * 1.4)}"/>`;
@@ -4467,7 +4638,7 @@ function measureLayer(st, D, g) {
   // column ruler with numbers
   const ry = top - fs * 1.0;
   for (let i = 0; i < D.C; i++) {
-    const x0 = D.m.l + i * (D.colW + D.g), x1 = x0 + D.colW;
+    const x0 = colX(D, i), x1 = x0 + D.colW;
     s += `<path d="M${n2(x0)} ${n2(ry + fs * 0.35)}V${n2(ry)}H${n2(x1)}V${n2(ry + fs * 0.35)}" fill="none" stroke="${cl}" stroke-width="${n2(gw * 1.3)}"/>`;
     if (D.colW > fs * 0.9) s += svgText((x0 + x1) / 2, ry - fs * 0.25, String(i + 1), { face: FACES.sans, size: fs * 0.8, weight: 700, fill: cl, anchor: 'middle' });
   }
@@ -4615,6 +4786,12 @@ function analyzeZones(zones, D, T, arch) {
       if (outside > eps) warnings.push({ severity: isText ? 'warning' : 'note', type: 'crop', zones: [z.stack], edges: [c.type], amount: outside, message: `${isText ? 'text' : 'image'} extends outside the ${c.n.toLowerCase()}` });
     }
   });
+  // VNEXT #5/#6 checks: text crossing a spine or a swipe seam is an error.
+  if (D.seams && D.seams.length) zones.forEach((z, i) => {
+    if (z.edge || !TEXT_ROLES.has(z.role)) return;
+    const b = geo[i].box;
+    for (const sx of D.seams) if (b.x < sx - eps && b.x + b.w > sx + eps) warnings.push({ severity: 'warning', type: D.spread ? 'spine' : 'seam', zones: [z.stack], edges: null, amount: Math.min(sx - b.x, b.x + b.w - sx), message: D.spread ? 'text crosses the spread spine; keep text on one page' : 'Text crosses swipe seam' });
+  });
   // overlaps involving text
   const collageArch = arch === 'collage' || arch === 'diagonal' || arch === 'hud';
   for (let i = 0; i < zones.length; i++) for (let j = i + 1; j < zones.length; j++) {
@@ -4662,7 +4839,7 @@ const ROLE_LABEL = {
 };
 const ROLE_RANK = { reticle: 1.5, readout: 6, compass: 6, gauge: 6, radar: 6, alert: 2.5, ladder: 7, masthead: 0, head: 1, title: 1, image: 2, panel: 2, deck: 3, coverline: 3, list: 3, body: 4, card: 4, stat: 4, chart: 4, item: 5, cta: 5, button: 5, caption: 6, meta: 7, logo: 7, nav: 0.5, appbar: 0.5, banner: 3, price: 4, feature: 4, quote: 4, table: 4, code: 4, faq: 5, toc: 6, sidenav: 6, chips: 5, input: 5, bubble: 4, byline: 7, logos: 7, note: 5, pager: 6, thumbs: 6, numeral: 1.5, runhead: 7, swatch: 2, specimen: 2, typescale: 3, clearspace: 2, dodont: 3, docblock: 6, steps: 4, hazard: 2, signs: 3, signature: 6, contact: 2, addressee: 3, stamp: 7, clearzone: 8, window: 3, marks: 8 };
 
-function zoneSpecs(zones, D, u, A2) {
+function zoneSpecs(zones, D, u, A2, BT) {
   const f = v => roundU(v / UNIT_PT[u], u);
   const fp = ([x, y]) => [f(x), f(y)];
   return zones.map((z, i) => {
@@ -4707,7 +4884,7 @@ function zoneSpecs(zones, D, u, A2) {
     const ws = A2.warnings.filter(w => w.zones.includes(z.stack));
     if (ws.length) o.checks = ws.map(w => ({ severity: w.severity, type: w.type, message: w.message }));
     if (z.role === 'image' || z.role === 'card' || z.role === 'panel') {
-      const fr = z.role === 'card' ? { w: r.w, h: z.tile ? r.h - (D.baseline / 1.35) * 2.6 : r.h * 0.55 } : { w: r.w, h: r.h };
+      const fr = z.role === 'card' ? { w: r.w, h: z.tile ? r.h - (BT ? BT.sizePt : D.baseline / 1.35) * 2.6 : r.h * 0.55 } : { w: r.w, h: r.h };
       const fit = imageFit(fr.w, fr.h);
       o.image = { frameRatio: fit.frameLabel, suggestedSource: fit.source, fit: 'fill (cover)', crop: fit.crop > 0 ? `${fit.crop}% of the source ${fit.axis === 'left and right' ? 'width' : 'height'}, split ${fit.axis}` : 'none', focalSafeArea: 'central 76% of the frame (12% inset)' };
       if (z.arch) o.image.mask = 'arch (semicircular top)';
@@ -4738,6 +4915,7 @@ function specObject(st, layout) {
   const GZ = generateZones(st, layout);
   const { zones, T, D } = GZ;
   const AN = analyzeAll(st, zones, D, T, layout.arch);
+  const BT = bodyType(st, D);
   const u = st.unit, f = v => roundU(v, u);
   const d = DOCS[st.doc];
   return {
@@ -4749,7 +4927,10 @@ function specObject(st, layout) {
       type: st.doc, typeLabel: d.label, subtype: st.sub, subtypeLabel: (d.subs.find(s => s[0] === st.sub) || [])[1] || null,
       unit: u, width: f(st.w), height: f(st.h), orientation: st.w > st.h ? 'landscape' : st.w < st.h ? 'portrait' : 'square',
       proportion: shapeFamily(st.w, st.h), aspect: ratioLabel(st.w, st.h), bleed: f(st.bleed || 0), safeArea: f(st.safe || 0), spread: isSpread(st),
-      frames: D.frames > 1 ? { count: D.frames, frameWidth: roundU(D.W / D.frames / UNIT_PT[u], u), note: 'Carousel: one continuous canvas split into equal frames.' } : null
+      frames: D.frames > 1 ? { count: D.frames, frameWidth: roundU(D.W / D.frames / UNIT_PT[u], u), note: 'Carousel: each frame has its own margins and grid; seams fall in the margin gap between frames. Text stays inside one frame; images may pan across seams.' } : null,
+      // VNEXT P3: px means px @ 96 ppi; print docs also get pixel sizes.
+      unitNote: u === 'px' ? 'px @ 96 ppi' : null,
+      pixels: u === 'px' ? null : { at96ppi: [Math.round(D.W / 0.75), Math.round(D.H / 0.75)], at300ppi: [Math.round(D.W / 72 * 300), Math.round(D.H / 72 * 300)] }
     },
     platform: D.platform ? {
       name: D.platform.name,
@@ -4765,11 +4946,18 @@ function specObject(st, layout) {
       liveArea: { width: roundU(D.liveW / UNIT_PT[u], u), height: roundU(D.liveH / UNIT_PT[u], u) },
       columns: { count: D.C, width: roundU(D.colW / UNIT_PT[u], u), gutter: f(st.gutter) },
       rows: { count: D.R, height: roundU(D.rowH / UNIT_PT[u], u), gap: f(st.rowGap) },
+      // VNEXT #9: exact (unrounded) values so printed totals can reconcile.
+      exact: { columnWidth: exactNum(D.colW / UNIT_PT[u]), rowHeight: exactNum(D.rowH / UNIT_PT[u]), gutter: exactNum(D.g / UNIT_PT[u]), rowGap: exactNum(D.rg / UNIT_PT[u]), liveWidth: exactNum(D.liveW / UNIT_PT[u]), liveHeight: exactNum(D.liveH / UNIT_PT[u]) },
+      reconciles: Math.abs((f(st.m.l) + D.C * roundU(D.colW / UNIT_PT[u], u) + Math.max(0, D.C - D.pageCount) * f(st.gutter) + (D.pageCount - 1) * roundU(D.seamGap / UNIT_PT[u], u) + f(st.m.r)) - f(st.w)) <= (UNIT_PREC[u] ? 0.5 * Math.pow(10, -UNIT_PREC[u]) : 0.5) &&
+                  Math.abs((f(st.m.t) + D.R * roundU(D.rowH / UNIT_PT[u], u) + (D.R - 1) * f(st.rowGap) + f(st.m.b)) - f(st.h)) <= (UNIT_PREC[u] ? 0.5 * Math.pow(10, -UNIT_PREC[u]) : 0.5),
       baseline: {
-        increment: f(st.baseline),
+        // VNEXT #2: baseline is type, so it is always pt (print) or px (screen), never the document unit.
+        increment: exactNum(BT.leading),
+        unit: BT.unit,
         origin: 'top margin',
-        firstBaseline: roundU((D.m.t + D.baseline) / UNIT_PT[u], u),
+        firstBaseline: exactNum((D.m.t + D.baseline) / (BT.unit === 'px' ? 0.75 : 1)),
         rowsAlignToBaseline: D.baseline > 0 && Math.abs(((D.rowH + D.rg) / D.baseline) - Math.round((D.rowH + D.rg) / D.baseline)) < 0.02,
+        lockedToRows: !!st.rowLock,
         note: 'Body text in the reference sits on this grid. Measure baselines from the top margin.'
       }
     },
@@ -4782,17 +4970,18 @@ function specObject(st, layout) {
     palette: { paper: T.pal.paper, ink: T.pal.ink, accent: T.pal.accent, imagePlaceholder: T.pal.image, supporting: (T.pal.shapes || []).filter(c => c !== T.pal.accent), note: 'Direction colors from the style; refine in your design tool.' },
     typography: {
       headline: { classification: T.typeCls || 'Per style', case: T.case, tracking: T.ls ? `${Math.round(T.ls * 1000)}/1000 em` : 'normal', leading: T.lh || 1, weight: T.weight, previewStack: FACES[T.face] },
-      body: { classification: T.bodyCls || 'Text face', size: roundU(D.baseline / 1.35 / UNIT_PT[u], u), leading: f(st.baseline), alignment: T.justify ? 'justified' : T.align === 'center' ? 'centered' : 'flush left, ragged right', previewStack: FACES[T.bodyFace || 'sans'] },
+      body: { classification: T.bodyCls || 'Text face', size: exactNum(BT.size), leading: exactNum(BT.leading), unit: BT.unit, alignment: T.justify ? 'justified' : T.align === 'center' ? 'centered' : 'flush left, ragged right', previewStack: FACES[T.bodyFace || 'sans'] },
       note: 'Gridder previews with system fonts. Choose final typefaces of this classification in your design app.'
     },
     placeholder: st.copy === 'sample' ? 'sample headlines and labels; body copy is lorem ipsum' : 'lorem ipsum',
     surface: T.grain > 0 && !['website', 'ux'].includes(st.doc) ? { paperTexture: Math.round(T.grain * 100) + '%', note: 'Preview texture only; it is not part of the layout geometry.' } : null,
+    blocked: D.blocked,
     edited: !!layout.zones,
     composition: { archetype: layout.arch, label: ARCH_SHORT[layout.arch], description: ARCH_INFO[layout.arch], alignment: T.align, hierarchy: hierarchyOf(zones) },
     layering: { rule: 'Zone numbers are the stacking order: 1 is the back-most layer and higher numbers are in front.', count: zones.length,
       pageOrnament: (T.frame !== 'none' && !['website', 'ux', 'comic'].includes(st.doc) && !(st.doc === 'ad' && st.sub === 'display')) ? { type: T.frame, sitsAbove: (() => { const k = zones.findIndex(z => z.layerGroup === 2); return k < 0 ? zones.length : k; })(), note: 'The page frame ornament is not a zone; it sits above that layer and below the next.' } : null },
-    zones: zoneSpecs(zones, D, u, AN),
-    checks: AN.warnings.map(w => ({ severity: w.severity, type: w.type, zones: w.zones, edges: w.edges || null, amount: w.type === 'overlap' ? w.amount + '%' : roundU(w.amount / UNIT_PT[u], u), message: w.message })),
+    zones: zoneSpecs(zones, D, u, AN, BT),
+    checks: AN.warnings.map(w => ({ severity: w.severity, type: w.type, zones: w.zones, edges: w.edges || null, amount: w.amount == null ? null : w.type === 'overlap' ? w.amount + '%' : roundU(w.amount / UNIT_PT[u], u), message: w.message })),
     direction: directionText(st, layout, T, zones, D) + (layout.zones ? ' Arrangement adjusted by hand on the grid.' : ''),
     seed: layout.seed
   };
@@ -4801,11 +4990,12 @@ function specReadable(spec) {
   const u = spec.document.unit, D = spec.document, G = spec.grid;
   const L = [];
   L.push('GRIDDER · LAYOUT SPECIFICATION');
-  L.push('Layout direction, not a finished design. Units: ' + u + '. Positions are measured from the top-left corner of the trim.');
+  L.push('Layout direction, not a finished design. Units: ' + u + (D.unitNote ? ' (' + D.unitNote + ')' : '') + '. Positions are measured from the top-left corner of the trim.');
   L.push('Before final files, confirm bleed, safe area, color and export settings with your printer or platform.');
   L.push('');
   L.push(`Document     ${D.typeLabel}${D.subtypeLabel ? ' / ' + D.subtypeLabel : ''}`);
   L.push(`Trim size    ${D.width} × ${D.height} ${u} (${D.orientation}, ${D.aspect})${D.spread ? ', two-page spread' : ''}`);
+  if (D.pixels) L.push(`Pixel size   ${D.pixels.at96ppi[0]} × ${D.pixels.at96ppi[1]} px @ 96 ppi · ${D.pixels.at300ppi[0]} × ${D.pixels.at300ppi[1]} px @ 300 ppi`);
   if (D.bleed || D.safeArea) L.push(`Bleed / safe ${D.bleed} / ${D.safeArea} ${u}`);
   if (D.frames) L.push(`Carousel     ${D.frames.count} frames, each ${D.frames.frameWidth} ${u} wide`);
   if (spec.platform) {
@@ -4822,10 +5012,11 @@ function specReadable(spec) {
   L.push(`Live area    ${G.liveArea.width} × ${G.liveArea.height}`);
   L.push(`Columns      ${G.columns.count} × ${G.columns.width}, gutter ${G.columns.gutter}`);
   L.push(`Rows         ${G.rows.count} × ${G.rows.height}, gap ${G.rows.gap}`);
-  L.push(`Baseline     ${G.baseline.increment} increment, from the top margin; first baseline at y ${G.baseline.firstBaseline}${G.baseline.rowsAlignToBaseline ? '; rows align to it' : '; row modules do not land on whole baselines'}`);
+  if (G.exact && !G.reconciles) L.push(`             exact: cols ${G.columns.count} × ${G.exact.columnWidth} ${u}, gutter ${G.exact.gutter} ${u}; rows ${G.rows.count} × ${G.exact.rowHeight} ${u}, gap ${G.exact.rowGap} ${u}; live area ${G.exact.liveWidth} × ${G.exact.liveHeight} ${u} (exact values; the rounded values above do not sum to the trim)`);
+  L.push(`Baseline     ${G.baseline.increment} ${G.baseline.unit} increment, from the top margin; first baseline at y ${G.baseline.firstBaseline} ${G.baseline.unit}${G.baseline.rowsAlignToBaseline ? '; rows align to it' : '; row modules do not land on whole baselines'}`);
   L.push(`White space  ${Math.round(spec.whitespace.amount * 100)}%${spec.whitespace.distribution !== 'none' ? ', ' + spec.whitespace.distribution + ' (' + spec.whitespace.distributionResult + ')' : ''}`);
   L.push(`Type         Headline: ${spec.typography.headline.classification}; ${spec.typography.headline.case} case${spec.typography.headline.tracking !== 'normal' ? ', tracking ' + spec.typography.headline.tracking : ''}`);
-  L.push(`             Body: ${spec.typography.body.classification}, ${spec.typography.body.size}/${spec.typography.body.leading} ${u}, ${spec.typography.body.alignment}`);
+  L.push(`             Body: ${spec.typography.body.classification}, ${spec.typography.body.size}/${spec.typography.body.leading} ${spec.typography.body.unit}, ${spec.typography.body.alignment}`);
   L.push('');
   L.push(`Composition  ${spec.composition.description}${spec.edited ? ' (arranged by hand on the grid)' : ''}`);
   L.push(`Hierarchy    ${spec.composition.hierarchy.join(' → ')}`);
@@ -4857,7 +5048,7 @@ function specReadable(spec) {
   const W2 = spec.checks.filter(c => c.severity === 'warning'), I2 = spec.checks.filter(c => c.severity === 'intentional'), N2 = spec.checks.filter(c => c.severity === 'note');
   L.push(`Checks       ${W2.length} to fix or confirm · ${I2.length} intentional · ${N2.length} notes`);
   const zl = ids => ids.map(id => `${id} ${spec.zones.find(z => z.id === id).label}`).join(' / ');
-  for (const c of W2) L.push(`  ! ${zl(c.zones)}: ${c.message}${c.type !== 'overlap' ? ` (${c.amount} ${u})` : ''}`);
+  for (const c of W2) L.push(`  ! ${zl(c.zones)}: ${c.message}${c.type !== 'overlap' && c.amount != null ? ` (${c.amount} ${u})` : ''}`);
   for (const c of I2) L.push(`  ~ ${zl(c.zones)}: ${c.message}${c.type !== 'overlap' ? ` (${c.amount} ${u})` : ''}`);
   for (const c of N2) L.push(`  · ${zl(c.zones)}: ${c.message} (${c.amount} ${u})`);
   L.push('');
@@ -4883,10 +5074,10 @@ function screenChecks(st, zones, D) {
     out.push({ severity: wcag || st.doc === 'ux' ? 'warning' : 'note', type: 'target', zones: [z.stack], edges: null, amount: min * 0.75 - zoneRect(z, D).h,
       message: `${ROLE_LABEL[z.role] || z.role} row is ${Math.round(hp)} ${unit} tall; ${I.sys.short} asks for touch targets of at least ${min} × ${min} ${unit}${wcag ? ' and WCAG 2.5.8 needs 24 × 24 px' : ''}` });
   });
-  const bodyPx = D.baseline / 1.35 / 0.75;
+  const BT2 = bodyType(st, D), bodyPx = BT2.sizePt / 0.75;
   zones.forEach(z => {
     if (z.role !== 'body' || z.edge) return;
-    const r = zoneRect(z, D), cols = clamp(Math.max(1, Math.round(r.w / (30 * D.baseline / 1.35))), 1, z.c ? z.c[1] : 1);
+    const r = zoneRect(z, D), cols = bodyCols(r.w, BT2.sizePt, z.c ? z.c[1] : null);
     const cpl = Math.round((r.w / cols - (cols > 1 ? D.g : 0)) / 0.75 / (bodyPx * 0.5));
     if (cpl > 90) out.push({ severity: 'note', type: 'measure', zones: [z.stack], edges: null, amount: 0, message: `body lines run about ${cpl} characters; aim for 45–75 so the text stays easy to read` });
   });
@@ -4895,6 +5086,7 @@ function screenChecks(st, zones, D) {
 function analyzeAll(st, zones, D, T, arch) {
   const AN = analyzeZones(zones, D, T, arch);
   AN.warnings.push(...screenChecks(st, zones, D));
+  if (D.blocked) AN.warnings.push({ severity: 'warning', type: 'grid', zones: [], edges: null, amount: null, message: 'Export blocked: ' + D.blocked });
   return AN;
 }
 const NAV_LABEL = { bar: 'bottom tab / navigation bar', rail: 'navigation rail', drawer: 'navigation drawer', sidebar: 'sidebar', composer: 'message composer at the bottom', none: 'none on this screen' };
@@ -4913,7 +5105,7 @@ function screenSpec(st, layout, D) {
     navigation: st.doc === 'website' ? (layout.arch === 'webApp' ? 'app sidebar on large screens, rail on medium, menu button on small' : 'site header with links; a menu button on small screens') : NAV_LABEL[c.nav] || c.nav,
     chrome: st.doc === 'ux' ? { statusBar: c.status || null, bottomBar: c.bar || null, homeIndicator: c.home || null, sideNavigation: c.rail || null, note: 'Approximate system sizes; confirm against the current platform kit.' } : null,
     touchTarget: { minimum: I.target, unit, accessibility: WCAG_TARGET },
-    typeScale: { unit: unit === 'px' ? 'px' : unit, headline: I.type.h1, sectionHeading: I.type.h2, smallHeading: I.type.h3, body: I.type.body, note: 'Maximum sizes the preview allows at this breakpoint.' },
+    typeScale: { unit: unit === 'px' ? 'px' : unit, headline: I.type.h1, sectionHeading: I.type.h2, smallHeading: I.type.h3, body: I.type.body, bodyLeading: I.type.bodyLead, note: 'Maximum sizes the preview allows at this breakpoint.' },
     source: I.sys.note
   };
 }
@@ -4926,7 +5118,7 @@ function screenReadable(S) {
   L.push(`  Row module   ${S.rowModule}; navigation: ${S.navigation}`);
   if (S.chrome) L.push(`  Chrome       status ${S.chrome.statusBar || 0}, bottom bar ${S.chrome.bottomBar || 0}, home indicator ${S.chrome.homeIndicator || 0}, side nav ${S.chrome.sideNavigation || 0} (approximate)`);
   L.push(`  Targets      at least ${S.touchTarget.minimum} × ${S.touchTarget.minimum} ${S.touchTarget.unit}. ${S.touchTarget.accessibility}`);
-  L.push(`  Type         headline up to ${S.typeScale.headline}, section ${S.typeScale.sectionHeading}, small ${S.typeScale.smallHeading}, body ${S.typeScale.body}`);
+  L.push(`  Type         headline up to ${S.typeScale.headline}, section ${S.typeScale.sectionHeading}, small ${S.typeScale.smallHeading}, body ${S.typeScale.body}/${S.typeScale.bodyLeading}`);
   L.push('  Breakpoints  ' + S.breakpoints.map(b => `${b.label} ≥${b.minWidth}: ${b.columns} col${b.container ? ', container ' + b.container : ''}${b.margin != null ? ', margin ' + b.margin : ''}${b.gutter != null ? ', gutter ' + b.gutter : ''}`).join('\n               '));
   L.push(`  Source       ${S.source}`);
   return L;
@@ -4955,6 +5147,8 @@ function screenAtBreakpoints(st, layout) {
 }
 function cssScaffold(st, layout) {
   if (st.doc !== 'website') return '';
+  // VNEXT #10: no CSS export for a blocked grid.
+  if (derive(st).blocked) return '/* Gridder CSS export blocked: ' + derive(st).blocked + ' */\n';
   const I = screenInfo(st), sets = screenAtBreakpoints(st, layout);
   const names = zs => { const n = {}; return zs.map(z => { n[z.role] = (n[z.role] || 0) + 1; return `z-${z.role}-${n[z.role]}`; }); };
   const all = [];
@@ -4967,30 +5161,34 @@ function cssScaffold(st, layout) {
   L.push(`   Rows use the ${px(sets[0].D.rowH)}–${px(sets[sets.length - 1].D.rowH)} px row module as a minimum; content sets the real height.`);
   L.push(`   Class names follow the zone role and its order on the page. Layout direction, not production code. */`);
   L.push('');
+  L.push('*, *::before, *::after { box-sizing: border-box; }'); // VNEXT #8
+  L.push('');
   const block = (S, indent) => {
-    const D = S.D, b = S.bp, pad = px(D.m.r), ind = indent ? '  ' : '';
+    const D = S.D, b = S.bp, pad = b.pad != null ? b.pad : px(D.m.r), ind = indent ? '  ' : '';
     const cont = b.container ? b.container : 0;
     const out = [];
+    // VNEXT #8: named-lines full-bleed grid. The inset is a fixed track, gap
+    // tracks are explicit, and nothing is sized with vw, so the page can
+    // never overflow its container. Bleed zones use grid-column: full lines.
+    const tracks = ['[full-start]', 'var(--inset)', '[content-start]'];
+    for (let i = 0; i < D.C; i++) { tracks.push('minmax(0, 1fr)'); if (i < D.C - 1) tracks.push(px(D.g) + 'px'); }
+    tracks.push('[content-end]', 'var(--inset)', '[full-end]');
     out.push(`${ind}.page {`);
     if (!indent) out.push(`${ind}  display: grid;`);
-    out.push(`${ind}  grid-template-columns: repeat(${D.C}, minmax(0, 1fr));`);
-    out.push(`${ind}  column-gap: ${px(D.g)}px;`);
+    out.push(`${ind}  --inset: ${pad}px;`);
+    out.push(`${ind}  grid-template-columns: ${tracks.join(' ')};`);
     out.push(`${ind}  row-gap: ${px(D.rg)}px;`);
     out.push(`${ind}  grid-auto-rows: minmax(${px(D.rowH)}px, auto);`);
-    out.push(`${ind}  padding-inline: ${b.pad != null ? b.pad : pad}px;`);
     out.push(`${ind}  max-width: ${cont ? cont + 'px' : 'none'};`);
-    out.push(`${ind}  --inset: ${cont ? `max(${b.pad}px, (100vw - ${cont}px) / 2 + ${b.pad}px)` : (b.pad != null ? b.pad : pad) + 'px'};`);
     if (!indent) out.push(`${ind}  margin-inline: auto;`);
     out.push(`${ind}}`);
     all.forEach(nm => {
       const k = S.names.indexOf(nm);
       if (k < 0) { out.push(`${ind}.${nm} { display: none; }`); return; }
       const z = S.zones[k], bl = z.bleed || '';
-      let rule = `display: block; grid-column: ${z.c[0] + 1} / span ${z.c[1]}; grid-row: ${z.r[0] + 1} / span ${z.r[1]};`;
-      if (bl.includes('l') && bl.includes('r')) rule += ' margin-inline: calc(-1 * var(--inset));';
-      else if (bl.includes('l')) rule += ' margin-left: calc(-1 * var(--inset));';
-      else if (bl.includes('r')) rule += ' margin-right: calc(-1 * var(--inset));';
-      out.push(`${ind}.${nm} { ${rule} }`);
+      const startLine = 2 + z.c[0] * 2, endLine = 2 + (z.c[0] + z.c[1]) * 2 - 1;
+      const col = bl.includes('l') && bl.includes('r') ? 'full-start / full-end' : bl.includes('l') ? `full-start / ${endLine}` : bl.includes('r') ? `${startLine} / full-end` : `${startLine} / ${endLine}`;
+      out.push(`${ind}.${nm} { display: block; grid-column: ${col}; grid-row: ${z.r[0] + 1} / span ${z.r[1]}; }`);
     });
     return out;
   };
@@ -5040,12 +5238,13 @@ function claudeDesignBrief(st, layout) {
   L.push(`- Margins: top ${toPx(G.margins.top)}, right ${toPx(G.margins.right)}, bottom ${toPx(G.margins.bottom)}, left ${toPx(G.margins.left)} px.`);
   L.push(`- ${G.columns.count} columns, ${toPx(G.columns.width)} px wide with ${toPx(G.columns.gutter)} px gutters.`);
   L.push(`- ${G.rows.count} rows, ${toPx(G.rows.height)} px tall with ${toPx(G.rows.gap)} px gaps.`);
-  L.push(`- Baseline grid every ${toPx(G.baseline.increment)} px, starting at the top margin.`);
+  const baselinePx = G.baseline.unit === 'px' ? G.baseline.increment : Math.round(G.baseline.increment / 0.75);
+  L.push(`- Baseline grid every ${baselinePx} px, starting at the top margin.`);
   L.push('');
   L.push(`## Style`);
   L.push(`- ${sp.tradition.label}${sp.tradition.period ? ' (' + sp.tradition.period + ')' : ''}, as visual inspiration. ${sp.direction}`);
   L.push(`- Headline type: ${sp.typography.headline.classification}; ${sp.typography.headline.case} case${sp.typography.headline.tracking !== 'normal' ? ', tracking ' + sp.typography.headline.tracking : ''}.`);
-  L.push(`- Body type: ${sp.typography.body.classification}, ${toPx(sp.typography.body.size)} px on a ${toPx(G.baseline.increment)} px baseline, ${sp.typography.body.alignment}.`);
+  L.push(`- Body type: ${sp.typography.body.classification}, ${sp.typography.body.unit === 'px' ? sp.typography.body.size : Math.round(sp.typography.body.size / 0.75)} px on a ${baselinePx} px baseline, ${sp.typography.body.alignment}.`);
   L.push(`- Colors: paper ${sp.palette.paper}, ink ${sp.palette.ink}, accent ${sp.palette.accent}${sp.palette.supporting.length ? ', supporting ' + sp.palette.supporting.join(', ') : ''}.`);
   L.push('');
   L.push(`## Layers, back to front`);
@@ -5098,36 +5297,38 @@ function guideScaffoldSVG(st, layout) {
   const k = 1 / UNIT_PT[u];
   const W = D.W * k, H = D.H * k, b = D.bleed * k;
   const unitAttr = u === 'px' ? '' : u;
-  const f = v => String(roundU(v * k, u));
-  let s = `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Gridder guide scaffold: ${DOCS[st.doc].label}, ${fmtU(st.w, u)} x ${fmtU(st.h, u)} ${u}. A handoff aid for starting the grid in a design app. -->\n`;
+  const f = v => String(Math.round(v * k * 1000) / 1000); // VNEXT #7: keep 3 decimals; never round a guide to 0
+  const sw = v => String(Math.max(Math.round(v * k * 1000) / 1000, 0.1875 * k)); // VNEXT #7: hairline floor of 0.25 px
+  let s = `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Gridder guide scaffold: ${DOCS[st.doc].label}, ${fmtU(st.w, u)} x ${fmtU(st.h, u)} ${u}. A handoff aid for starting the grid in a design app. Note: this SVG imports as artwork, not as native guides. -->\n`;
+  if (D.blocked) s += `<!-- VNEXT #10 EXPORT BLOCKED: ${D.blocked} -->\n`;
   s += `<svg xmlns="http://www.w3.org/2000/svg" width="${roundU(W, u)}${unitAttr}" height="${roundU(H, u)}${unitAttr}" viewBox="0 0 ${roundU(W, u)} ${roundU(H, u)}">\n`;
-  s += `<g id="trim"><rect x="0" y="0" width="${roundU(W, u)}" height="${roundU(H, u)}" fill="none" stroke="#222" stroke-width="${f(0.5)}"/></g>\n`;
-  if (b > 0) s += `<g id="bleed"><rect x="${-roundU(b, u)}" y="${-roundU(b, u)}" width="${roundU(W + 2 * b, u)}" height="${roundU(H + 2 * b, u)}" fill="none" stroke="${GUIDE.bleed}" stroke-width="${f(0.5)}"/></g>\n`;
-  s += `<g id="margins"><rect x="${f(D.m.l)}" y="${f(D.m.t)}" width="${f(D.liveW)}" height="${f(D.liveH)}" fill="none" stroke="${GUIDE.margin}" stroke-width="${f(0.5)}"/></g>\n`;
+  s += `<g id="trim" vector-effect="non-scaling-stroke"><rect x="0" y="0" width="${roundU(W, u)}" height="${roundU(H, u)}" fill="none" stroke="#222" stroke-width="${sw(0.5)}"/></g>\n`;
+  if (b > 0) s += `<g id="bleed" vector-effect="non-scaling-stroke"><rect x="${-roundU(b, u)}" y="${-roundU(b, u)}" width="${roundU(W + 2 * b, u)}" height="${roundU(H + 2 * b, u)}" fill="none" stroke="${GUIDE.bleed}" stroke-width="${sw(0.5)}"/></g>\n`;
+  s += `<g id="margins" vector-effect="non-scaling-stroke"><rect x="${f(D.m.l)}" y="${f(D.m.t)}" width="${f(D.liveW)}" height="${f(D.liveH)}" fill="none" stroke="${GUIDE.margin}" stroke-width="${sw(0.5)}"/></g>\n`;
   s += `<g id="columns" fill="${GUIDE.column}" fill-opacity="0.12">`;
-  for (let i = 0; i < D.C; i++) s += `<rect x="${f(D.m.l + i * (D.colW + D.g))}" y="${f(D.m.t)}" width="${f(D.colW)}" height="${f(D.liveH)}"/>`;
-  s += `</g>\n<g id="rows" fill="none" stroke="${GUIDE.column}" stroke-width="${f(0.35)}">`;
+  for (let i = 0; i < D.C; i++) s += `<rect x="${f(colX(D, i))}" y="${f(D.m.t)}" width="${f(D.colW)}" height="${f(D.liveH)}"/>`;
+  s += `</g>\n<g id="rows" vector-effect="non-scaling-stroke" fill="none" stroke="${GUIDE.column}" stroke-width="${sw(0.35)}">`;
   for (let i = 0; i < D.R; i++) s += `<rect x="${f(D.m.l)}" y="${f(D.m.t + i * (D.rowH + D.rg))}" width="${f(D.liveW)}" height="${f(D.rowH)}"/>`;
   s += `</g>\n`;
   if (D.baseline > 0) {
-    s += `<g id="baseline" stroke="${GUIDE.baseline}" stroke-width="${f(0.25)}">`;
+    s += `<g id="baseline" vector-effect="non-scaling-stroke" stroke="${GUIDE.baseline}" stroke-width="${sw(0.25)}">`;
     for (let yy = D.m.t + D.baseline; yy <= D.H - D.m.b + 0.01; yy += D.baseline) s += `<line x1="${f(D.m.l)}" y1="${f(yy)}" x2="${f(D.W - D.m.r)}" y2="${f(yy)}"/>`;
     s += `</g>\n`;
   }
-  if (D.safe > 0) s += `<g id="safe-area"><rect x="${f(D.safe)}" y="${f(D.safe)}" width="${f(D.W - 2 * D.safe)}" height="${f(D.H - 2 * D.safe)}" fill="none" stroke="${GUIDE.safe}" stroke-dasharray="${f(4)} ${f(3)}" stroke-width="${f(0.5)}"/></g>\n`;
+  if (D.safe > 0) s += `<g id="safe-area" vector-effect="non-scaling-stroke"><rect x="${f(D.safe)}" y="${f(D.safe)}" width="${f(D.W - 2 * D.safe)}" height="${f(D.H - 2 * D.safe)}" fill="none" stroke="${GUIDE.safe}" stroke-dasharray="${f(4)} ${f(3)}" stroke-width="${sw(0.5)}"/></g>\n`;
   const { zones } = generateZones(st, layout);
   const AN = analyzeAll(st, zones, D, buildTradition(layout.era, layout.style, layout.alt), layout.arch);
-  s += `<!-- zones are listed back to front: layer 1 is at the back, higher layers are in front -->\n<g id="zones" stroke="#111" stroke-width="${f(0.75)}">`;
+  s += `<!-- zones are listed back to front: layer 1 is at the back, higher layers are in front -->\n<g id="zones" vector-effect="non-scaling-stroke" stroke="#111" stroke-width="${sw(0.75)}">`;
   zones.forEach((z, i) => { const r = zoneRect(z, D); const tint = TEXT_ROLES.has(z.role) ? '#FFFFFF' : z.role === 'image' ? '#D9D9D9' : '#EFEFEF'; s += `<rect id="layer-${z.stack}-${z.role}" x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" fill="${tint}" fill-opacity="0.72" stroke-dasharray="${f(3)} ${f(2)}"${z.rot ? ` transform="rotate(${z.rot} ${f(r.x + r.w / 2)} ${f(r.y + r.h / 2)})"` : ''}><title>Layer ${z.stack}: ${esc(ROLE_LABEL[z.role] || z.role)}${z.rot ? ', rotated ' + z.rot + '°' : ''}</title></rect>`; });
-  s += `</g>\n<g id="rotated-bounding-boxes" fill="none" stroke="#E5312B" stroke-width="${f(0.5)}" stroke-dasharray="${f(1.5)} ${f(1.5)}">`;
+  s += `</g>\n<g id="rotated-bounding-boxes" vector-effect="non-scaling-stroke" fill="none" stroke="#E5312B" stroke-width="${sw(0.5)}" stroke-dasharray="${f(1.5)} ${f(1.5)}">`;
   zones.forEach((z, i) => { if (!z.rot) return; const b = AN.geo[i].box; s += `<rect x="${f(b.x)}" y="${f(b.y)}" width="${f(b.w)}" height="${f(b.h)}"><title>Layer ${z.stack} rotated bounding box</title></rect>`; });
-  s += `</g>\n<g id="checks" fill="none" stroke="#E5312B" stroke-width="${f(1.5)}">`;
+  s += `</g>\n<g id="checks" vector-effect="non-scaling-stroke" fill="none" stroke="#E5312B" stroke-width="${sw(1.5)}">`;
   const flagged = new Set(AN.warnings.filter(w => w.severity === 'warning').flatMap(w => w.zones));
   zones.forEach((z, i) => { if (!flagged.has(z.stack)) return; const P = AN.geo[i].poly; s += `<polygon points="${P.map(([x, y]) => f(x) + ',' + f(y)).join(' ')}"><title>Layer ${z.stack}: ${esc(AN.warnings.filter(w => w.severity === 'warning' && w.zones.includes(z.stack)).map(w => w.message).join('; '))}</title></polygon>`; });
   s += `</g>\n`;
   const fsz = Math.max(D.m.t, D.m.l) * 0.28;
   s += `<g id="labels" font-family="Helvetica, Arial, sans-serif" font-size="${f(Math.min(fsz, Math.min(D.W, D.H) / 50))}" fill="${GUIDE.column}">`;
-  for (let i = 0; i < D.C; i++) s += `<text x="${f(D.m.l + i * (D.colW + D.g) + D.colW / 2)}" y="${f(D.m.t * 0.7)}" text-anchor="middle">${i + 1}</text>`;
+  for (let i = 0; i < D.C; i++) s += `<text x="${f(colX(D, i) + D.colW / 2)}" y="${f(D.m.t * 0.7)}" text-anchor="middle">${i + 1}</text>`;
   for (let i = 0; i < D.R; i++) s += `<text x="${f(D.m.l * 0.5)}" y="${f(D.m.t + i * (D.rowH + D.rg) + D.rowH / 2)}" text-anchor="middle">${i + 1}</text>`;
   s += `<text x="${f(D.W / 2)}" y="${f(D.H - D.m.b * 0.35)}" text-anchor="middle" fill="${GUIDE.margin}">margins T ${fmtU(st.m.t, u)} R ${fmtU(st.m.r, u)} B ${fmtU(st.m.b, u)} L ${fmtU(st.m.l, u)} · ${D.C} col × ${fmtU(D.colW * k, u)}, gutter ${fmtU(st.gutter, u)} · ${D.R} rows × ${fmtU(D.rowH * k, u)}, gap ${fmtU(st.rowGap, u)} (${u})</text>`;
   zones.forEach((z, i) => { const r = zoneRect(z, D); s += `<text x="${f(r.x + D.m.l * 0.08)}" y="${f(r.y + Math.min(fsz, Math.min(D.W, D.H) / 50) * 1.2)}" fill="#111"${z.rot ? ` transform="rotate(${z.rot} ${f(r.x + r.w / 2)} ${f(r.y + r.h / 2)})"` : ''}>${z.stack} ${esc(ROLE_LABEL[z.role] || z.role)} · layer ${z.stack} · ${fmtU(r.w * k, u)} × ${fmtU(r.h * k, u)}${z.rot ? ' · ' + z.rot + '°' : ''}</text>`; });
@@ -5135,7 +5336,7 @@ function guideScaffoldSVG(st, layout) {
   return s;
 }
 
-if (typeof module !== 'undefined') module.exports = { cssScaffold, screenInfo, screenSpec, SCREEN_SYS, SYS_FOR, settleScreenPage, isScrollPage, viewportH, screenBp, screenSysId, isScreenDoc, screenAtBreakpoints, claudeDesignBrief, TYPE_MAP, SURFACE, freezeLayout, addZone, zoneGeom, ADD_DEFAULTS, STYLE_GROUPS, styleGroupOf, DOCS, DOC_ORDER, TRADS, ERA_IDS, STYLE_IDS, ALT_IDS, rollGeometry, derive, generateZones, renderSVG, specObject, specReadable, guideScaffoldSVG, resolveTradition, buildTradition, chooseArch, archWeights, mulberry32, toPt, fromPt, fmtU, roundU, UNIT_PT, UNIT_PREC, shapeFamily, RATIOS, ARCH_SHORT, ARCH_INFO, setMeasure: f => { measureWord = f; } };
+if (typeof module !== 'undefined') module.exports = { cssScaffold, screenInfo, screenSpec, SCREEN_SYS, SYS_FOR, settleScreenPage, isScrollPage, viewportH, screenBp, screenSysId, isScreenDoc, screenAtBreakpoints, claudeDesignBrief, TYPE_MAP, SURFACE, freezeLayout, addZone, zoneGeom, ADD_DEFAULTS, STYLE_GROUPS, styleGroupOf, DOCS, DOC_ORDER, TRADS, ERA_IDS, STYLE_IDS, ALT_IDS, rollGeometry, derive, generateZones, renderSVG, specObject, specReadable, guideScaffoldSVG, resolveTradition, buildTradition, chooseArch, archWeights, mulberry32, toPt, fromPt, fmtU, roundU, UNIT_PT, UNIT_PREC, shapeFamily, RATIOS, ARCH_SHORT, ARCH_INFO, convertStateUnits, stationeryStandard, bodyType, bodyCols, colX, minColPt, applyRowLock, defaultRowLock, setMeasure: f => { measureWord = f; } };
 </script>
 <script>
 /* ============ Gridder UI ============ */
@@ -5195,7 +5396,7 @@ if (typeof module !== 'undefined') module.exports = { cssScaffold, screenInfo, s
       const r = RATIOS.find(x => x[0] === val.slice(2));
       const long = Math.max(st.w, st.h);
       st.ui = null; st.frames = 1; st.vh = null;
-      if (r[1] >= r[2]) { st.w = long; st.h = roundU(long * r[2] / r[1], st.unit); } else { st.h = long; st.w = roundU(long * r[1] / r[2], st.unit); }
+      if (r[1] >= r[2]) { st.w = long; st.h = long * r[2] / r[1]; } else { st.h = long; st.w = long * r[1] / r[2]; }
     }
     st.preset = val;
   }
@@ -5257,6 +5458,7 @@ if (typeof module !== 'undefined') module.exports = { cssScaffold, screenInfo, s
     if (act !== $('g-cols')) $('g-cols').value = st.cols;
     if (act !== $('g-rows')) $('g-rows').value = st.rows;
     $('g-unit').value = u;
+    try { const T2 = layout ? buildTradition(layout.era, layout.style, layout.alt) : null; $('g-rowlock').checked = st.lockRows != null ? st.lockRows : defaultRowLock(st, T2 || {}); } catch (e) { /* toggle sync is best-effort */ }
     $('g-white').value = Math.round(st.white * 100); $('d-white').textContent = Math.round(st.white * 100) + '%';
     $('g-dist').value = st.dist;
     const D = derive(st), k = 1 / UNIT_PT[u];
@@ -5275,18 +5477,11 @@ if (typeof module !== 'undefined') module.exports = { cssScaffold, screenInfo, s
   function onGeoInput(id, p) {
     const v = parseFloat($(id).value);
     if (!isFinite(v) || v < 0 || ((p === 'w' || p === 'h') && v <= 0)) return;
-    setP(p, roundU(v, st.unit));
+    setP(p, v); // VNEXT #1: keep full input precision; rounding is display-only
     if (p === 'w' || p === 'h') { st.preset = 'custom'; buildSize(); }
     refresh(false);
   }
-  function convertUnits(nu) {
-    const ou = st.unit; if (ou === nu) return;
-    const c = v => fromPt(toPt(v, ou), nu);
-    st.w = c(st.w); st.h = c(st.h); st.bleed = c(st.bleed); st.safe = c(st.safe);
-    st.m = { t: c(st.m.t), r: c(st.m.r), b: c(st.m.b), l: c(st.m.l) };
-    st.gutter = c(st.gutter); st.rowGap = c(st.rowGap); st.baseline = c(st.baseline);
-    st.unit = nu;
-  }
+  function convertUnits(nu) { convertStateUnits(st, nu); }
 
   /* ---------- render ---------- */
   let pngTimer = null, pngBlob = null, pngUrl = null;
@@ -5325,6 +5520,7 @@ if (typeof module !== 'undefined') module.exports = { cssScaffold, screenInfo, s
   function drawPreview() {
     const svg = renderSVG(st, layout, { guides: view.guides || view.labels || ed.on, baseline: view.baseline, labels: view.labels, measure: view.labels, texture: view.texture, platform: view.platform });
     $('v-plat-l').hidden = !(st.doc === 'social' && st.ui);
+    $('v-obs-l').hidden = !(st.doc === 'social' && st.ui);
     $('sheet').innerHTML = svg;
     fitTall();
     drawSelection();
@@ -5350,6 +5546,10 @@ if (typeof module !== 'undefined') module.exports = { cssScaffold, screenInfo, s
     $('h-checks').classList.toggle('has-warn', w > 0);
     $('chk').textContent = w ? `${w} to check` : '';
     $('chk').hidden = !w;
+    // VNEXT #10: a blocked grid cannot be exported.
+    const blocked = !!spec.blocked;
+    ['h-copy-dir', 'h-copy-spec', 'h-copy-svg', 'h-copy-cd', 'h-save-cd', 'h-save-spec', 'h-copy-css', 'h-save-css', 'h-save-svg', 'h-save-png', 'h-save-png1', 'h-copy-img'].forEach(id => { const el = $(id); if (el) el.disabled = blocked; });
+    if (blocked) $('h-checks').innerHTML = `<b>Export blocked</b> · ${esc(spec.blocked)}`;
   }
   function refSVG(px) { return renderSVG(st, layout, { clean: !view.annot, guides: view.annot, baseline: false, labels: view.annot, measure: view.annot, annotate: view.annot, texture: view.texture, platform: view.platform, px }); }
   async function makePng() {
@@ -5679,6 +5879,7 @@ if (typeof module !== 'undefined') module.exports = { cssScaffold, screenInfo, s
     $('q-copy').onchange = e => { st.copy = e.target.value; refresh(false); };
     $('v-tex').onchange = e => { view.texture = e.target.checked; refresh(false); };
     $('v-plat').onchange = e => { view.platform = e.target.checked; refresh(false); };
+    $('v-obs').onchange = e => { st.uiObserved = e.target.checked; refresh(false); }; // VNEXT #12 observed overlay (unofficial)
     $('v-all').onchange = e => { const on = e.target.checked; view.guides = view.baseline = view.labels = on; $('v-guides').checked = $('v-base').checked = $('v-labels').checked = on; $('v-base').disabled = !on && !view.guides; refresh(false); };
     $('f-doc').onchange = e => {
       st.doc = e.target.value; st.sub = DOCS[st.doc].subs[0][0];
@@ -5718,6 +5919,7 @@ if (typeof module !== 'undefined') module.exports = { cssScaffold, screenInfo, s
     $('g-cols').addEventListener('change', () => { const v = parseInt($('g-cols').value, 10); if (v >= 1 && v <= 48) { st.cols = v; refresh(false); } });
     $('g-rows').addEventListener('change', () => { const v = parseInt($('g-rows').value, 10); if (v >= 1 && v <= 48) { st.rows = v; refresh(false); } });
     $('g-unit').onchange = e => { convertUnits(e.target.value); refresh(false); };
+    $('g-rowlock').onchange = e => { st.lockRows = e.target.checked; if (st.lockRows) applyRowLock(st); refresh(false); }; // VNEXT #3
     $('g-white').addEventListener('input', () => { st.white = +$('g-white').value / 100; refresh(false); });
     $('g-dist').onchange = e => { st.dist = e.target.value; refresh(false); };
     $('g-rot').onclick = () => { const w = st.w; st.w = st.h; st.h = w; st.preset = 'custom'; buildSize(); refresh(false); };
@@ -5742,6 +5944,23 @@ if (typeof module !== 'undefined') module.exports = { cssScaffold, screenInfo, s
     $('h-save-css').onclick = () => save(fileBase() + '-grid.' + (window.claude ? 'txt' : 'css'), cssTxt);
     $('h-save-svg').onclick = () => save(fileBase() + '-guides.svg', guideScaffoldSVG(st, layout));
     $('h-save-png').onclick = async () => { if (!pngBlob) await makePng(); if (pngBlob) save(fileBase() + (view.annot ? '-annotated' : '') + '.png', pngBlob); };
+    // VNEXT P3: 1:1 artboard PNG (artboard pixel size at 96 ppi), not just the 1800 px reference.
+    $('h-save-png1').onclick = async () => {
+      try {
+        const D = derive(st);
+        const px = Math.max(1, Math.round(D.W / 0.75));
+        const url = URL.createObjectURL(new Blob([refSVG(px)], { type: 'image/svg+xml' }));
+        const img = new Image();
+        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+        const cv = document.createElement('canvas');
+        cv.width = img.naturalWidth || px; cv.height = img.naturalHeight || Math.round(px * D.H / D.W);
+        const c2 = cv.getContext('2d'); c2.fillStyle = '#ffffff'; c2.fillRect(0, 0, cv.width, cv.height);
+        c2.drawImage(img, 0, 0, cv.width, cv.height);
+        URL.revokeObjectURL(url);
+        const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+        if (blob) save(fileBase() + '-1to1.png', blob);
+      } catch (e) { /* the standard PNG path remains available */ }
+    };
     $('h-copy-img').onclick = () => {
       try {
         if (!pngBlob || !window.ClipboardItem) throw new Error('no');
