@@ -4,6 +4,15 @@ import { useEffect, useState } from "react";
 
 const slides = [
   {
+    id: "palette-pal",
+    kicker: "Creative tool · Color studio",
+    title: "Palette Pal",
+    body: "Explore RYB and RGB color harmonies, refine a palette, then export swatches or a printable reference sheet.",
+    image: "/work/tools/palette-pal-carousel.png",
+    imageAlt: "Palette Pal color studio showing starting-color controls, hue and tint swatches, and a triadic color palette.",
+    href: "/palettepal/",
+  },
+  {
     id: "make-a-monster",
     kicker: "Adobe Firefly Ambassador · AI workflow",
     title: "Make a Monster",
@@ -38,15 +47,6 @@ const slides = [
     image: "/work/ambassador/art-direction-cover.jpg",
     imageAlt: "A seated woman in a pale gown, the final portrait art-directed from a Technicolor Fantastique mood board.",
     href: "/work#technicolor-fantastique",
-  },
-  {
-    id: "palette-pal",
-    kicker: "Creative tool · Color studio",
-    title: "Palette Pal",
-    body: "Explore RYB and RGB color harmonies, refine a palette, then export swatches or a printable reference sheet.",
-    image: "/work/tools/palette-pal-carousel.png",
-    imageAlt: "Palette Pal color studio showing starting-color controls, hue and tint swatches, and a triadic color palette.",
-    href: "/palettepal/",
   },
   {
     id: "gridder",
