@@ -11,6 +11,7 @@ const navItems: Array<{ key: PageKey; label: string; href: string }> = [
 ];
 
 export const externalLinks = {
+  substack: "https://dthedesigner.substack.com",
   instagram: "https://instagram.com/the_designer_called_d",
   x: "https://x.com/D_the_Designer",
   github: "https://github.com/D-the-Designer",
@@ -25,6 +26,7 @@ export function SiteShell({ current, children }: { current: PageKey; children: R
         <a className="portfolio-logo" href="/" aria-label="D the Designer home" aria-current={current === "home" ? "page" : undefined}>D the Designer</a>
         <nav aria-label="Primary navigation">
           {navItems.map((item) => <a key={item.key} className={current === item.key ? "is-current" : ""} href={item.href} aria-current={current === item.key ? "page" : undefined}>{item.label}</a>)}
+          <a href={externalLinks.substack} target="_blank" rel="noopener noreferrer">Substack</a>
         </nav>
       </header>
       {children}
