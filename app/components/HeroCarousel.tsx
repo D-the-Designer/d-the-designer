@@ -39,6 +39,24 @@ const slides = [
     imageAlt: "A seated woman in a pale gown, the final portrait art-directed from a Technicolor Fantastique mood board.",
     href: "/work#technicolor-fantastique",
   },
+  {
+    id: "palette-pal",
+    kicker: "Creative tool · Color studio",
+    title: "Palette Pal",
+    body: "Explore RYB and RGB color harmonies, refine a palette, then export swatches or a printable reference sheet.",
+    image: "/work/tools/palette-pal-carousel.png",
+    imageAlt: "Palette Pal color studio showing starting-color controls, hue and tint swatches, and a triadic color palette.",
+    href: "/palettepal/",
+  },
+  {
+    id: "gridder",
+    kicker: "Creative tool · Layout exploration",
+    title: "Gridder",
+    body: "Explore layout directions across document types and styles, tune the grid, and export a measured handoff for production.",
+    image: "/work/tools/gridder-carousel.png",
+    imageAlt: "Gridder layout tool showing poster controls, a measured grid preview, and geometry settings.",
+    href: "/gridder/",
+  },
 ];
 
 export function HeroCarousel() {
