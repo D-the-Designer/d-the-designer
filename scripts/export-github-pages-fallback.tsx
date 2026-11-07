@@ -85,8 +85,13 @@ const carouselScript = `
 })();
 </script>`;
 
+const SITE_URL = "https://d-the-designer.com";
+const OG_IMAGE = `${SITE_URL}/og.png`;
+const OG_IMAGE_ALT = "Specimen 7-B — a creature turned into a product and merch brand system by D The Designer.";
+
 function documentFor(page: (typeof pages)[number], body: string) {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${page.title}</title><meta name="description" content="${page.description}"><link rel="icon" href="/favicon.svg?v=2"><link rel="stylesheet" href="https://use.typekit.net/uam7agz.css"><style>${css}</style></head><body>${body}${carouselScript}</body></html>`;
+  const pageUrl = page.path === "/" ? `${SITE_URL}/` : `${SITE_URL}${page.path}`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${page.title}</title><meta name="description" content="${page.description}"><link rel="canonical" href="${pageUrl}"><meta property="og:type" content="website"><meta property="og:site_name" content="D The Designer"><meta property="og:title" content="${page.title}"><meta property="og:description" content="${page.description}"><meta property="og:url" content="${pageUrl}"><meta property="og:image" content="${OG_IMAGE}"><meta property="og:image:width" content="1536"><meta property="og:image:height" content="1024"><meta property="og:image:alt" content="${OG_IMAGE_ALT}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="@D_the_Designer"><meta name="twitter:title" content="${page.title}"><meta name="twitter:description" content="${page.description}"><meta name="twitter:image" content="${OG_IMAGE}"><meta name="twitter:image:alt" content="${OG_IMAGE_ALT}"><link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml"><link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png"><link rel="shortcut icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest"><meta name="theme-color" content="#000000"><link rel="stylesheet" href="https://use.typekit.net/uam7agz.css"><style>${css}</style></head><body>${body}${carouselScript}</body></html>`;
 }
 
 await rm(root, { recursive: true, force: true });
