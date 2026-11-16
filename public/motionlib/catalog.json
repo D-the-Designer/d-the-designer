@@ -1,0 +1,312 @@
+[
+  {
+    "id": "arms-spread-lean",
+    "title": "Arms spread, leaning into the wind",
+    "summary": "Both arms spread wide, chest leans forward, face turns up — pure open-air elation.",
+    "category": "gesture",
+    "tags": {
+      "body_region": [
+        "full-body",
+        "upper-body"
+      ],
+      "emotion": [
+        "joy",
+        "awe"
+      ],
+      "action": [
+        "lean"
+      ],
+      "energy": "medium"
+    },
+    "aliases": [
+      "bow spread",
+      "arms wide pose",
+      "flying pose"
+    ],
+    "inspiration": {
+      "label": "Inspired by a famous ship's-bow moment in a 1997 romance",
+      "genre": "drama",
+      "decade": "1990s"
+    },
+    "timing": {
+      "duration_s": 2.4,
+      "fps": 30
+    },
+    "poster": {
+      "src": "arms-spread-lean/arms-spread-lean_poster.webp",
+      "width": 800,
+      "height": 450,
+      "bytes": 1334
+    },
+    "previewSrc": "arms-spread-lean/arms-spread-lean_preview.mp4",
+    "masterSrc": "arms-spread-lean/arms-spread-lean_previs.mp4",
+    "source": "original",
+    "sourceFilm": null,
+    "sourceYear": null,
+    "treatments": [
+      "front"
+    ],
+    "has": {
+      "gif": true
+    },
+    "added": "2026-11-16"
+  },
+  {
+    "id": "head-back-scream",
+    "title": "Head-back scream, hands up",
+    "summary": "Head snaps back, mouth opens wide, both hands fly up beside the head — a full silent scream, with a shake.",
+    "category": "reaction",
+    "tags": {
+      "body_region": [
+        "face",
+        "head-neck",
+        "upper-body"
+      ],
+      "emotion": [
+        "fear"
+      ],
+      "action": [
+        "scream"
+      ],
+      "energy": "high"
+    },
+    "aliases": [
+      "shower scream",
+      "silent scream"
+    ],
+    "inspiration": {
+      "label": "Inspired by a famous shower-scene scream in a 1960 thriller",
+      "genre": "horror",
+      "decade": "1960s"
+    },
+    "timing": {
+      "duration_s": 2.4,
+      "fps": 30
+    },
+    "poster": {
+      "src": "head-back-scream/head-back-scream_poster.webp",
+      "width": 800,
+      "height": 450,
+      "bytes": 1708
+    },
+    "previewSrc": "head-back-scream/head-back-scream_preview.mp4",
+    "masterSrc": "head-back-scream/head-back-scream_previs.mp4",
+    "source": "original",
+    "sourceFilm": null,
+    "sourceYear": null,
+    "treatments": [
+      "front"
+    ],
+    "has": {
+      "gif": true
+    },
+    "added": "2026-11-16"
+  },
+  {
+    "id": "lean-back-dodge",
+    "title": "Lean-back dodge",
+    "summary": "Full-body lean-back dodge — the spine arcs away, knees bend, arms trail, and the head stays locked on camera.",
+    "category": "signature-move",
+    "tags": {
+      "body_region": [
+        "full-body"
+      ],
+      "emotion": [
+        "awe"
+      ],
+      "action": [
+        "dodge",
+        "lean"
+      ],
+      "energy": "high"
+    },
+    "aliases": [
+      "bullet dodge",
+      "bullet-time lean",
+      "slow-motion dodge"
+    ],
+    "inspiration": {
+      "label": "Inspired by a famous bullet-dodge in a 1999 sci-fi film",
+      "genre": "sci-fi",
+      "decade": "1990s"
+    },
+    "timing": {
+      "duration_s": 2.4,
+      "fps": 30
+    },
+    "poster": {
+      "src": "lean-back-dodge/lean-back-dodge_poster.webp",
+      "width": 800,
+      "height": 450,
+      "bytes": 1554
+    },
+    "previewSrc": "lean-back-dodge/lean-back-dodge_preview.mp4",
+    "masterSrc": "lean-back-dodge/lean-back-dodge_previs.mp4",
+    "source": "original",
+    "sourceFilm": null,
+    "sourceYear": null,
+    "treatments": [
+      "front"
+    ],
+    "has": {
+      "gif": true
+    },
+    "added": "2026-11-16"
+  },
+  {
+    "id": "slow-turn-reveal",
+    "title": "Slow head-turn reveal",
+    "summary": "The head turns slowly from profile to face the camera — and the brows drop as the stare lands.",
+    "category": "head-turn",
+    "tags": {
+      "body_region": [
+        "head-neck",
+        "face"
+      ],
+      "emotion": [
+        "menace"
+      ],
+      "action": [
+        "slow-turn",
+        "stare"
+      ],
+      "energy": "low"
+    },
+    "aliases": [
+      "slow turn",
+      "horror reveal turn"
+    ],
+    "inspiration": {
+      "label": "Inspired by a classic horror slow-turn reveal",
+      "genre": "horror",
+      "decade": null
+    },
+    "timing": {
+      "duration_s": 2.4,
+      "fps": 30
+    },
+    "poster": {
+      "src": "slow-turn-reveal/slow-turn-reveal_poster.webp",
+      "width": 800,
+      "height": 450,
+      "bytes": 1818
+    },
+    "previewSrc": "slow-turn-reveal/slow-turn-reveal_preview.mp4",
+    "masterSrc": "slow-turn-reveal/slow-turn-reveal_previs.mp4",
+    "source": "original",
+    "sourceFilm": null,
+    "sourceYear": null,
+    "treatments": [
+      "front"
+    ],
+    "has": {
+      "gif": true
+    },
+    "added": "2026-11-16"
+  },
+  {
+    "id": "through-the-gap-grin",
+    "title": "Through-the-gap manic grin",
+    "summary": "Head pushes in close, eyebrows spike, a wide manic grin lands — then the nod.",
+    "category": "expression",
+    "tags": {
+      "body_region": [
+        "face",
+        "head-neck"
+      ],
+      "emotion": [
+        "menace",
+        "manic"
+      ],
+      "action": [
+        "peek",
+        "grin",
+        "nod"
+      ],
+      "energy": "high"
+    },
+    "aliases": [
+      "door grin",
+      "face through door",
+      "manic peek"
+    ],
+    "inspiration": {
+      "label": "Inspired by a famous door scene in a 1980 horror film",
+      "genre": "horror",
+      "decade": "1980s"
+    },
+    "timing": {
+      "duration_s": 2.4,
+      "fps": 30
+    },
+    "poster": {
+      "src": "through-the-gap-grin/through-the-gap-grin_poster.webp",
+      "width": 800,
+      "height": 450,
+      "bytes": 2642
+    },
+    "previewSrc": "through-the-gap-grin/through-the-gap-grin_preview.mp4",
+    "masterSrc": "through-the-gap-grin/through-the-gap-grin_previs.mp4",
+    "source": "original",
+    "sourceFilm": null,
+    "sourceYear": null,
+    "treatments": [
+      "front"
+    ],
+    "has": {
+      "gif": true
+    },
+    "added": "2026-11-16"
+  },
+  {
+    "id": "thumbs-up-sink",
+    "title": "Thumbs-up, sinking",
+    "summary": "One arm rises in a firm thumbs-up — then the whole figure sinks steadily away, the hand the last thing to fall.",
+    "category": "gesture",
+    "tags": {
+      "body_region": [
+        "hands",
+        "upper-body"
+      ],
+      "emotion": [
+        "resolve",
+        "grief"
+      ],
+      "action": [
+        "thumbs-up"
+      ],
+      "energy": "low"
+    },
+    "aliases": [
+      "sinking thumbs up",
+      "molten farewell"
+    ],
+    "inspiration": {
+      "label": "Inspired by a famous molten-metal farewell in a 1991 sci-fi film",
+      "genre": "sci-fi",
+      "decade": "1990s"
+    },
+    "timing": {
+      "duration_s": 2.4,
+      "fps": 30
+    },
+    "poster": {
+      "src": "thumbs-up-sink/thumbs-up-sink_poster.webp",
+      "width": 800,
+      "height": 450,
+      "bytes": 1308
+    },
+    "previewSrc": "thumbs-up-sink/thumbs-up-sink_preview.mp4",
+    "masterSrc": "thumbs-up-sink/thumbs-up-sink_previs.mp4",
+    "source": "original",
+    "sourceFilm": null,
+    "sourceYear": null,
+    "treatments": [
+      "front"
+    ],
+    "has": {
+      "gif": true
+    },
+    "added": "2026-11-16"
+  }
+]

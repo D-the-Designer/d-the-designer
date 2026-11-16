@@ -1,0 +1,99 @@
+{
+  "_note": "Controlled vocabulary. The build script must reject any record that uses a value not listed here. Add values here first, then use them. Keys are stored in records; labels are displayed.",
+  "category": {
+    "expression": "Expression",
+    "head-turn": "Head turn",
+    "gesture": "Gesture",
+    "reaction": "Reaction",
+    "signature-move": "Signature move",
+    "locomotion": "Walks & runs",
+    "stunt": "Stunt & action",
+    "scene": "Scene"
+  },
+  "body_region": {
+    "face": "Face",
+    "head-neck": "Head & neck",
+    "hands": "Hands",
+    "upper-body": "Upper body",
+    "full-body": "Full body"
+  },
+  "emotion": {
+    "menace": "Menace",
+    "rage": "Rage",
+    "fear": "Fear",
+    "shock": "Shock",
+    "joy": "Joy",
+    "smug": "Smug",
+    "contempt": "Contempt",
+    "grief": "Grief",
+    "deadpan": "Deadpan",
+    "awe": "Awe",
+    "suspicion": "Suspicion",
+    "resolve": "Resolve",
+    "manic": "Manic"
+  },
+  "action": {
+    "lean": "Lean",
+    "dodge": "Dodge",
+    "point": "Point",
+    "peek": "Peek",
+    "burst-in": "Burst in",
+    "slow-turn": "Slow turn",
+    "double-take": "Double take",
+    "stare": "Stare",
+    "grin": "Grin",
+    "scream": "Scream",
+    "collapse": "Collapse",
+    "salute": "Salute",
+    "shrug": "Shrug",
+    "strut": "Strut",
+    "kick": "Kick",
+    "punch": "Punch",
+    "draw": "Draw (weapon)",
+    "fall": "Fall",
+    "jump": "Jump",
+    "chase": "Chase",
+    "run": "Run",
+    "nod": "Nod",
+    "headshake": "Headshake",
+    "wave": "Wave",
+    "thumbs-up": "Thumbs-up"
+  },
+  "treatment": {
+    "_note": "Camera treatments for original performances — a fixed set of named procedural camera rigs rendered at production time (product definition, README.md). Every original is rendered through the same set; the user picks a variant, never a free camera.",
+    "front": "Front",
+    "push-in": "Push-in",
+    "arc": "Arc",
+    "profile": "Profile",
+    "low": "Low",
+    "three-quarter": "Three-quarter"
+  },
+  "energy": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High"
+  },
+  "genre": {
+    "horror": "Horror",
+    "sci-fi": "Sci-fi",
+    "action": "Action",
+    "comedy": "Comedy",
+    "drama": "Drama",
+    "western": "Western",
+    "noir": "Noir",
+    "musical": "Musical",
+    "martial-arts": "Martial arts",
+    "silent": "Silent era"
+  },
+  "angle": {
+    "front": "Front",
+    "three-quarter-left": "3/4 left",
+    "three-quarter-right": "3/4 right",
+    "profile-left": "Profile left",
+    "profile-right": "Profile right",
+    "back-three-quarter": "Back 3/4",
+    "low": "Low angle",
+    "high": "High angle",
+    "top": "Top-down"
+  }
+}
