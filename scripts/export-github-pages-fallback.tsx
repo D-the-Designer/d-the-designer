@@ -17,12 +17,12 @@ const css = cssSource
   .replace(/@theme inline \{[^}]+\}\s*/m, "");
 
 const pages = [
-  { path: "/", title: "D The Designer — Design + AI systems", description: "Design Technologist and Visual Systems Designer building visual systems and AI-assisted creative workflows." , Component: HomePage },
-  { path: "/work", title: "Work — D The Designer", description: "Selected case studies and shipped tools from D The Designer.", Component: WorkPage },
-  { path: "/freebies", title: "Freebies — D The Designer", description: "Free tools, GPTs, and downloads from D The Designer.", Component: FreebiesPage },
-  { path: "/about", title: "About — D The Designer", description: "About D the Designer, a Design Technologist and Visual Systems Designer.", Component: AboutPage },
-  { path: "/contact", title: "Contact — D The Designer", description: "Hire or contact D the Designer, a Design Technologist and Visual Systems Designer.", Component: ContactPage },
-  { path: "/support", title: "Support — D The Designer", description: "Support D the Designer's independent creative tools and visual work.", Component: SupportPage },
+  { path: "/", title: "D The Designer | Design + AI systems", description: "Design Technologist and Visual Systems Designer building visual systems and AI-assisted creative workflows." , Component: HomePage },
+  { path: "/work", title: "Work | D The Designer", description: "Selected case studies and shipped tools from D The Designer.", Component: WorkPage },
+  { path: "/freebies", title: "Freebies | D The Designer", description: "Free tools, GPTs, and downloads from D The Designer.", Component: FreebiesPage },
+  { path: "/about", title: "About | D The Designer", description: "About D the Designer, a Design Technologist and Visual Systems Designer.", Component: AboutPage },
+  { path: "/contact", title: "Contact | D The Designer", description: "Hire or contact D the Designer, a Design Technologist and Visual Systems Designer.", Component: ContactPage },
+  { path: "/support", title: "Support | D The Designer", description: "Support D the Designer's independent creative tools and visual work.", Component: SupportPage },
   { path: "/tools", title: toolsMetadata.title, description: toolsMetadata.description, Component: ToolsPage },
 ] as const;
 
@@ -87,7 +87,7 @@ const carouselScript = `
 
 const SITE_URL = "https://d-the-designer.com";
 const OG_IMAGE = `${SITE_URL}/og.png`;
-const OG_IMAGE_ALT = "Specimen 7-B — a creature turned into a product and merch brand system by D The Designer.";
+const OG_IMAGE_ALT = "Specimen 7-B: a creature turned into a product and merch brand system by D The Designer.";
 
 function documentFor(page: (typeof pages)[number], body: string) {
   const pageUrl = page.path === "/" ? `${SITE_URL}/` : `${SITE_URL}${page.path}`;

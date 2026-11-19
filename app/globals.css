@@ -138,3 +138,47 @@ a:focus-visible,button:focus-visible { outline:3px solid var(--hover); outline-o
   .hero-slide-title { margin-bottom:12px!important; font-size:calc(clamp(27px,8vw,38px) - 4pt)!important; }
   .carousel-dots button { width:24px; height:24px; }
 }
+
+/* Audit fixes, 2026-11-19: sideways scroll at 320px, tap targets under 44px on phones.
+   Cause of the scroll: the carousel controls row (toggle + arrows + six dots) was wider
+   than a 320px screen and centered, so it pushed 9px past the right edge. */
+@media (max-width:720px) {
+  /* Every standalone link and button gets a 44px tap box. The visible dot, arrow
+     glyph and text keep their existing size; only the hit area grows. */
+  .portfolio-logo,
+  .portfolio-nav nav a,
+  .subpage-heading > a,
+  .section-heading .arrow-link,
+  .card-links a,
+  .freebie-card > a,
+  .case-study-secondary,
+  .footer-pages a,
+  .footer-socials a,
+  .elsewhere a,
+  .hero-slide-link,
+  .small-primary,
+  .primary-button,
+  .secondary-button,
+  .contact-paths a,
+  .shop-shopping-link a,
+  .carousel-toggle { min-width:44px; min-height:44px; }
+  .small-primary,
+  .primary-button,
+  .secondary-button,
+  .contact-paths a,
+  .shop-shopping-link a { display:inline-flex; align-items:center; justify-content:center; }
+  .footer-pages a,
+  .footer-socials a { justify-content:center; }
+  .carousel-arrow { flex:0 0 44px; width:44px; height:44px; }
+  .carousel-dots button { flex:0 0 44px; width:44px; min-width:44px; height:44px; }
+  /* Controls wrap into two rows: toggle and arrows on the first row, the six
+     44px dots on their own centered row (6 x 44px = 264px, inside a 320px screen). */
+  .carousel-controls { flex-wrap:wrap; }
+  .carousel-toggle { order:1; }
+  .carousel-arrow.previous { order:2; }
+  .carousel-arrow.next { order:3; }
+  .carousel-dots { order:4; flex:1 1 100%; justify-content:center; gap:0; }
+  /* Card grids may shrink below their desktop minimum column width on phones. */
+  .featured-grid,
+  .freebie-grid { grid-template-columns:minmax(0,1fr); }
+}

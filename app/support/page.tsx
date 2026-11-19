@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PageFrame, SiteShell } from "../components/SiteShell";
 
 export const metadata: Metadata = {
-  title: "Support — D The Designer",
+  title: "Support | D The Designer",
   description: "Support D the Designer's independent creative tools and visual work.",
 };
 

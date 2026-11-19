@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PageFrame, SiteShell, externalLinks } from "../components/SiteShell";
 
 export const metadata: Metadata = {
-  title: "Work — D The Designer",
+  title: "Work | D The Designer",
   description: "Adobe Firefly Ambassador case studies, creative workflows, and selected design technology work by D The Designer.",
 };
 
@@ -49,7 +49,7 @@ const ambassadorProjects: Project[] = [
   },
   {
     id: "specimen-7b",
-    title: "Specimen 7-B — Product + Merch System",
+    title: "Specimen 7-B: Product + Merch System",
     category: "Generative brand system · Output evaluation · #Ad",
     role: "Brand direction, product exploration, and output curation",
     problem: "How do you move from one creature image to a recognizable, repeatable product and merchandise world?",

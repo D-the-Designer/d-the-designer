@@ -26,7 +26,7 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1536,
         height: 1024,
-        alt: "Specimen 7-B — a creature turned into a product and merch brand system by D The Designer.",
+        alt: "Specimen 7-B: a creature turned into a product and merch brand system by D The Designer.",
       },
     ],
   },

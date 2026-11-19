@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PageFrame, SiteShell } from "../components/SiteShell";
 
 export const metadata: Metadata = {
-  title: "Tools I Use — D The Designer",
+  title: "Tools I Use | D The Designer",
   description: "The tools behind Orphan Sky, from voices and music to motion, key frames, talking characters, and finishing.",
 };
 
